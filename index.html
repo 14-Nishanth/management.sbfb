@@ -49,17 +49,54 @@
           <div class="card-head">
             <div>
               <h2>Company details & Logo</h2>
-              <p>Company details appear on your quotations. Logo is auto-created from company name or custom letters.</p>
+              <p>Configure company details and logo. Custom letters or uploaded images display live on your quotation.</p>
             </div>
             <button type="button" class="btn small outline" id="saveCompanyDefaultBtn" title="Save company details to cloud as default">
               💾 Save Default
             </button>
           </div>
-          <div class="grid two">
+
+          <div class="company-logo-config-bar">
+            <div class="logo-preview-box">
+              <div id="settingsLogoWrap">
+                <div class="company-logo" id="settingsLogoPreview">SBFB</div>
+              </div>
+              <div class="logo-preview-meta">
+                <strong>Live Logo Preview</strong>
+                <span>Updates in real-time as you type name or letters</span>
+              </div>
+            </div>
+            <div class="logo-type-options">
+              <label style="margin:0;font-size:11px;font-weight:700;color:#64748b;">Logo Type:
+                <select id="logoModeSelect" style="padding:5px 8px;font-size:11px;font-weight:600;margin-top:2px;">
+                  <option value="text">🔤 Monogram / Text</option>
+                  <option value="image">🖼️ Image / File Upload</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div class="grid two" style="margin-top:14px;">
             <label>Company name<input id="companyName" value="Sri Balamurugan Fly Ash Bricks & Roadwork" /></label>
-            <label>Logo Letters / Monogram <span style="font-size:10px;color:#94a3b8;font-weight:400">(Optional — auto-created from name if blank)</span>
-              <input id="companyLogoText" placeholder="e.g. SBFB, NC (or leave blank to auto-create)" maxlength="6" style="text-transform:uppercase;" />
-            </label>
+            
+            <div id="textLogoGroup">
+              <label>Logo Letters (Monogram) <span style="font-size:10px;color:#94a3b8;font-weight:400">(e.g. SBFB, NC, RK — or leave blank)</span>
+                <input id="companyLogoText" placeholder="e.g. SBFB (Leave blank to auto-create from name)" maxlength="8" style="text-transform:uppercase;font-weight:700;" />
+              </label>
+            </div>
+
+            <div id="imageLogoGroup" class="hidden">
+              <label>Logo Image URL / Upload
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <input id="companyLogoImgUrl" placeholder="Image URL or choose file..." style="flex:1;" />
+                  <label class="btn small" style="cursor:pointer;white-space:nowrap;margin:0;padding:8px 10px;font-size:11px;">
+                    📁 Browse
+                    <input type="file" id="logoFileInput" accept="image/*" style="display:none;" />
+                  </label>
+                </div>
+              </label>
+            </div>
+
             <label>Phone<input id="companyPhone" value="+91 98765 43210" /></label>
             <label>Email<input id="companyEmail" value="info@sbfb.com" /></label>
             <label>GSTIN / Tax ID<input id="companyGst" placeholder="e.g. 33AAAAA0000A1Z5" /></label>
@@ -150,7 +187,9 @@
         <article class="quotation" id="quotationPreview">
           <div class="quote-header">
             <div>
-              <div class="company-logo" id="pCompanyLogo">SBFB</div>
+              <div id="pCompanyLogoWrap">
+                <div class="company-logo" id="pCompanyLogo">SBFB</div>
+              </div>
               <div>
                 <h2 id="pCompanyName">Sri Balamurugan Fly Ash Bricks & Roadwork</h2>
                 <p id="pCompanyAddress">Tamil Nadu, India</p>

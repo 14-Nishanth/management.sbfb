@@ -2,7 +2,7 @@ const $ = id => document.getElementById(id);
 
 // Quotation fields (Quotation Number is optional and stays blank if omitted)
 const fields = [
-  'quoteNo', 'companyName', 'companyLogoText', 'companyPhone', 'companyEmail', 'companyGst', 'companyAddress',
+  'quoteNo', 'companyName', 'logoModeSelect', 'companyLogoText', 'companyLogoImgUrl', 'companyPhone', 'companyEmail', 'companyGst', 'companyAddress',
   'clientName', 'clientContact', 'clientPhone', 'quoteDate', 'projectName', 'siteLocation',
   'gstRate', 'discount', 'validity', 'paymentTerms', 'notes'
 ];
@@ -359,6 +359,77 @@ function val(id) {
   return $(id) ? $(id).value : '';
 }
 
+function adjustLogoFontSize(el, text) {
+  if (!el || !text) return;
+  if (text.length >= 5) {
+    el.style.fontSize = '10px';
+  } else if (text.length === 4) {
+    el.style.fontSize = '12px';
+  } else if (text.length === 3) {
+    el.style.fontSize = '14px';
+  } else {
+    el.style.fontSize = '15px';
+  }
+}
+
+function updateLogo() {
+  const compName = (val('companyName') || 'Sri Balamurugan Fly Ash Bricks & Roadwork').trim();
+  const mode = val('logoModeSelect') || 'text';
+  const customLogoText = ($('companyLogoText') ? $('companyLogoText').value : '').trim();
+  const imgUrl = ($('companyLogoImgUrl') ? $('companyLogoImgUrl').value : '').trim();
+
+  // Toggle editor UI fields based on mode
+  if (mode === 'image') {
+    if ($('imageLogoGroup')) $('imageLogoGroup').classList.remove('hidden');
+    if ($('textLogoGroup')) $('textLogoGroup').classList.add('hidden');
+  } else {
+    if ($('imageLogoGroup')) $('imageLogoGroup').classList.add('hidden');
+    if ($('textLogoGroup')) $('textLogoGroup').classList.remove('hidden');
+  }
+
+  const monogram = generateMonogram(compName, customLogoText);
+
+  // 1. Settings Card Live Preview
+  const settingsLogoWrap = $('settingsLogoWrap');
+  if (settingsLogoWrap) {
+    if (mode === 'image' && imgUrl) {
+      settingsLogoWrap.innerHTML = `<img src="${esc(imgUrl)}" class="company-logo-img" alt="Logo" onerror="this.src='';this.alt='Invalid Image';" />`;
+    } else {
+      settingsLogoWrap.innerHTML = `<div class="company-logo" id="settingsLogoPreview">${esc(monogram)}</div>`;
+      const sLogo = $('settingsLogoPreview');
+      if (sLogo) adjustLogoFontSize(sLogo, monogram);
+    }
+  }
+
+  // 2. Printable Quotation Header Preview
+  const pLogoWrap = $('pCompanyLogoWrap');
+  if (pLogoWrap) {
+    if (mode === 'image' && imgUrl) {
+      pLogoWrap.innerHTML = `<img src="${esc(imgUrl)}" class="company-logo-img" alt="Logo" />`;
+    } else {
+      pLogoWrap.innerHTML = `<div class="company-logo" id="pCompanyLogo">${esc(monogram)}</div>`;
+      const pLogo = $('pCompanyLogo');
+      if (pLogo) adjustLogoFontSize(pLogo, monogram);
+    }
+  }
+
+  // 3. Topbar Brand
+  const topBrandMark = $('topBrandMark');
+  if (topBrandMark) {
+    if (mode === 'image' && imgUrl) {
+      topBrandMark.innerHTML = `<img src="${esc(imgUrl)}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" alt="Logo" />`;
+    } else {
+      topBrandMark.textContent = monogram;
+    }
+  }
+
+  const topBrandTitle = $('topBrandTitle');
+  if (topBrandTitle) {
+    const firstWord = compName.split(/\s+/)[0] || 'SBFB';
+    topBrandTitle.textContent = `${firstWord} Management`;
+  }
+}
+
 /* --- Live Preview & Calculations --- */
 function updatePreview() {
   const quoteDate = val('quoteDate') || today();
@@ -380,33 +451,7 @@ function updatePreview() {
   }
 
   const compName = (val('companyName') || 'Sri Balamurugan Fly Ash Bricks & Roadwork').trim();
-  const customLogo = $('companyLogoText') ? $('companyLogoText').value.trim() : '';
-  const monogram = generateMonogram(compName, customLogo);
-
-  const pCompanyLogo = $('pCompanyLogo');
-  if (pCompanyLogo) {
-    pCompanyLogo.textContent = monogram;
-    if (monogram.length >= 5) {
-      pCompanyLogo.style.fontSize = '11px';
-    } else if (monogram.length === 4) {
-      pCompanyLogo.style.fontSize = '12px';
-    } else if (monogram.length === 3) {
-      pCompanyLogo.style.fontSize = '14px';
-    } else {
-      pCompanyLogo.style.fontSize = '16px';
-    }
-  }
-
-  const topBrandMark = $('topBrandMark');
-  if (topBrandMark) {
-    topBrandMark.textContent = monogram;
-  }
-
-  const topBrandTitle = $('topBrandTitle');
-  if (topBrandTitle) {
-    const firstWord = compName.split(/\s+/)[0] || 'SBFB';
-    topBrandTitle.textContent = `${firstWord} Management`;
-  }
+  updateLogo();
 
   $('pCompanyName').textContent = compName;
   $('pCompanyName2').textContent = compName;
@@ -537,7 +582,9 @@ function initSupabase() {
 async function saveCompanyDefaults() {
   const companyData = {
     company_name: val('companyName'),
+    logo_mode: val('logoModeSelect') || 'text',
     company_logo_text: val('companyLogoText'),
+    company_logo_img: val('companyLogoImgUrl'),
     company_phone: val('companyPhone'),
     company_email: val('companyEmail'),
     company_gst: val('companyGst'),
@@ -571,15 +618,15 @@ async function loadCompanyDefaults() {
     try {
       const { data, error } = await supabaseClient.from('company_settings').select('*').eq('id', 'default').single();
       if (!error && data) {
-        if (!$('companyName').value || $('companyName').value === 'Your Roadwork Company') {
-          if (data.company_name) $('companyName').value = data.company_name;
-          if (data.company_logo_text != null) $('companyLogoText').value = data.company_logo_text;
-          if (data.company_phone) $('companyPhone').value = data.company_phone;
-          if (data.company_email) $('companyEmail').value = data.company_email;
-          if (data.company_gst) $('companyGst').value = data.company_gst;
-          if (data.company_address) $('companyAddress').value = data.company_address;
-          updatePreview();
-        }
+        if (data.company_name) $('companyName').value = data.company_name;
+        if (data.logo_mode) $('logoModeSelect').value = data.logo_mode;
+        if (data.company_logo_text != null) $('companyLogoText').value = data.company_logo_text;
+        if (data.company_logo_img != null) $('companyLogoImgUrl').value = data.company_logo_img;
+        if (data.company_phone) $('companyPhone').value = data.company_phone;
+        if (data.company_email) $('companyEmail').value = data.company_email;
+        if (data.company_gst) $('companyGst').value = data.company_gst;
+        if (data.company_address) $('companyAddress').value = data.company_address;
+        updatePreview();
         return;
       }
     } catch {}
@@ -590,7 +637,9 @@ async function loadCompanyDefaults() {
     const local = JSON.parse(localStorage.getItem(companyDefaultsKey) || 'null');
     if (local) {
       if (local.company_name) $('companyName').value = local.company_name;
+      if (local.logo_mode) $('logoModeSelect').value = local.logo_mode;
       if (local.company_logo_text != null) $('companyLogoText').value = local.company_logo_text;
+      if (local.company_logo_img != null) $('companyLogoImgUrl').value = local.company_logo_img;
       if (local.company_phone) $('companyPhone').value = local.company_phone;
       if (local.company_email) $('companyEmail').value = local.company_email;
       if (local.company_gst) $('companyGst').value = local.company_gst;
@@ -618,7 +667,9 @@ async function saveQuotationToCloud() {
     quote_no: (val('quoteNo') || '').trim() || null,
     quote_date: val('quoteDate') || today(),
     company_name: val('companyName'),
+    logo_mode: val('logoModeSelect') || 'text',
     company_logo_text: val('companyLogoText'),
+    company_logo_img: val('companyLogoImgUrl'),
     company_phone: val('companyPhone'),
     company_email: val('companyEmail'),
     company_gst: val('companyGst'),
@@ -759,7 +810,9 @@ function loadQuotationById(id) {
   $('quoteNo').value = q.quote_no || q.quoteNo || '';
   $('quoteDate').value = q.quote_date || today();
   $('companyName').value = q.company_name || 'Sri Balamurugan Fly Ash Bricks & Roadwork';
-  $('companyLogoText').value = q.company_logo_text || '';
+  if ($('logoModeSelect')) $('logoModeSelect').value = q.logo_mode || 'text';
+  if ($('companyLogoText')) $('companyLogoText').value = q.company_logo_text || '';
+  if ($('companyLogoImgUrl')) $('companyLogoImgUrl').value = q.company_logo_img || '';
   $('companyPhone').value = q.company_phone || '';
   $('companyEmail').value = q.company_email || '';
   $('companyGst').value = q.company_gst || '';
@@ -831,6 +884,35 @@ const companyNameInput = $('companyName');
 if (companyNameInput) {
   ['input', 'keyup', 'change', 'paste'].forEach(evt => {
     companyNameInput.addEventListener(evt, updatePreview);
+  });
+}
+
+const logoModeSelect = $('logoModeSelect');
+if (logoModeSelect) {
+  logoModeSelect.addEventListener('change', updatePreview);
+}
+
+const logoImgInput = $('companyLogoImgUrl');
+if (logoImgInput) {
+  ['input', 'keyup', 'change', 'paste'].forEach(evt => {
+    logoImgInput.addEventListener(evt, updatePreview);
+  });
+}
+
+const logoFileInput = $('logoFileInput');
+if (logoFileInput) {
+  logoFileInput.addEventListener('change', e => {
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = ev => {
+        if ($('companyLogoImgUrl')) $('companyLogoImgUrl').value = ev.target.result;
+        if ($('logoModeSelect')) $('logoModeSelect').value = 'image';
+        updatePreview();
+        showToast('🖼️ Logo image uploaded!');
+      };
+      reader.readAsDataURL(file);
+    }
   });
 }
 
