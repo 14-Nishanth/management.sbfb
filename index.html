@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#111827" />
+  <title>Roadwork Quotation Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar no-print">
+      <div class="brand">
+        <div class="brand-mark">RW</div>
+        <div><strong>Roadwork Studio</strong><span>Quotation & estimating</span></div>
+      </div>
+      <div class="top-actions">
+        <button class="btn ghost" id="resetBtn">New quotation</button>
+        <button class="btn primary" id="printBtn">Print / Save PDF</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="editor no-print">
+        <div class="page-heading">
+          <div><p class="eyebrow">QUOTATION BUILDER</p><h1>Create a professional roadwork quote.</h1><p>Enter project details, add work items and get a print-ready quotation instantly.</p></div>
+          <div class="quote-badge"><span>QUOTE NO.</span><strong id="quoteNoBadge">RW-2026-001</strong></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><div><h2>Company details</h2><p>These details appear on the quotation.</p></div></div>
+          <div class="grid two">
+            <label>Company name<input id="companyName" value="Your Roadwork Company" /></label>
+            <label>Phone<input id="companyPhone" value="+91 00000 00000" /></label>
+            <label>Email<input id="companyEmail" value="office@example.com" /></label>
+            <label>GSTIN<input id="companyGst" placeholder="Optional GSTIN" /></label>
+            <label class="wide">Address<textarea id="companyAddress" rows="2">Tamil Nadu, India</textarea></label>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><div><h2>Client & project</h2><p>Quotation and site information.</p></div></div>
+          <div class="grid two">
+            <label>Client / company<input id="clientName" placeholder="Client name" /></label>
+            <label>Contact person<input id="clientContact" placeholder="Contact person" /></label>
+            <label>Phone<input id="clientPhone" placeholder="Client phone" /></label>
+            <label>Quotation date<input id="quoteDate" type="date" /></label>
+            <label>Project / road name<input id="projectName" placeholder="e.g. Village road development" /></label>
+            <label>Site location<input id="siteLocation" placeholder="Project location" /></label>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><div><h2>Work items</h2><p>Use quantity × unit rate for each roadwork activity or material.</p></div><button class="btn small" id="addItemBtn">+ Add item</button></div>
+          <div class="table-wrap">
+            <table class="items-table">
+              <thead><tr><th>Description</th><th>Unit</th><th>Qty</th><th>Rate</th><th>Amount</th><th></th></tr></thead>
+              <tbody id="itemsBody"></tbody>
+            </table>
+          </div>
+          <div class="quick-items">
+            <span>Quick add:</span>
+            <button data-preset="Earthwork / excavation|m³">Earthwork</button>
+            <button data-preset="GSB laying & compaction|m³">GSB</button>
+            <button data-preset="WMM laying & compaction|m³">WMM</button>
+            <button data-preset="M-sand supply|ton">M-sand</button>
+            <button data-preset="P-sand supply|ton">P-sand</button>
+            <button data-preset="Aggregate supply|ton">Aggregate</button>
+            <button data-preset="Bitumen road work|m²">Bitumen work</button>
+            <button data-preset="Transportation|trip">Transport</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><div><h2>Commercial terms</h2><p>Taxes, discount and quotation validity.</p></div></div>
+          <div class="grid three">
+            <label>GST (%)<input id="gstRate" type="number" min="0" step="0.01" value="18" /></label>
+            <label>Discount<input id="discount" type="number" min="0" step="0.01" value="0" /></label>
+            <label>Validity (days)<input id="validity" type="number" min="1" value="15" /></label>
+            <label class="wide">Payment terms<textarea id="paymentTerms" rows="2">30% advance. Balance as per measured work / agreed stage payment.</textarea></label>
+            <label class="wide">Notes<textarea id="notes" rows="3">Rates are based on the quantities and site conditions stated above. Final billing will be based on actual measured quantities.</textarea></label>
+          </div>
+        </div>
+      </section>
+
+      <aside class="preview-pane">
+        <div class="preview-toolbar no-print"><span>LIVE PREVIEW</span><span>Desktop A4</span></div>
+        <article class="quotation" id="quotationPreview">
+          <div class="quote-header">
+            <div><div class="company-logo">RW</div><div><h2 id="pCompanyName">Your Roadwork Company</h2><p id="pCompanyAddress">Tamil Nadu, India</p><p><span id="pCompanyPhone">+91 00000 00000</span> · <span id="pCompanyEmail">office@example.com</span></p><p id="pCompanyGst" class="muted"></p></div></div>
+            <div class="quote-title"><div>QUOTATION</div><strong id="pQuoteNo">RW-2026-001</strong><span id="pQuoteDate">25 Aug 2026</span></div>
+          </div>
+          <div class="accent-line"></div>
+          <div class="client-strip">
+            <div><span>BILL TO</span><strong id="pClientName">Client name</strong><p id="pClientContact">Contact person</p><p id="pClientPhone">Client phone</p></div>
+            <div><span>PROJECT</span><strong id="pProjectName">Roadwork project</strong><p id="pSiteLocation">Site location</p></div>
+            <div><span>VALID FOR</span><strong id="pValidity">15 days</strong><p>From quotation date</p></div>
+          </div>
+          <table class="preview-table"><thead><tr><th>#</th><th>Description</th><th>Unit</th><th>Qty</th><th>Rate</th><th class="right">Amount</th></tr></thead><tbody id="previewItems"></tbody></table>
+          <div class="summary-row"><div></div><div class="totals"><div><span>Subtotal</span><strong id="pSubtotal">₹0.00</strong></div><div><span>Discount</span><strong id="pDiscount">₹0.00</strong></div><div><span>GST</span><strong id="pGst">₹0.00</strong></div><div class="grand"><span>Grand total</span><strong id="pTotal">₹0.00</strong></div></div></div>
+          <div class="terms"><h4>Commercial terms</h4><p id="pPaymentTerms">30% advance. Balance as per measured work / agreed stage payment.</p><p>Quotation valid for <strong id="pValidity2">15 days</strong> from the date shown above.</p></div>
+          <div class="terms"><h4>Notes</h4><p id="pNotes">Rates are based on the quantities and site conditions stated above.</p></div>
+          <div class="signature"><div><span>For <strong id="pCompanyName2">Your Roadwork Company</strong></span><div class="sign-line"></div><small>Authorized signatory</small></div></div>
+          <footer>Thank you for the opportunity to work with you.</footer>
+        </article>
+      </aside>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
