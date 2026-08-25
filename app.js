@@ -55,24 +55,26 @@ function esc(s) {
 }
 
 function generateMonogram(name, customLetters) {
-  if (customLetters && customLetters.trim()) {
-    return customLetters.trim().toUpperCase().slice(0, 6);
+  const custom = (customLetters || '').trim();
+  if (custom) {
+    return custom.toUpperCase();
   }
-  if (!name || !name.trim()) return 'SBFB';
+  const cleanName = (name || '').trim();
+  if (!cleanName) return 'SBFB';
 
-  const clean = name.trim().replace(/[^a-zA-Z0-9\s]/g, ' ');
+  const clean = cleanName.replace(/[^a-zA-Z0-9\s]/g, ' ');
   const words = clean.split(/\s+/).filter(Boolean);
 
   if (words.length === 1) {
     return words[0].slice(0, 3).toUpperCase();
   }
 
-  const stopWords = new Set(['and', '&', 'of', 'the', 'in', 'co', 'pvt', 'ltd', 'inc']);
+  const stopWords = new Set(['and', '&', 'of', 'the', 'in', 'co', 'pvt', 'ltd', 'inc', 'a', 'an']);
   const meaningfulWords = words.filter(w => !stopWords.has(w.toLowerCase()));
   const targetWords = meaningfulWords.length ? meaningfulWords : words;
 
   const letters = targetWords.map(w => w[0]).join('').toUpperCase();
-  return letters.slice(0, 4) || 'SBFB';
+  return letters.slice(0, 5) || 'SBFB';
 }
 
 function showToast(message, type = 'success') {
@@ -377,15 +379,28 @@ function updatePreview() {
     $('quoteDateBadge').textContent = formatDate(quoteDate) || 'Today';
   }
 
-  const compName = val('companyName') || 'Sri Balamurugan Fly Ash Bricks & Roadwork';
-  const customLogo = val('companyLogoText');
+  const compName = (val('companyName') || 'Sri Balamurugan Fly Ash Bricks & Roadwork').trim();
+  const customLogo = $('companyLogoText') ? $('companyLogoText').value.trim() : '';
   const monogram = generateMonogram(compName, customLogo);
 
   const pCompanyLogo = $('pCompanyLogo');
-  if (pCompanyLogo) pCompanyLogo.textContent = monogram;
+  if (pCompanyLogo) {
+    pCompanyLogo.textContent = monogram;
+    if (monogram.length >= 5) {
+      pCompanyLogo.style.fontSize = '11px';
+    } else if (monogram.length === 4) {
+      pCompanyLogo.style.fontSize = '12px';
+    } else if (monogram.length === 3) {
+      pCompanyLogo.style.fontSize = '14px';
+    } else {
+      pCompanyLogo.style.fontSize = '16px';
+    }
+  }
 
   const topBrandMark = $('topBrandMark');
-  if (topBrandMark) topBrandMark.textContent = monogram;
+  if (topBrandMark) {
+    topBrandMark.textContent = monogram;
+  }
 
   const topBrandTitle = $('topBrandTitle');
   if (topBrandTitle) {
@@ -804,6 +819,20 @@ fields.forEach(id => {
     el.addEventListener('change', updatePreview);
   }
 });
+
+const logoInput = $('companyLogoText');
+if (logoInput) {
+  ['input', 'keyup', 'change', 'paste'].forEach(evt => {
+    logoInput.addEventListener(evt, updatePreview);
+  });
+}
+
+const companyNameInput = $('companyName');
+if (companyNameInput) {
+  ['input', 'keyup', 'change', 'paste'].forEach(evt => {
+    companyNameInput.addEventListener(evt, updatePreview);
+  });
+}
 
 const setTodayBtn = $('setTodayBtn');
 if (setTodayBtn) {

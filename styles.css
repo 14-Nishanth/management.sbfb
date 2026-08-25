@@ -49,8 +49,9 @@ button { cursor: pointer; }
 }
 
 .brand-mark {
-  width: 40px;
+  min-width: 40px;
   height: 40px;
+  padding: 0 6px;
   border-radius: 10px;
   background: var(--accent);
   color: #0f172a;
@@ -58,6 +59,8 @@ button { cursor: pointer; }
   place-items: center;
   font: 800 13px 'Manrope', sans-serif;
   letter-spacing: 0.5px;
+  text-transform: uppercase;
+  flex-shrink: 0;
 }
 
 .brand strong {
