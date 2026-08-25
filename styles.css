@@ -552,8 +552,19 @@ textarea { resize: vertical; }
   color: #0f172a;
 }
 
+.title-quote-no {
+  margin-top: 3px;
+  font-size: 10px;
+  color: #64748b;
+}
+
+.title-quote-no strong {
+  color: #0f172a;
+  font-weight: 700;
+}
+
 .title-date-wrap {
-  margin-top: 4px;
+  margin-top: 3px;
   font-size: 10px;
   color: #64748b;
 }

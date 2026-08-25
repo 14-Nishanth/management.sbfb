@@ -1,8 +1,8 @@
 const $ = id => document.getElementById(id);
 
-// Quotation fields (Quotation Number removed as requested)
+// Quotation fields (Quotation Number is optional and stays blank if omitted)
 const fields = [
-  'companyName', 'companyPhone', 'companyEmail', 'companyGst', 'companyAddress',
+  'quoteNo', 'companyName', 'companyPhone', 'companyEmail', 'companyGst', 'companyAddress',
   'clientName', 'clientContact', 'clientPhone', 'quoteDate', 'projectName', 'siteLocation',
   'gstRate', 'discount', 'validity', 'paymentTerms', 'notes'
 ];
@@ -187,8 +187,22 @@ function val(id) {
 /* --- Live Preview & Calculations --- */
 function updatePreview() {
   const quoteDate = val('quoteDate') || today();
+  const qNo = (val('quoteNo') || '').trim();
+
   $('quoteDateBadge').textContent = formatDate(quoteDate) || 'Today';
   $('pQuoteDate').textContent = formatDate(quoteDate) || 'Today';
+
+  const pQuoteNoWrap = $('pQuoteNoWrap');
+  const pQuoteNo = $('pQuoteNo');
+  if (qNo) {
+    if (pQuoteNo) pQuoteNo.textContent = qNo;
+    if (pQuoteNoWrap) pQuoteNoWrap.classList.remove('hidden');
+    $('quoteDateBadge').textContent = `${formatDate(quoteDate)} (${qNo})`;
+  } else {
+    if (pQuoteNo) pQuoteNo.textContent = '';
+    if (pQuoteNoWrap) pQuoteNoWrap.classList.add('hidden');
+    $('quoteDateBadge').textContent = formatDate(quoteDate) || 'Today';
+  }
 
   $('pCompanyName').textContent = val('companyName') || 'Sri Balamurugan Fly Ash Bricks & Roadwork';
   $('pCompanyName2').textContent = val('companyName') || 'Sri Balamurugan Fly Ash Bricks & Roadwork';
@@ -416,6 +430,7 @@ async function saveQuotationToCloud() {
   const total = taxable + gst;
 
   const quotePayload = {
+    quote_no: (val('quoteNo') || '').trim() || null,
     quote_date: val('quoteDate') || today(),
     company_name: val('companyName'),
     company_phone: val('companyPhone'),
@@ -520,6 +535,7 @@ function renderSavedQuotesList(quotes) {
 
   listEl.innerHTML = quotes.map(q => {
     const dateFormatted = formatDate(q.quote_date) || 'No date';
+    const quoteNoTag = q.quote_no ? ` &bull; 🏷️ ${esc(q.quote_no)}` : '';
     const itemsCount = Array.isArray(q.items) ? q.items.length : 0;
     const client = esc(q.client_name || 'Unnamed Client');
     const project = esc(q.project_name || 'Project');
@@ -529,7 +545,7 @@ function renderSavedQuotesList(quotes) {
       <div class="quote-card">
         <div class="quote-card-main">
           <strong>${client} — ${project}</strong>
-          <p>📅 ${dateFormatted} &bull; 📦 ${itemsCount} items &bull; 📍 ${esc(q.site_location || 'Site not set')}</p>
+          <p>📅 ${dateFormatted}${quoteNoTag} &bull; 📦 ${itemsCount} items &bull; 📍 ${esc(q.site_location || 'Site not set')}</p>
         </div>
         <div class="quote-card-right">
           <div class="quote-card-amount">${total}</div>
@@ -554,6 +570,7 @@ function loadQuotationById(id) {
   if (!q) return;
 
   currentQuoteId = q.id;
+  $('quoteNo').value = q.quote_no || q.quoteNo || '';
   $('quoteDate').value = q.quote_date || today();
   $('companyName').value = q.company_name || 'Sri Balamurugan Fly Ash Bricks & Roadwork';
   $('companyPhone').value = q.company_phone || '';
@@ -628,6 +645,7 @@ $('printBtn').addEventListener('click', () => window.print());
 $('resetBtn').addEventListener('click', () => {
   if (!confirm('Start a new quotation? Current unsaved draft will be cleared.')) return;
   currentQuoteId = crypto.randomUUID();
+  $('quoteNo').value = '';
   $('quoteDate').value = today();
   $('clientName').value = '';
   $('clientContact').value = '';
