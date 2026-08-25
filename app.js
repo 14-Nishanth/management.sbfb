@@ -60,7 +60,7 @@ function generateMonogram(name, customLetters) {
     return custom.toUpperCase();
   }
   const cleanName = (name || '').trim();
-  if (!cleanName) return 'SBFB';
+  if (!cleanName) return 'TNP';
 
   const clean = cleanName.replace(/[^a-zA-Z0-9\s]/g, ' ');
   const words = clean.split(/\s+/).filter(Boolean);
@@ -74,7 +74,7 @@ function generateMonogram(name, customLetters) {
   const targetWords = meaningfulWords.length ? meaningfulWords : words;
 
   const letters = targetWords.map(w => w[0]).join('').toUpperCase();
-  return letters.slice(0, 5) || 'SBFB';
+  return letters.slice(0, 5) || 'TNP';
 }
 
 function showToast(message, type = 'success') {
