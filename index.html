@@ -15,8 +15,8 @@
   <div class="app-shell">
     <header class="topbar no-print">
       <div class="brand">
-        <div class="brand-mark">SBFB</div>
-        <div><strong>SBFB Management</strong><span>Quotation & Cloud Studio</span></div>
+        <div class="brand-mark" id="topBrandMark">SBFB</div>
+        <div><strong id="topBrandTitle">SBFB Management</strong><span>Quotation & Cloud Studio</span></div>
       </div>
       <div class="top-actions">
         <button class="btn cloud-btn" id="cloudModalBtn">
@@ -48,8 +48,8 @@
         <div class="card">
           <div class="card-head">
             <div>
-              <h2>Company details</h2>
-              <p>These details appear on your quotations and can be saved as cloud defaults.</p>
+              <h2>Company details & Logo</h2>
+              <p>Company details appear on your quotations. Logo is auto-created from company name or custom letters.</p>
             </div>
             <button type="button" class="btn small outline" id="saveCompanyDefaultBtn" title="Save company details to cloud as default">
               💾 Save Default
@@ -57,6 +57,9 @@
           </div>
           <div class="grid two">
             <label>Company name<input id="companyName" value="Sri Balamurugan Fly Ash Bricks & Roadwork" /></label>
+            <label>Logo Letters / Monogram <span style="font-size:10px;color:#94a3b8;font-weight:400">(Optional — auto-created from name if blank)</span>
+              <input id="companyLogoText" placeholder="e.g. SBFB, NC (or leave blank to auto-create)" maxlength="6" style="text-transform:uppercase;" />
+            </label>
             <label>Phone<input id="companyPhone" value="+91 98765 43210" /></label>
             <label>Email<input id="companyEmail" value="info@sbfb.com" /></label>
             <label>GSTIN / Tax ID<input id="companyGst" placeholder="e.g. 33AAAAA0000A1Z5" /></label>
@@ -147,7 +150,7 @@
         <article class="quotation" id="quotationPreview">
           <div class="quote-header">
             <div>
-              <div class="company-logo">SBFB</div>
+              <div class="company-logo" id="pCompanyLogo">SBFB</div>
               <div>
                 <h2 id="pCompanyName">Sri Balamurugan Fly Ash Bricks & Roadwork</h2>
                 <p id="pCompanyAddress">Tamil Nadu, India</p>
@@ -319,6 +322,7 @@ CREATE TABLE IF NOT EXISTS public.quotations (
   quote_no TEXT,
   quote_date DATE NOT NULL DEFAULT CURRENT_DATE,
   company_name TEXT,
+  company_logo_text TEXT,
   company_phone TEXT,
   company_email TEXT,
   company_gst TEXT,
@@ -342,6 +346,7 @@ CREATE TABLE IF NOT EXISTS public.quotations (
 CREATE TABLE IF NOT EXISTS public.company_settings (
   id TEXT PRIMARY KEY DEFAULT 'default',
   company_name TEXT,
+  company_logo_text TEXT,
   company_phone TEXT,
   company_email TEXT,
   company_gst TEXT,

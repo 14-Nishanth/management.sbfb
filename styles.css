@@ -493,15 +493,20 @@ textarea { resize: vertical; }
 }
 
 .company-logo {
-  width: 48px;
+  min-width: 48px;
   height: 48px;
+  padding: 0 8px;
   border-radius: 10px;
-  background: #0f172a;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.25);
   display: grid;
   place-items: center;
   font: 800 15px 'Manrope', sans-serif;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1);
 }
 
 .quote-header h2 {

@@ -2,7 +2,7 @@ const $ = id => document.getElementById(id);
 
 // Quotation fields (Quotation Number is optional and stays blank if omitted)
 const fields = [
-  'quoteNo', 'companyName', 'companyPhone', 'companyEmail', 'companyGst', 'companyAddress',
+  'quoteNo', 'companyName', 'companyLogoText', 'companyPhone', 'companyEmail', 'companyGst', 'companyAddress',
   'clientName', 'clientContact', 'clientPhone', 'quoteDate', 'projectName', 'siteLocation',
   'gstRate', 'discount', 'validity', 'paymentTerms', 'notes'
 ];
@@ -52,6 +52,27 @@ function money(n) {
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>\"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\\': '&#92;' }[m]));
+}
+
+function generateMonogram(name, customLetters) {
+  if (customLetters && customLetters.trim()) {
+    return customLetters.trim().toUpperCase().slice(0, 6);
+  }
+  if (!name || !name.trim()) return 'SBFB';
+
+  const clean = name.trim().replace(/[^a-zA-Z0-9\s]/g, ' ');
+  const words = clean.split(/\s+/).filter(Boolean);
+
+  if (words.length === 1) {
+    return words[0].slice(0, 3).toUpperCase();
+  }
+
+  const stopWords = new Set(['and', '&', 'of', 'the', 'in', 'co', 'pvt', 'ltd', 'inc']);
+  const meaningfulWords = words.filter(w => !stopWords.has(w.toLowerCase()));
+  const targetWords = meaningfulWords.length ? meaningfulWords : words;
+
+  const letters = targetWords.map(w => w[0]).join('').toUpperCase();
+  return letters.slice(0, 4) || 'SBFB';
 }
 
 function showToast(message, type = 'success') {
@@ -356,8 +377,24 @@ function updatePreview() {
     $('quoteDateBadge').textContent = formatDate(quoteDate) || 'Today';
   }
 
-  $('pCompanyName').textContent = val('companyName') || 'Sri Balamurugan Fly Ash Bricks & Roadwork';
-  $('pCompanyName2').textContent = val('companyName') || 'Sri Balamurugan Fly Ash Bricks & Roadwork';
+  const compName = val('companyName') || 'Sri Balamurugan Fly Ash Bricks & Roadwork';
+  const customLogo = val('companyLogoText');
+  const monogram = generateMonogram(compName, customLogo);
+
+  const pCompanyLogo = $('pCompanyLogo');
+  if (pCompanyLogo) pCompanyLogo.textContent = monogram;
+
+  const topBrandMark = $('topBrandMark');
+  if (topBrandMark) topBrandMark.textContent = monogram;
+
+  const topBrandTitle = $('topBrandTitle');
+  if (topBrandTitle) {
+    const firstWord = compName.split(/\s+/)[0] || 'SBFB';
+    topBrandTitle.textContent = `${firstWord} Management`;
+  }
+
+  $('pCompanyName').textContent = compName;
+  $('pCompanyName2').textContent = compName;
   $('pCompanyAddress').textContent = val('companyAddress');
   $('pCompanyPhone').textContent = val('companyPhone');
   $('pCompanyEmail').textContent = val('companyEmail');
@@ -485,6 +522,7 @@ function initSupabase() {
 async function saveCompanyDefaults() {
   const companyData = {
     company_name: val('companyName'),
+    company_logo_text: val('companyLogoText'),
     company_phone: val('companyPhone'),
     company_email: val('companyEmail'),
     company_gst: val('companyGst'),
@@ -503,14 +541,14 @@ async function saveCompanyDefaults() {
         updated_at: new Date().toISOString()
       });
       if (error) throw error;
-      showToast('✅ Company details saved to Cloud Database as default!');
+      showToast('✅ Company details & logo saved to Cloud Database as default!');
       return;
     } catch (err) {
       console.warn('Cloud company save fallback:', err);
     }
   }
 
-  showToast('💾 Company details saved as default locally!');
+  showToast('💾 Company details & logo saved as default locally!');
 }
 
 async function loadCompanyDefaults() {
@@ -520,6 +558,7 @@ async function loadCompanyDefaults() {
       if (!error && data) {
         if (!$('companyName').value || $('companyName').value === 'Your Roadwork Company') {
           if (data.company_name) $('companyName').value = data.company_name;
+          if (data.company_logo_text != null) $('companyLogoText').value = data.company_logo_text;
           if (data.company_phone) $('companyPhone').value = data.company_phone;
           if (data.company_email) $('companyEmail').value = data.company_email;
           if (data.company_gst) $('companyGst').value = data.company_gst;
@@ -536,6 +575,7 @@ async function loadCompanyDefaults() {
     const local = JSON.parse(localStorage.getItem(companyDefaultsKey) || 'null');
     if (local) {
       if (local.company_name) $('companyName').value = local.company_name;
+      if (local.company_logo_text != null) $('companyLogoText').value = local.company_logo_text;
       if (local.company_phone) $('companyPhone').value = local.company_phone;
       if (local.company_email) $('companyEmail').value = local.company_email;
       if (local.company_gst) $('companyGst').value = local.company_gst;
@@ -563,6 +603,7 @@ async function saveQuotationToCloud() {
     quote_no: (val('quoteNo') || '').trim() || null,
     quote_date: val('quoteDate') || today(),
     company_name: val('companyName'),
+    company_logo_text: val('companyLogoText'),
     company_phone: val('companyPhone'),
     company_email: val('companyEmail'),
     company_gst: val('companyGst'),
@@ -703,6 +744,7 @@ function loadQuotationById(id) {
   $('quoteNo').value = q.quote_no || q.quoteNo || '';
   $('quoteDate').value = q.quote_date || today();
   $('companyName').value = q.company_name || 'Sri Balamurugan Fly Ash Bricks & Roadwork';
+  $('companyLogoText').value = q.company_logo_text || '';
   $('companyPhone').value = q.company_phone || '';
   $('companyEmail').value = q.company_email || '';
   $('companyGst').value = q.company_gst || '';
