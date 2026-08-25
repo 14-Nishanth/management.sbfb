@@ -3,117 +3,335 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#111827" />
-  <title>Roadwork Quotation Studio</title>
+  <meta name="theme-color" content="#101828" />
+  <title>SBFB Quotation Studio & Cloud Management</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="app-shell">
     <header class="topbar no-print">
       <div class="brand">
-        <div class="brand-mark">RW</div>
-        <div><strong>Roadwork Studio</strong><span>Quotation & estimating</span></div>
+        <div class="brand-mark">SBFB</div>
+        <div><strong>SBFB Management</strong><span>Quotation & Cloud Studio</span></div>
       </div>
       <div class="top-actions">
+        <button class="btn cloud-btn" id="cloudModalBtn">
+          <span>☁️</span> Cloud Database <span class="cloud-status-pill" id="cloudStatusBadge">Connecting...</span>
+        </button>
+        <button class="btn accent-btn" id="saveCloudBtn">💾 Save to Cloud</button>
         <button class="btn ghost" id="resetBtn">New quotation</button>
         <button class="btn primary" id="printBtn">Print / Save PDF</button>
       </div>
     </header>
 
+    <div id="toastNotification" class="toast hidden"></div>
+
     <main class="workspace">
       <section class="editor no-print">
         <div class="page-heading">
-          <div><p class="eyebrow">QUOTATION BUILDER</p><h1>Create a professional roadwork quote.</h1><p>Enter project details, add work items and get a print-ready quotation instantly.</p></div>
-          <div class="quote-badge"><span>QUOTE NO.</span><strong id="quoteNoBadge">RW-2026-001</strong></div>
-        </div>
-
-        <div class="card">
-          <div class="card-head"><div><h2>Company details</h2><p>These details appear on the quotation.</p></div></div>
-          <div class="grid two">
-            <label>Company name<input id="companyName" value="Your Roadwork Company" /></label>
-            <label>Phone<input id="companyPhone" value="+91 00000 00000" /></label>
-            <label>Email<input id="companyEmail" value="office@example.com" /></label>
-            <label>GSTIN<input id="companyGst" placeholder="Optional GSTIN" /></label>
-            <label class="wide">Address<textarea id="companyAddress" rows="2">Tamil Nadu, India</textarea></label>
+          <div>
+            <p class="eyebrow">QUOTATION STUDIO & CLOUD DATABASE</p>
+            <h1>Create & manage quotations</h1>
+            <p>Set company details, rate per sq. meter or approximate building costs, and save everything to your cloud database.</p>
+          </div>
+          <div class="quote-badge">
+            <span>QUOTATION DATE</span>
+            <strong id="quoteDateBadge">Today</strong>
           </div>
         </div>
 
+        <!-- Company details card -->
         <div class="card">
-          <div class="card-head"><div><h2>Quotation & client details</h2><p>Quotation identification, client and site information.</p></div></div>
+          <div class="card-head">
+            <div>
+              <h2>Company details</h2>
+              <p>These details appear on your quotations and can be saved as cloud defaults.</p>
+            </div>
+            <button type="button" class="btn small outline" id="saveCompanyDefaultBtn" title="Save company details to cloud as default">
+              💾 Save Default
+            </button>
+          </div>
           <div class="grid two">
-            <label>Quotation No.
-              <div class="input-action-group">
-                <input id="quoteNo" placeholder="e.g. RW-2026-001" />
-                <button type="button" class="btn-icon" id="autoQuoteBtn" title="Generate new quotation number">↺ Auto</button>
-              </div>
-            </label>
+            <label>Company name<input id="companyName" value="Sri Balamurugan Fly Ash Bricks & Roadwork" /></label>
+            <label>Phone<input id="companyPhone" value="+91 98765 43210" /></label>
+            <label>Email<input id="companyEmail" value="info@sbfb.com" /></label>
+            <label>GSTIN / Tax ID<input id="companyGst" placeholder="e.g. 33AAAAA0000A1Z5" /></label>
+            <label class="wide">Company Address<textarea id="companyAddress" rows="2">Tamil Nadu, India</textarea></label>
+          </div>
+        </div>
+
+        <!-- Quotation & client details card -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2>Quotation & Client details</h2>
+              <p>Date, client contact, and project site location.</p>
+            </div>
+          </div>
+          <div class="grid two">
             <label>Quotation date<input id="quoteDate" type="date" /></label>
-            <label>Client / company<input id="clientName" placeholder="Client name" /></label>
-            <label>Contact person<input id="clientContact" placeholder="Contact person" /></label>
-            <label>Phone<input id="clientPhone" placeholder="Client phone" /></label>
-            <label>Project / road name<input id="projectName" placeholder="e.g. Village road development" /></label>
-            <label class="wide">Site location<input id="siteLocation" placeholder="Project location" /></label>
+            <label>Client / company name<input id="clientName" placeholder="e.g. ABC Developers / Client Name" /></label>
+            <label>Contact person<input id="clientContact" placeholder="Contact person name" /></label>
+            <label>Client phone<input id="clientPhone" placeholder="+91..." /></label>
+            <label>Project / building / road name<input id="projectName" placeholder="e.g. Commercial Complex / Roadwork" /></label>
+            <label class="wide">Site location<input id="siteLocation" placeholder="Project / site location" /></label>
           </div>
         </div>
 
+        <!-- Work & Building Items Card -->
         <div class="card">
-          <div class="card-head"><div><h2>Work items</h2><p>Use quantity × unit rate for each roadwork activity or material.</p></div><button class="btn small" id="addItemBtn">+ Add item</button></div>
+          <div class="card-head">
+            <div>
+              <h2>Work & Building Items</h2>
+              <p>Choose <strong>Rate per sq. meter</strong> for measured areas, or <strong>Building (Approx. Total)</strong> for approximate lump-sum costs.</p>
+            </div>
+            <button class="btn small primary" id="addItemBtn">+ Add item</button>
+          </div>
           <div class="table-wrap">
             <table class="items-table">
-              <thead><tr><th>Description</th><th>Unit</th><th>Qty</th><th>Rate</th><th>Amount</th><th></th></tr></thead>
+              <thead>
+                <tr>
+                  <th style="width: 155px;">Pricing Mode</th>
+                  <th>Description</th>
+                  <th style="width: 80px;">Unit</th>
+                  <th style="width: 85px;">Area / Qty</th>
+                  <th style="width: 100px;">Rate (₹)</th>
+                  <th style="width: 120px;">Total Cost (₹)</th>
+                  <th style="width: 30px;"></th>
+                </tr>
+              </thead>
               <tbody id="itemsBody"></tbody>
             </table>
           </div>
           <div class="quick-items">
-            <span>Quick add:</span>
-            <button data-preset="Earthwork / excavation|m³">Earthwork</button>
-            <button data-preset="GSB laying & compaction|m³">GSB</button>
-            <button data-preset="WMM laying & compaction|m³">WMM</button>
-            <button data-preset="M-sand supply|ton">M-sand</button>
-            <button data-preset="P-sand supply|ton">P-sand</button>
-            <button data-preset="Aggregate supply|ton">Aggregate</button>
-            <button data-preset="Bitumen road work|m²">Bitumen work</button>
-            <button data-preset="Transportation|trip">Transport</button>
+            <span>Quick add presets:</span>
+            <button data-preset="building-approx|Building construction work (Approx. lump sum)|approx|1|0|500000">🏢 Building (Approx. Total)</button>
+            <button data-preset="sqm|Building plastering & brickwork|sq.m|100|450|0">📐 Building (per sq.m)</button>
+            <button data-preset="sqm|Bitumen road surfacing & laying|sq.m|250|380|0">🛣️ Roadwork (per sq.m)</button>
+            <button data-preset="general|Earthwork / site excavation|m³|150|120|0">🚜 Earthwork (per m³)</button>
+            <button data-preset="general|Fly Ash Bricks Supply (Grade A)|nos|5000|7.5|0">🧱 Fly Ash Bricks</button>
+            <button data-preset="general|M-sand / P-sand supply|ton|40|1200|0">⏳ Sand / Aggregate</button>
+            <button data-preset="general|Transportation & logistics|trip|5|3500|0">🚚 Transport</button>
           </div>
         </div>
 
+        <!-- Commercial terms card -->
         <div class="card">
-          <div class="card-head"><div><h2>Commercial terms</h2><p>Taxes, discount and quotation validity.</p></div></div>
+          <div class="card-head">
+            <div>
+              <h2>Commercial terms & notes</h2>
+              <p>GST, discounts, validity period, and payment terms.</p>
+            </div>
+          </div>
           <div class="grid three">
             <label>GST (%)<input id="gstRate" type="number" min="0" step="0.01" value="18" /></label>
-            <label>Discount<input id="discount" type="number" min="0" step="0.01" value="0" /></label>
+            <label>Discount (₹)<input id="discount" type="number" min="0" step="0.01" value="0" /></label>
             <label>Validity (days)<input id="validity" type="number" min="1" value="15" /></label>
-            <label class="wide">Payment terms<textarea id="paymentTerms" rows="2">30% advance. Balance as per measured work / agreed stage payment.</textarea></label>
-            <label class="wide">Notes<textarea id="notes" rows="3">Rates are based on the quantities and site conditions stated above. Final billing will be based on actual measured quantities.</textarea></label>
+            <label class="wide">Payment terms<textarea id="paymentTerms" rows="2">30% advance with work order. Balance as per measured progress / agreed milestones.</textarea></label>
+            <label class="wide">Notes<textarea id="notes" rows="3">Rates are based on the specifications and site conditions mentioned above. Building approximate totals are estimates subject to final architectural layout.</textarea></label>
           </div>
         </div>
       </section>
 
+      <!-- Live Printable Preview -->
       <aside class="preview-pane">
-        <div class="preview-toolbar no-print"><span>LIVE PREVIEW</span><span>Desktop A4</span></div>
+        <div class="preview-toolbar no-print">
+          <span>LIVE PREVIEW</span>
+          <span>A4 Document</span>
+        </div>
         <article class="quotation" id="quotationPreview">
           <div class="quote-header">
-            <div><div class="company-logo">RW</div><div><h2 id="pCompanyName">Your Roadwork Company</h2><p id="pCompanyAddress">Tamil Nadu, India</p><p><span id="pCompanyPhone">+91 00000 00000</span> · <span id="pCompanyEmail">office@example.com</span></p><p id="pCompanyGst" class="muted"></p></div></div>
-            <div class="quote-title"><div>QUOTATION</div><strong id="pQuoteNo">RW-2026-001</strong><span id="pQuoteDate">25 Aug 2026</span></div>
+            <div>
+              <div class="company-logo">SBFB</div>
+              <div>
+                <h2 id="pCompanyName">Sri Balamurugan Fly Ash Bricks & Roadwork</h2>
+                <p id="pCompanyAddress">Tamil Nadu, India</p>
+                <p><span id="pCompanyPhone">+91 98765 43210</span> · <span id="pCompanyEmail">info@sbfb.com</span></p>
+                <p id="pCompanyGst" class="muted"></p>
+              </div>
+            </div>
+            <div class="quote-title">
+              <div class="title-tag">QUOTATION</div>
+              <div class="title-date-wrap">
+                <span>Date:</span>
+                <strong id="pQuoteDate">25 Aug 2026</strong>
+              </div>
+            </div>
           </div>
+
           <div class="accent-line"></div>
+
           <div class="client-strip">
-            <div><span>BILL TO</span><strong id="pClientName">Client name</strong><p id="pClientContact">Contact person</p><p id="pClientPhone">Client phone</p></div>
-            <div><span>PROJECT</span><strong id="pProjectName">Roadwork project</strong><p id="pSiteLocation">Site location</p></div>
-            <div><span>VALID FOR</span><strong id="pValidity">15 days</strong><p>From quotation date</p></div>
+            <div>
+              <span>BILL TO / CLIENT</span>
+              <strong id="pClientName">Client name</strong>
+              <p id="pClientContact">Contact person</p>
+              <p id="pClientPhone">Client phone</p>
+            </div>
+            <div>
+              <span>PROJECT / SITE</span>
+              <strong id="pProjectName">Project name</strong>
+              <p id="pSiteLocation">Site location</p>
+            </div>
+            <div>
+              <span>VALIDITY</span>
+              <strong id="pValidity">15 days</strong>
+              <p>From quotation date</p>
+            </div>
           </div>
-          <table class="preview-table"><thead><tr><th>#</th><th>Description</th><th>Unit</th><th>Qty</th><th>Rate</th><th class="right">Amount</th></tr></thead><tbody id="previewItems"></tbody></table>
-          <div class="summary-row"><div></div><div class="totals"><div><span>Subtotal</span><strong id="pSubtotal">₹0.00</strong></div><div><span>Discount</span><strong id="pDiscount">₹0.00</strong></div><div><span>GST</span><strong id="pGst">₹0.00</strong></div><div class="grand"><span>Grand total</span><strong id="pTotal">₹0.00</strong></div></div></div>
-          <div class="terms"><h4>Commercial terms</h4><p id="pPaymentTerms">30% advance. Balance as per measured work / agreed stage payment.</p><p>Quotation valid for <strong id="pValidity2">15 days</strong> from the date shown above.</p></div>
-          <div class="terms"><h4>Notes</h4><p id="pNotes">Rates are based on the quantities and site conditions stated above.</p></div>
-          <div class="signature"><div><span>For <strong id="pCompanyName2">Your Roadwork Company</strong></span><div class="sign-line"></div><small>Authorized signatory</small></div></div>
-          <footer>Thank you for the opportunity to work with you.</footer>
+
+          <table class="preview-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Description</th>
+                <th>Type / Unit</th>
+                <th>Area / Qty</th>
+                <th>Rate</th>
+                <th class="right">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="previewItems"></tbody>
+          </table>
+
+          <div class="summary-row">
+            <div></div>
+            <div class="totals">
+              <div><span>Subtotal</span><strong id="pSubtotal">₹0.00</strong></div>
+              <div><span>Discount</span><strong id="pDiscount">₹0.00</strong></div>
+              <div><span>GST</span><strong id="pGst">₹0.00</strong></div>
+              <div class="grand"><span>Grand total</span><strong id="pTotal">₹0.00</strong></div>
+            </div>
+          </div>
+
+          <div class="terms">
+            <h4>Commercial terms</h4>
+            <p id="pPaymentTerms">30% advance with work order. Balance as per measured progress / agreed milestones.</p>
+            <p>Quotation valid for <strong id="pValidity2">15 days</strong> from the date shown above.</p>
+          </div>
+
+          <div class="terms">
+            <h4>Notes</h4>
+            <p id="pNotes">Rates are based on the specifications and site conditions mentioned above.</p>
+          </div>
+
+          <div class="signature">
+            <div>
+              <span>For <strong id="pCompanyName2">Sri Balamurugan Fly Ash Bricks & Roadwork</strong></span>
+              <div class="sign-line"></div>
+              <small>Authorized signatory</small>
+            </div>
+          </div>
+
+          <footer>Thank you for your valued business.</footer>
         </article>
       </aside>
     </main>
+
+    <!-- Cloud Database & Saved Quotations Modal -->
+    <div id="cloudModal" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <div class="modal-head">
+          <div class="modal-title-group">
+            <h3>☁️ Cloud Database & Saved Quotations</h3>
+            <p>Access your cloud quotations from any device & configure database sync.</p>
+          </div>
+          <button type="button" class="btn-close" id="closeCloudModalBtn">&times;</button>
+        </div>
+
+        <div class="modal-tabs">
+          <button class="tab-btn active" id="tabSavedBtn">📁 Saved Cloud Quotations (<span id="savedCount">0</span>)</button>
+          <button class="tab-btn" id="tabConfigBtn">⚙️ Cloud Database Settings (Supabase)</button>
+        </div>
+
+        <!-- Tab 1: Saved Quotations List -->
+        <div id="tabSavedContent" class="tab-content">
+          <div class="tab-toolbar">
+            <input id="searchQuoteInput" placeholder="🔍 Search quotations by client, project, or date..." />
+            <button class="btn small" id="refreshCloudListBtn">🔄 Refresh</button>
+          </div>
+          <div class="saved-list" id="savedQuotesList">
+            <div class="empty-state">Loading quotations from database...</div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Supabase Settings & SQL Schema -->
+        <div id="tabConfigContent" class="tab-content hidden">
+          <div class="config-grid">
+            <div class="config-section">
+              <h4>Supabase Credentials</h4>
+              <p class="helper-text">Connect your free Supabase Postgres project to store quotations and company details in the cloud.</p>
+              <label>Supabase Project URL
+                <input id="supabaseUrl" placeholder="https://xyzcompany.supabase.co" />
+              </label>
+              <label>Supabase Anon Public Key
+                <input id="supabaseKey" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." />
+              </label>
+              <div class="config-actions">
+                <button class="btn primary small" id="saveSupabaseConfigBtn">Save & Test Connection</button>
+                <button class="btn ghost-dark small" id="clearSupabaseConfigBtn">Disconnect / Use Local Database</button>
+              </div>
+            </div>
+
+            <div class="config-section">
+              <h4>Database SQL Setup (One-Time)</h4>
+              <p class="helper-text">Paste this SQL in your Supabase SQL Editor to create the <code>quotations</code> and <code>company_settings</code> tables.</p>
+              <div class="sql-box-wrap">
+                <pre id="sqlSchemaBox">-- 1. Create quotations table
+CREATE TABLE IF NOT EXISTS public.quotations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  quote_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  company_name TEXT,
+  company_phone TEXT,
+  company_email TEXT,
+  company_gst TEXT,
+  company_address TEXT,
+  client_name TEXT,
+  client_contact TEXT,
+  client_phone TEXT,
+  project_name TEXT,
+  site_location TEXT,
+  items JSONB DEFAULT '[]'::jsonb,
+  gst_rate NUMERIC DEFAULT 18,
+  discount NUMERIC DEFAULT 0,
+  validity INTEGER DEFAULT 15,
+  payment_terms TEXT,
+  notes TEXT,
+  subtotal NUMERIC DEFAULT 0,
+  total NUMERIC DEFAULT 0
+);
+
+-- 2. Create company_settings table
+CREATE TABLE IF NOT EXISTS public.company_settings (
+  id TEXT PRIMARY KEY DEFAULT 'default',
+  company_name TEXT,
+  company_phone TEXT,
+  company_email TEXT,
+  company_gst TEXT,
+  company_address TEXT,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 3. Enable Row Level Security & grant access
+ALTER TABLE public.quotations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.company_settings ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow public access to quotations" ON public.quotations FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public access to company_settings" ON public.company_settings FOR ALL USING (true) WITH CHECK (true);</pre>
+                <button type="button" class="btn small btn-copy" id="copySqlBtn">📋 Copy SQL</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
   <script src="app.js"></script>
 </body>

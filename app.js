@@ -1,8 +1,23 @@
 const $ = id => document.getElementById(id);
-const fields = ['quoteNo', 'companyName', 'companyPhone', 'companyEmail', 'companyGst', 'companyAddress', 'clientName', 'clientContact', 'clientPhone', 'quoteDate', 'projectName', 'siteLocation', 'gstRate', 'discount', 'validity', 'paymentTerms', 'notes'];
-const stateKey = 'roadworkQuotationState';
-let items = [];
 
+// Quotation fields (Quotation Number removed as requested)
+const fields = [
+  'companyName', 'companyPhone', 'companyEmail', 'companyGst', 'companyAddress',
+  'clientName', 'clientContact', 'clientPhone', 'quoteDate', 'projectName', 'siteLocation',
+  'gstRate', 'discount', 'validity', 'paymentTerms', 'notes'
+];
+
+const stateKey = 'sbfbQuotationState';
+const companyDefaultsKey = 'sbfbCompanyDefaults';
+const localQuotesKey = 'sbfbLocalCloudQuotes';
+const supabaseConfigKey = 'sbfbSupabaseConfig';
+
+let items = [];
+let currentQuoteId = null;
+let supabaseClient = null;
+let savedQuotesCache = [];
+
+/* --- Utilities --- */
 function today() {
   const d = new Date();
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
@@ -28,52 +43,155 @@ function esc(s) {
   return String(s ?? '').replace(/[&<>\"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\\': '&#92;' }[m]));
 }
 
-function quoteNumber() {
-  let n = Number(localStorage.getItem('rwQuoteSeq') || 0) + 1;
-  localStorage.setItem('rwQuoteSeq', n);
-  const code = `RW-${new Date().getFullYear()}-${String(n).padStart(3, '0')}`;
-  localStorage.setItem('rwQuoteNumber', code);
-  return code;
+function showToast(message, type = 'success') {
+  const toast = $('toastNotification');
+  if (!toast) return;
+  toast.textContent = message;
+  toast.className = `toast ${type}`;
+  setTimeout(() => {
+    toast.className = 'toast hidden';
+  }, 3500);
 }
 
-function addItem(desc = '', unit = 'm³', qty = 1, rate = 0) {
-  items.push({ id: crypto.randomUUID(), desc, unit, qty, rate });
+function itemAmount(item) {
+  if (item.mode === 'building-approx') {
+    return Number(item.totalCost) || 0;
+  }
+  return (Number(item.qty) || 0) * (Number(item.rate) || 0);
+}
+
+/* --- Work Items Logic --- */
+function addItem(mode = 'sqm', desc = '', unit = 'sq.m', qty = 100, rate = 450, totalCost = 0) {
+  items.push({
+    id: crypto.randomUUID(),
+    mode, // 'sqm' | 'building-approx' | 'general'
+    desc,
+    unit: mode === 'building-approx' ? 'approx' : (mode === 'sqm' ? 'sq.m' : unit),
+    qty: mode === 'building-approx' ? 1 : qty,
+    rate: mode === 'building-approx' ? 0 : rate,
+    totalCost: mode === 'building-approx' ? (totalCost || 500000) : (qty * rate)
+  });
   renderItems();
   updatePreview();
 }
 
 function renderItems() {
-  $('itemsBody').innerHTML = items.length
-    ? items.map(x => `<tr><td><input class="item-desc" data-id="${x.id}" data-k="desc" value="${esc(x.desc)}" placeholder="Work / material description"></td><td><input class="num" data-id="${x.id}" data-k="unit" value="${esc(x.unit)}"></td><td><input class="num" type="number" min="0" step="0.001" data-id="${x.id}" data-k="qty" value="${x.qty}"></td><td><input class="num" type="number" min="0" step="0.01" data-id="${x.id}" data-k="rate" value="${x.rate}"></td><td class="amount-cell">${money(x.qty * x.rate)}</td><td><button class="remove" data-remove="${x.id}" aria-label="Remove item">×</button></td></tr>`).join('')
-    : `<tr><td colspan="6" style="padding:28px;text-align:center;color:#98a2b3;font-size:12px">No items yet. Add your first roadwork activity or material.</td></tr>`;
+  const tbody = $('itemsBody');
+  if (!tbody) return;
 
-  document.querySelectorAll('[data-id][data-k]').forEach(el => el.addEventListener('input', e => {
-    const x = items.find(a => a.id === e.target.dataset.id);
-    if (!x) return;
-    x[e.target.dataset.k] = e.target.type === 'number' ? Number(e.target.value) : e.target.value;
-    const row = e.target.closest('tr');
-    row.querySelector('.amount-cell').textContent = money(x.qty * x.rate);
-    updatePreview();
-  }));
+  if (!items.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="padding:28px;text-align:center;color:#94a3b8;font-size:12px">No items added yet. Click "+ Add item" or use quick presets below.</td></tr>`;
+    return;
+  }
 
-  document.querySelectorAll('[data-remove]').forEach(el => el.addEventListener('click', () => {
-    items = items.filter(x => x.id !== el.dataset.remove);
-    renderItems();
-    updatePreview();
-  }));
+  tbody.innerHTML = items.map(x => {
+    const isApprox = x.mode === 'building-approx';
+    const isSqm = x.mode === 'sqm';
+    const modeClass = isApprox ? 'mode-approx' : (isSqm ? 'mode-sqm' : '');
+
+    return `
+      <tr>
+        <td>
+          <select class="item-mode-select ${modeClass}" data-id="${x.id}" data-k="mode">
+            <option value="sqm" ${x.mode === 'sqm' ? 'selected' : ''}>📐 Rate / Sq.m</option>
+            <option value="building-approx" ${isApprox ? 'selected' : ''}>🏢 Building (Approx. Total)</option>
+            <option value="general" ${x.mode === 'general' ? 'selected' : ''}>📦 Unit Rate</option>
+          </select>
+        </td>
+        <td>
+          <input class="item-desc" data-id="${x.id}" data-k="desc" value="${esc(x.desc)}" placeholder="${isApprox ? 'e.g. Building structure & civil work (Approx)' : 'e.g. Brickwork / road laying'}">
+        </td>
+        <td>
+          <input class="item-unit num" data-id="${x.id}" data-k="unit" value="${esc(x.unit)}" placeholder="sq.m" ${isApprox ? 'readonly style="background:#f8fafc;color:#94a3b8"' : ''}>
+        </td>
+        <td>
+          <input class="num ${isApprox ? 'input-disabled-approx' : ''}" type="number" min="0" step="0.01" data-id="${x.id}" data-k="qty" value="${x.qty}" ${isApprox ? 'disabled placeholder="Approx"' : 'placeholder="Area / Qty"'}>
+        </td>
+        <td>
+          <input class="num ${isApprox ? 'input-disabled-approx' : ''}" type="number" min="0" step="0.01" data-id="${x.id}" data-k="rate" value="${x.rate}" ${isApprox ? 'disabled placeholder="Approx"' : 'placeholder="Rate (₹)"'}>
+        </td>
+        <td>
+          ${isApprox
+            ? `<input class="num input-approx-total" type="number" min="0" step="1" data-id="${x.id}" data-k="totalCost" value="${x.totalCost || 0}" placeholder="Approx Total ₹">`
+            : `<input class="num input-calculated" readonly value="${money(itemAmount(x))}">`
+          }
+        </td>
+        <td>
+          <button class="remove" data-remove="${x.id}" title="Remove item">&times;</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  // Attach input listeners
+  tbody.querySelectorAll('[data-id][data-k]').forEach(el => {
+    el.addEventListener('input', e => {
+      const x = items.find(a => a.id === e.target.dataset.id);
+      if (!x) return;
+
+      const key = e.target.dataset.k;
+      if (key === 'qty' || key === 'rate' || key === 'totalCost') {
+        x[key] = Number(e.target.value) || 0;
+      } else {
+        x[key] = e.target.value;
+      }
+
+      if (x.mode !== 'building-approx') {
+        x.totalCost = (Number(x.qty) || 0) * (Number(x.rate) || 0);
+      }
+
+      const row = e.target.closest('tr');
+      const calcInput = row.querySelector('.input-calculated');
+      if (calcInput) {
+        calcInput.value = money(itemAmount(x));
+      }
+      updatePreview();
+    });
+
+    if (el.tagName === 'SELECT') {
+      el.addEventListener('change', e => {
+        const x = items.find(a => a.id === e.target.dataset.id);
+        if (!x) return;
+        x.mode = e.target.value;
+        if (x.mode === 'building-approx') {
+          x.unit = 'approx';
+          if (!x.totalCost) x.totalCost = (Number(x.qty) || 1) * (Number(x.rate) || 500000);
+        } else if (x.mode === 'sqm') {
+          x.unit = 'sq.m';
+          if (!x.qty) x.qty = 100;
+          if (!x.rate) x.rate = 450;
+          x.totalCost = x.qty * x.rate;
+        } else {
+          x.unit = 'nos';
+          x.totalCost = (Number(x.qty) || 1) * (Number(x.rate) || 0);
+        }
+        renderItems();
+        updatePreview();
+      });
+    }
+  });
+
+  tbody.querySelectorAll('[data-remove]').forEach(el => {
+    el.addEventListener('click', () => {
+      items = items.filter(x => x.id !== el.dataset.remove);
+      renderItems();
+      updatePreview();
+    });
+  });
 }
 
 function val(id) {
   return $(id) ? $(id).value : '';
 }
 
+/* --- Live Preview & Calculations --- */
 function updatePreview() {
-  const currentQuote = val('quoteNo').trim() || localStorage.getItem('rwQuoteNumber') || 'RW-2026-001';
-  $('quoteNoBadge').textContent = currentQuote;
-  $('pQuoteNo').textContent = currentQuote;
+  const quoteDate = val('quoteDate') || today();
+  $('quoteDateBadge').textContent = formatDate(quoteDate) || 'Today';
+  $('pQuoteDate').textContent = formatDate(quoteDate) || 'Today';
 
-  $('pCompanyName').textContent = val('companyName') || 'Your Roadwork Company';
-  $('pCompanyName2').textContent = val('companyName') || 'Your Roadwork Company';
+  $('pCompanyName').textContent = val('companyName') || 'Sri Balamurugan Fly Ash Bricks & Roadwork';
+  $('pCompanyName2').textContent = val('companyName') || 'Sri Balamurugan Fly Ash Bricks & Roadwork';
   $('pCompanyAddress').textContent = val('companyAddress');
   $('pCompanyPhone').textContent = val('companyPhone');
   $('pCompanyEmail').textContent = val('companyEmail');
@@ -82,18 +200,15 @@ function updatePreview() {
   $('pClientName').textContent = val('clientName') || 'Client name';
   $('pClientContact').textContent = val('clientContact') || 'Contact person';
   $('pClientPhone').textContent = val('clientPhone') || 'Client phone';
-  $('pProjectName').textContent = val('projectName') || 'Roadwork project';
+  $('pProjectName').textContent = val('projectName') || 'Project / Site Work';
   $('pSiteLocation').textContent = val('siteLocation') || 'Site location';
-
-  const date = val('quoteDate');
-  $('pQuoteDate').textContent = formatDate(date);
 
   $('pValidity').textContent = `${val('validity') || 15} days`;
   $('pValidity2').textContent = `${val('validity') || 15} days`;
   $('pPaymentTerms').textContent = val('paymentTerms');
   $('pNotes').textContent = val('notes');
 
-  const subtotal = items.reduce((s, x) => s + (Number(x.qty) || 0) * (Number(x.rate) || 0), 0);
+  const subtotal = items.reduce((s, x) => s + itemAmount(x), 0);
   const discount = Math.min(Math.max(Number(val('discount')) || 0, 0), subtotal);
   const taxable = subtotal - discount;
   const gst = taxable * (Math.max(Number(val('gstRate')) || 0, 0) / 100);
@@ -104,94 +219,526 @@ function updatePreview() {
   $('pGst').textContent = money(gst);
   $('pTotal').textContent = money(total);
 
-  $('previewItems').innerHTML = items.length
-    ? items.map((x, i) => `<tr><td>${i + 1}</td><td>${esc(x.desc || 'Roadwork / material')}</td><td>${esc(x.unit)}</td><td>${Number(x.qty || 0).toLocaleString('en-IN')}</td><td>${money(x.rate)}</td><td class="right">${money((Number(x.qty) || 0) * (Number(x.rate) || 0))}</td></tr>`).join('')
-    : `<tr><td colspan="6" style="text-align:center;color:#98a2b3;padding:25px">Add work items to build the quotation.</td></tr>`;
+  // Render preview table rows
+  const previewTbody = $('previewItems');
+  if (previewTbody) {
+    if (!items.length) {
+      previewTbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:25px">Add work items to build quotation preview.</td></tr>`;
+    } else {
+      previewTbody.innerHTML = items.map((x, i) => {
+        if (x.mode === 'building-approx') {
+          return `
+            <tr>
+              <td>${i + 1}</td>
+              <td><strong>${esc(x.desc || 'Building construction work')}</strong> <span class="badge-approx">Approx. Total</span></td>
+              <td>Lump-sum</td>
+              <td>-</td>
+              <td>Approximate</td>
+              <td class="right"><strong>${money(x.totalCost || 0)}</strong> <span style="font-size:8px;color:#b45309">(Approx)</span></td>
+            </tr>
+          `;
+        } else if (x.mode === 'sqm') {
+          return `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${esc(x.desc || 'Measured work')} <span class="badge-sqm">Rate/sq.m</span></td>
+              <td>${esc(x.unit || 'sq.m')}</td>
+              <td>${Number(x.qty || 0).toLocaleString('en-IN')}</td>
+              <td>${money(x.rate)} / sq.m</td>
+              <td class="right">${money((Number(x.qty) || 0) * (Number(x.rate) || 0))}</td>
+            </tr>
+          `;
+        } else {
+          return `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${esc(x.desc || 'Material / supply')}</td>
+              <td>${esc(x.unit || 'nos')}</td>
+              <td>${Number(x.qty || 0).toLocaleString('en-IN')}</td>
+              <td>${money(x.rate)}</td>
+              <td class="right">${money((Number(x.qty) || 0) * (Number(x.rate) || 0))}</td>
+            </tr>
+          `;
+        }
+      }).join('');
+    }
+  }
 
-  saveState();
+  saveDraftState();
 }
 
-function saveState() {
+/* --- Local Draft State --- */
+function saveDraftState() {
   const data = {
+    currentQuoteId,
     fields: Object.fromEntries(fields.map(id => [id, val(id)])),
     items
   };
   localStorage.setItem(stateKey, JSON.stringify(data));
 }
 
-function loadState() {
+function loadDraftState() {
   try {
     const data = JSON.parse(localStorage.getItem(stateKey) || 'null');
-    if (data && data.fields) {
-      fields.forEach(id => {
-        if ($(id) && data.fields[id] != null) {
-          $(id).value = data.fields[id];
-        }
-      });
-    }
-    if (data && Array.isArray(data.items)) {
-      items = data.items;
+    if (data) {
+      if (data.currentQuoteId) currentQuoteId = data.currentQuoteId;
+      if (data.fields) {
+        fields.forEach(id => {
+          if ($(id) && data.fields[id] != null) {
+            $(id).value = data.fields[id];
+          }
+        });
+      }
+      if (Array.isArray(data.items) && data.items.length) {
+        items = data.items;
+      }
     }
   } catch {}
 
-  if (!$('quoteNo').value) {
-    $('quoteNo').value = localStorage.getItem('rwQuoteNumber') || quoteNumber();
-  }
   if (!$('quoteDate').value) {
     $('quoteDate').value = today();
   }
 }
 
+/* --- Cloud Database (Supabase Integration) --- */
+function initSupabase() {
+  try {
+    const savedConfig = JSON.parse(localStorage.getItem(supabaseConfigKey) || 'null');
+    const badge = $('cloudStatusBadge');
+
+    if (savedConfig && savedConfig.url && savedConfig.key && window.supabase) {
+      $('supabaseUrl').value = savedConfig.url;
+      $('supabaseKey').value = savedConfig.key;
+
+      supabaseClient = window.supabase.createClient(savedConfig.url, savedConfig.key);
+
+      // Verify connection
+      supabaseClient.from('quotations').select('id').limit(1).then(({ error }) => {
+        if (!error) {
+          if (badge) {
+            badge.textContent = '● Cloud Online';
+            badge.className = 'cloud-status-pill online';
+          }
+          loadCompanyDefaults();
+        } else {
+          console.warn('Supabase connect check:', error.message);
+          if (badge) {
+            badge.textContent = '● Setup Needed';
+            badge.className = 'cloud-status-pill local';
+          }
+        }
+      }).catch(() => {
+        if (badge) {
+          badge.textContent = '● Local Mode';
+          badge.className = 'cloud-status-pill local';
+        }
+      });
+    } else {
+      if (badge) {
+        badge.textContent = '● Local Database';
+        badge.className = 'cloud-status-pill local';
+      }
+    }
+  } catch (err) {
+    console.error('Supabase init error:', err);
+  }
+}
+
+async function saveCompanyDefaults() {
+  const companyData = {
+    company_name: val('companyName'),
+    company_phone: val('companyPhone'),
+    company_email: val('companyEmail'),
+    company_gst: val('companyGst'),
+    company_address: val('companyAddress')
+  };
+
+  // Always save locally
+  localStorage.setItem(companyDefaultsKey, JSON.stringify(companyData));
+
+  // If Supabase is connected, save in company_settings table
+  if (supabaseClient) {
+    try {
+      const { error } = await supabaseClient.from('company_settings').upsert({
+        id: 'default',
+        ...companyData,
+        updated_at: new Date().toISOString()
+      });
+      if (error) throw error;
+      showToast('✅ Company details saved to Cloud Database as default!');
+      return;
+    } catch (err) {
+      console.warn('Cloud company save fallback:', err);
+    }
+  }
+
+  showToast('💾 Company details saved as default locally!');
+}
+
+async function loadCompanyDefaults() {
+  // If Supabase is connected, attempt to fetch cloud defaults
+  if (supabaseClient) {
+    try {
+      const { data, error } = await supabaseClient.from('company_settings').select('*').eq('id', 'default').single();
+      if (!error && data) {
+        if (!$('companyName').value || $('companyName').value === 'Your Roadwork Company') {
+          if (data.company_name) $('companyName').value = data.company_name;
+          if (data.company_phone) $('companyPhone').value = data.company_phone;
+          if (data.company_email) $('companyEmail').value = data.company_email;
+          if (data.company_gst) $('companyGst').value = data.company_gst;
+          if (data.company_address) $('companyAddress').value = data.company_address;
+          updatePreview();
+        }
+        return;
+      }
+    } catch {}
+  }
+
+  // Local defaults fallback
+  try {
+    const local = JSON.parse(localStorage.getItem(companyDefaultsKey) || 'null');
+    if (local) {
+      if (local.company_name) $('companyName').value = local.company_name;
+      if (local.company_phone) $('companyPhone').value = local.company_phone;
+      if (local.company_email) $('companyEmail').value = local.company_email;
+      if (local.company_gst) $('companyGst').value = local.company_gst;
+      if (local.company_address) $('companyAddress').value = local.company_address;
+      updatePreview();
+    }
+  } catch {}
+}
+
+async function saveQuotationToCloud() {
+  const subtotal = items.reduce((s, x) => s + itemAmount(x), 0);
+  const discount = Math.min(Math.max(Number(val('discount')) || 0, 0), subtotal);
+  const taxable = subtotal - discount;
+  const gst = taxable * (Math.max(Number(val('gstRate')) || 0, 0) / 100);
+  const total = taxable + gst;
+
+  const quotePayload = {
+    quote_date: val('quoteDate') || today(),
+    company_name: val('companyName'),
+    company_phone: val('companyPhone'),
+    company_email: val('companyEmail'),
+    company_gst: val('companyGst'),
+    company_address: val('companyAddress'),
+    client_name: val('clientName') || 'Unnamed Client',
+    client_contact: val('clientContact'),
+    client_phone: val('clientPhone'),
+    project_name: val('projectName') || 'Unspecified Project',
+    site_location: val('siteLocation'),
+    items: items,
+    gst_rate: Number(val('gstRate')) || 18,
+    discount: Number(val('discount')) || 0,
+    validity: Number(val('validity')) || 15,
+    payment_terms: val('paymentTerms'),
+    notes: val('notes'),
+    subtotal,
+    total,
+    updated_at: new Date().toISOString()
+  };
+
+  if (!currentQuoteId) {
+    currentQuoteId = crypto.randomUUID();
+  }
+  quotePayload.id = currentQuoteId;
+
+  if (supabaseClient) {
+    try {
+      const { error } = await supabaseClient.from('quotations').upsert(quotePayload);
+      if (error) throw error;
+      showToast('☁️ Quotation saved to Cloud Database successfully!');
+      saveDraftState();
+      return;
+    } catch (err) {
+      console.error('Supabase save error:', err);
+      showToast(`Cloud save error: ${err.message || 'Check database permissions'}. Saved locally.`, 'error');
+    }
+  }
+
+  // Fallback to local storage cloud simulation
+  let localQuotes = [];
+  try {
+    localQuotes = JSON.parse(localStorage.getItem(localQuotesKey) || '[]');
+  } catch {}
+
+  const existingIdx = localQuotes.findIndex(q => q.id === currentQuoteId);
+  if (existingIdx >= 0) {
+    localQuotes[existingIdx] = quotePayload;
+  } else {
+    localQuotes.unshift(quotePayload);
+  }
+  localStorage.setItem(localQuotesKey, JSON.stringify(localQuotes));
+  saveDraftState();
+  showToast('💾 Quotation saved to local cloud cache!');
+}
+
+async function fetchSavedQuotations() {
+  const listEl = $('savedQuotesList');
+  if (!listEl) return;
+  listEl.innerHTML = '<div class="empty-state">Loading quotations...</div>';
+
+  let quotes = [];
+
+  if (supabaseClient) {
+    try {
+      const { data, error } = await supabaseClient.from('quotations').select('*').order('updated_at', { ascending: false });
+      if (!error && Array.isArray(data)) {
+        quotes = data;
+      } else if (error) {
+        console.warn('Supabase fetch error, fallback to local:', error);
+      }
+    } catch (err) {
+      console.warn('Supabase fetch exception:', err);
+    }
+  }
+
+  if (!quotes.length) {
+    try {
+      quotes = JSON.parse(localStorage.getItem(localQuotesKey) || '[]');
+    } catch {}
+  }
+
+  savedQuotesCache = quotes;
+  $('savedCount').textContent = quotes.length;
+  renderSavedQuotesList(quotes);
+}
+
+function renderSavedQuotesList(quotes) {
+  const listEl = $('savedQuotesList');
+  if (!listEl) return;
+
+  if (!quotes.length) {
+    listEl.innerHTML = `
+      <div class="empty-state">
+        <p>No saved quotations found in the database.</p>
+        <small>Click "Save to Cloud" on any quotation to store it here.</small>
+      </div>
+    `;
+    return;
+  }
+
+  listEl.innerHTML = quotes.map(q => {
+    const dateFormatted = formatDate(q.quote_date) || 'No date';
+    const itemsCount = Array.isArray(q.items) ? q.items.length : 0;
+    const client = esc(q.client_name || 'Unnamed Client');
+    const project = esc(q.project_name || 'Project');
+    const total = money(q.total || 0);
+
+    return `
+      <div class="quote-card">
+        <div class="quote-card-main">
+          <strong>${client} — ${project}</strong>
+          <p>📅 ${dateFormatted} &bull; 📦 ${itemsCount} items &bull; 📍 ${esc(q.site_location || 'Site not set')}</p>
+        </div>
+        <div class="quote-card-right">
+          <div class="quote-card-amount">${total}</div>
+          <button class="btn small primary" data-load-id="${q.id}">📂 Open</button>
+          <button class="btn small ghost-dark" data-delete-id="${q.id}" title="Delete quotation">&times;</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  listEl.querySelectorAll('[data-load-id]').forEach(btn => {
+    btn.addEventListener('click', () => loadQuotationById(btn.dataset.loadId));
+  });
+
+  listEl.querySelectorAll('[data-delete-id]').forEach(btn => {
+    btn.addEventListener('click', () => deleteQuotationById(btn.dataset.deleteId));
+  });
+}
+
+function loadQuotationById(id) {
+  const q = savedQuotesCache.find(x => x.id === id);
+  if (!q) return;
+
+  currentQuoteId = q.id;
+  $('quoteDate').value = q.quote_date || today();
+  $('companyName').value = q.company_name || 'Sri Balamurugan Fly Ash Bricks & Roadwork';
+  $('companyPhone').value = q.company_phone || '';
+  $('companyEmail').value = q.company_email || '';
+  $('companyGst').value = q.company_gst || '';
+  $('companyAddress').value = q.company_address || '';
+
+  $('clientName').value = q.client_name || '';
+  $('clientContact').value = q.client_contact || '';
+  $('clientPhone').value = q.client_phone || '';
+  $('projectName').value = q.project_name || '';
+  $('siteLocation').value = q.site_location || '';
+
+  $('gstRate').value = q.gst_rate ?? 18;
+  $('discount').value = q.discount ?? 0;
+  $('validity').value = q.validity ?? 15;
+  $('paymentTerms').value = q.payment_terms || '30% advance with work order. Balance as per measured progress / agreed milestones.';
+  $('notes').value = q.notes || 'Rates are based on the specifications and site conditions mentioned above.';
+
+  items = Array.isArray(q.items) ? q.items : [];
+  renderItems();
+  updatePreview();
+
+  $('cloudModal').classList.add('hidden');
+  showToast(`📂 Loaded quotation for ${q.client_name || 'Client'}!`);
+}
+
+async function deleteQuotationById(id) {
+  if (!confirm('Are you sure you want to delete this saved quotation?')) return;
+
+  if (supabaseClient) {
+    try {
+      await supabaseClient.from('quotations').delete().eq('id', id);
+    } catch (err) {
+      console.warn('Supabase delete error:', err);
+    }
+  }
+
+  try {
+    let localQuotes = JSON.parse(localStorage.getItem(localQuotesKey) || '[]');
+    localQuotes = localQuotes.filter(q => q.id !== id);
+    localStorage.setItem(localQuotesKey, JSON.stringify(localQuotes));
+  } catch {}
+
+  showToast('🗑️ Quotation deleted from database.');
+  fetchSavedQuotations();
+}
+
+/* --- Event Handlers & Initialization --- */
 fields.forEach(id => {
   const el = $(id);
   if (el) el.addEventListener('input', updatePreview);
 });
 
-$('addItemBtn').addEventListener('click', () => addItem());
-
-if ($('autoQuoteBtn')) {
-  $('autoQuoteBtn').addEventListener('click', () => {
-    const newQuoteNo = quoteNumber();
-    $('quoteNo').value = newQuoteNo;
-    updatePreview();
-  });
-}
-
-document.querySelectorAll('[data-preset]').forEach(btn => btn.addEventListener('click', () => {
-  const [desc, unit] = btn.dataset.preset.split('|');
-  addItem(desc, unit, 1, 0);
-}));
-
-$('printBtn').addEventListener('click', () => window.print());
-
-$('resetBtn').addEventListener('click', () => {
-  if (!confirm('Start a new quotation? Current saved draft will be replaced.')) return;
-  localStorage.removeItem(stateKey);
-  const newQuote = quoteNumber();
-  fields.forEach(id => {
-    const el = $(id);
-    if (!el) return;
-    if (id === 'quoteNo') el.value = newQuote;
-    else if (id === 'quoteDate') el.value = today();
-    else if (id === 'gstRate') el.value = 18;
-    else if (id === 'discount') el.value = 0;
-    else if (id === 'validity') el.value = 15;
-    else el.value = '';
-  });
-  $('companyName').value = 'Your Roadwork Company';
-  $('companyPhone').value = '+91 00000 00000';
-  $('companyEmail').value = 'office@example.com';
-  $('companyAddress').value = 'Tamil Nadu, India';
-  $('paymentTerms').value = '30% advance. Balance as per measured work / agreed stage payment.';
-  $('notes').value = 'Rates are based on the quantities and site conditions stated above. Final billing will be based on actual measured quantities.';
-  items = [];
-  addItem('Earthwork / excavation', 'm³', 1, 0);
+$('addItemBtn').addEventListener('click', () => {
+  addItem('sqm', 'New work / material', 'sq.m', 100, 450, 0);
 });
 
-loadState();
+// Quick Presets
+document.querySelectorAll('[data-preset]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const [mode, desc, unit, qty, rate, totalCost] = btn.dataset.preset.split('|');
+    addItem(mode, desc, unit, Number(qty) || 1, Number(rate) || 0, Number(totalCost) || 0);
+  });
+});
+
+$('saveCompanyDefaultBtn').addEventListener('click', saveCompanyDefaults);
+$('saveCloudBtn').addEventListener('click', saveQuotationToCloud);
+$('printBtn').addEventListener('click', () => window.print());
+
+// New quotation reset
+$('resetBtn').addEventListener('click', () => {
+  if (!confirm('Start a new quotation? Current unsaved draft will be cleared.')) return;
+  currentQuoteId = crypto.randomUUID();
+  $('quoteDate').value = today();
+  $('clientName').value = '';
+  $('clientContact').value = '';
+  $('clientPhone').value = '';
+  $('projectName').value = '';
+  $('siteLocation').value = '';
+  $('gstRate').value = 18;
+  $('discount').value = 0;
+  $('validity').value = 15;
+  $('paymentTerms').value = '30% advance with work order. Balance as per measured progress / agreed milestones.';
+  $('notes').value = 'Rates are based on the specifications and site conditions mentioned above. Building approximate totals are estimates subject to final architectural layout.';
+
+  items = [];
+  loadCompanyDefaults();
+  addItem('building-approx', 'Building construction work (Approx. lump sum)', 'approx', 1, 0, 500000);
+  addItem('sqm', 'Building brickwork & plastering', 'sq.m', 120, 450, 0);
+  showToast('✨ Started a new quotation.');
+});
+
+// Cloud Modal Controls
+$('cloudModalBtn').addEventListener('click', () => {
+  $('cloudModal').classList.remove('hidden');
+  fetchSavedQuotations();
+});
+
+$('closeCloudModalBtn').addEventListener('click', () => {
+  $('cloudModal').classList.add('hidden');
+});
+
+$('cloudModal').addEventListener('click', e => {
+  if (e.target === $('cloudModal')) {
+    $('cloudModal').classList.add('hidden');
+  }
+});
+
+$('tabSavedBtn').addEventListener('click', () => {
+  $('tabSavedBtn').classList.add('active');
+  $('tabConfigBtn').classList.remove('active');
+  $('tabSavedContent').classList.remove('hidden');
+  $('tabConfigContent').classList.add('hidden');
+  fetchSavedQuotations();
+});
+
+$('tabConfigBtn').addEventListener('click', () => {
+  $('tabConfigBtn').classList.add('active');
+  $('tabSavedBtn').classList.remove('active');
+  $('tabConfigContent').classList.remove('hidden');
+  $('tabSavedContent').classList.add('hidden');
+});
+
+$('saveSupabaseConfigBtn').addEventListener('click', () => {
+  const url = $('supabaseUrl').value.trim();
+  const key = $('supabaseKey').value.trim();
+
+  if (!url || !key) {
+    showToast('Please enter both Supabase Project URL and Anon Key.', 'error');
+    return;
+  }
+
+  localStorage.setItem(supabaseConfigKey, JSON.stringify({ url, key }));
+  initSupabase();
+  showToast('✅ Supabase configuration saved! Testing connection...');
+  setTimeout(() => fetchSavedQuotations(), 1000);
+});
+
+$('clearSupabaseConfigBtn').addEventListener('click', () => {
+  localStorage.removeItem(supabaseConfigKey);
+  supabaseClient = null;
+  $('supabaseUrl').value = '';
+  $('supabaseKey').value = '';
+  const badge = $('cloudStatusBadge');
+  if (badge) {
+    badge.textContent = '● Local Database';
+    badge.className = 'cloud-status-pill local';
+  }
+  showToast('Disconnected from Supabase. Running in local database mode.');
+  fetchSavedQuotations();
+});
+
+$('copySqlBtn').addEventListener('click', () => {
+  const sql = $('sqlSchemaBox').textContent;
+  navigator.clipboard.writeText(sql).then(() => {
+    showToast('📋 SQL Schema copied to clipboard!');
+  }).catch(() => {
+    showToast('Could not copy automatically. Please select and copy the SQL box.', 'error');
+  });
+});
+
+$('searchQuoteInput').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  const filtered = savedQuotesCache.filter(item =>
+    (item.client_name && item.client_name.toLowerCase().includes(q)) ||
+    (item.project_name && item.project_name.toLowerCase().includes(q)) ||
+    (item.site_location && item.site_location.toLowerCase().includes(q)) ||
+    (item.quote_date && item.quote_date.includes(q))
+  );
+  renderSavedQuotesList(filtered);
+});
+
+$('refreshCloudListBtn').addEventListener('click', fetchSavedQuotations);
+
+// Initialize on page load
+loadDraftState();
+initSupabase();
+
 if (!items.length) {
-  addItem('Earthwork / excavation', 'm³', 1, 0);
+  addItem('building-approx', 'Building construction work (Approx. lump sum)', 'approx', 1, 0, 500000);
+  addItem('sqm', 'Building brickwork & plastering', 'sq.m', 120, 450, 0);
+  addItem('sqm', 'Fly ash brick laying with mortar', 'sq.m', 100, 380, 0);
 } else {
   renderItems();
   updatePreview();
 }
+
