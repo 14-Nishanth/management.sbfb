@@ -11,8 +11,19 @@ const stateKey = 'sbfbQuotationState';
 const companyDefaultsKey = 'sbfbCompanyDefaults';
 const localQuotesKey = 'sbfbLocalCloudQuotes';
 const supabaseConfigKey = 'sbfbSupabaseConfig';
+const catalogStorageKey = 'sbfbItemCatalog';
+
+const defaultCatalog = [
+  { id: 'cat-1', desc: 'Building construction & structural civil work', rate: 1850 },
+  { id: 'cat-2', desc: 'Fly ash brick masonry with cement mortar', rate: 450 },
+  { id: 'cat-3', desc: 'Internal & external wall plastering', rate: 220 },
+  { id: 'cat-4', desc: 'Bitumen road surfacing & laying', rate: 380 },
+  { id: 'cat-5', desc: 'Earthwork excavation & site grading', rate: 140 },
+  { id: 'cat-6', desc: 'Concrete flooring & PCC work', rate: 320 }
+];
 
 let items = [];
+let itemCatalog = [];
 let currentQuoteId = null;
 let supabaseClient = null;
 let savedQuotesCache = [];
@@ -53,6 +64,194 @@ function showToast(message, type = 'success') {
   }, 3500);
 }
 
+/* --- Item Library (Catalog) Storage & Sync --- */
+async function loadItemCatalog() {
+  try {
+    const local = JSON.parse(localStorage.getItem(catalogStorageKey) || 'null');
+    if (Array.isArray(local) && local.length) {
+      itemCatalog = local;
+    } else {
+      itemCatalog = [...defaultCatalog];
+      localStorage.setItem(catalogStorageKey, JSON.stringify(itemCatalog));
+    }
+  } catch {
+    itemCatalog = [...defaultCatalog];
+  }
+
+  if (supabaseClient) {
+    try {
+      const { data, error } = await supabaseClient.from('item_catalog').select('*').order('description');
+      if (!error && Array.isArray(data) && data.length) {
+        data.forEach(cloudItem => {
+          const idx = itemCatalog.findIndex(x => x.desc.toLowerCase() === (cloudItem.description || '').toLowerCase());
+          if (idx >= 0) {
+            itemCatalog[idx].rate = Number(cloudItem.rate) || itemCatalog[idx].rate;
+            itemCatalog[idx].id = cloudItem.id || itemCatalog[idx].id;
+          } else {
+            itemCatalog.push({
+              id: cloudItem.id || crypto.randomUUID(),
+              desc: cloudItem.description,
+              rate: Number(cloudItem.rate) || 0
+            });
+          }
+        });
+        localStorage.setItem(catalogStorageKey, JSON.stringify(itemCatalog));
+      }
+    } catch (err) {
+      console.warn('Catalog fetch error:', err);
+    }
+  }
+
+  renderCatalogPills();
+  renderCatalogDatalist();
+  renderCatalogManager();
+}
+
+async function saveItemToCatalog(desc, rate, notify = true) {
+  const trimmedDesc = (desc || '').trim();
+  if (!trimmedDesc) return;
+  const rateNum = Number(rate) || 0;
+
+  const existingIdx = itemCatalog.findIndex(x => x.desc.toLowerCase() === trimmedDesc.toLowerCase());
+  let itemId = crypto.randomUUID();
+  if (existingIdx >= 0) {
+    itemCatalog[existingIdx].rate = rateNum;
+    itemId = itemCatalog[existingIdx].id;
+  } else {
+    itemCatalog.unshift({ id: itemId, desc: trimmedDesc, rate: rateNum });
+  }
+
+  localStorage.setItem(catalogStorageKey, JSON.stringify(itemCatalog));
+
+  if (supabaseClient) {
+    try {
+      await supabaseClient.from('item_catalog').upsert({
+        description: trimmedDesc,
+        rate: rateNum,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'description' });
+    } catch (err) {
+      console.warn('Supabase catalog save error:', err);
+    }
+  }
+
+  renderCatalogPills();
+  renderCatalogDatalist();
+  renderCatalogManager();
+
+  if (notify) {
+    showToast(`📚 Saved "${trimmedDesc}" (₹${rateNum}/sq.m) to Item Library!`);
+  }
+}
+
+async function deleteItemFromCatalog(id, desc) {
+  if (!confirm(`Delete "${desc}" from your reusable Item Library?`)) return;
+
+  itemCatalog = itemCatalog.filter(x => x.id !== id && x.desc !== desc);
+  localStorage.setItem(catalogStorageKey, JSON.stringify(itemCatalog));
+
+  if (supabaseClient) {
+    try {
+      await supabaseClient.from('item_catalog').delete().or(`id.eq.${id},description.eq.${desc}`);
+    } catch (err) {
+      console.warn('Supabase catalog delete error:', err);
+    }
+  }
+
+  renderCatalogPills();
+  renderCatalogDatalist();
+  renderCatalogManager();
+  showToast(`🗑️ Removed "${desc}" from Item Library.`);
+}
+
+function renderCatalogPills() {
+  const container = $('catalogPills');
+  if (!container) return;
+  if (!itemCatalog.length) {
+    container.innerHTML = '<span style="font-size:11px;color:#94a3b8;">No saved items in library yet.</span>';
+    return;
+  }
+
+  container.innerHTML = itemCatalog.map(item => `
+    <button type="button" class="catalog-pill" data-cat-desc="${esc(item.desc)}" data-cat-rate="${item.rate}">
+      ➕ ${esc(item.desc)} <strong style="color:#b45309;">(₹${Number(item.rate).toLocaleString('en-IN')}/sq.m)</strong>
+    </button>
+  `).join('');
+
+  container.querySelectorAll('[data-cat-desc]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      addItem(btn.dataset.catDesc, Number(btn.dataset.catRate) || 0);
+      showToast(`➕ Added "${btn.dataset.catDesc}" to quotation!`);
+    });
+  });
+}
+
+function renderCatalogDatalist() {
+  const dl = $('catalogDatalist');
+  if (!dl) return;
+  dl.innerHTML = itemCatalog.map(item => `<option value="${esc(item.desc)}">₹${Number(item.rate).toLocaleString('en-IN')} / sq.m</option>`).join('');
+}
+
+function renderCatalogManager() {
+  const countEl = $('catalogCount');
+  const count2El = $('catalogCount2');
+  if (countEl) countEl.textContent = itemCatalog.length;
+  if (count2El) count2El.textContent = itemCatalog.length;
+
+  const listEl = $('catalogManagerList');
+  if (!listEl) return;
+
+  if (!itemCatalog.length) {
+    listEl.innerHTML = '<div class="empty-state">No saved items in library. Add your frequently quoted civil and construction items above.</div>';
+    return;
+  }
+
+  listEl.innerHTML = itemCatalog.map(item => `
+    <div class="quote-card">
+      <div class="quote-card-main">
+        <strong>${esc(item.desc)}</strong>
+        <p>📐 Quoted Rate: <strong style="color:#b45309;">${money(item.rate)} / sq.m</strong></p>
+      </div>
+      <div class="quote-card-right">
+        <button class="btn small primary" data-insert-id="${item.id}">➕ Add to Quote</button>
+        <button class="btn small ghost-dark" data-cat-del-id="${item.id}" data-cat-del-desc="${esc(item.desc)}" title="Delete item">&times;</button>
+      </div>
+    </div>
+  `).join('');
+
+  listEl.querySelectorAll('[data-insert-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = itemCatalog.find(x => x.id === btn.dataset.insertId);
+      if (item) {
+        addItem(item.desc, item.rate);
+        $('cloudModal').classList.add('hidden');
+        showToast(`➕ Added "${item.desc}" to quotation!`);
+      }
+    });
+  });
+
+  listEl.querySelectorAll('[data-cat-del-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      deleteItemFromCatalog(btn.dataset.catDelId, btn.dataset.catDelDesc);
+    });
+  });
+}
+
+function syncCurrentQuoteToCatalog() {
+  let savedCount = 0;
+  items.forEach(item => {
+    if (item.desc && item.desc.trim()) {
+      saveItemToCatalog(item.desc, item.rate, false);
+      savedCount++;
+    }
+  });
+  if (savedCount > 0) {
+    showToast(`💾 Stored ${savedCount} item(s) to Library! Available for all future quotations.`);
+  } else {
+    showToast('Add some work items with descriptions first to store them.', 'error');
+  }
+}
+
 /* --- Work Items Logic (Description + Rate per Sq. Meter) --- */
 function addItem(desc = '', rate = 450) {
   items.push({
@@ -69,7 +268,7 @@ function renderItems() {
   if (!tbody) return;
 
   if (!items.length) {
-    tbody.innerHTML = `<tr><td colspan="4" style="padding:24px;text-align:center;color:#94a3b8;font-size:12px">No items added yet. Click "+ Add item" or use quick presets below.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4" style="padding:24px;text-align:center;color:#94a3b8;font-size:12px">No items added yet. Click "+ Add item" or pick from Stored Items library below.</td></tr>`;
     return;
   }
 
@@ -77,7 +276,7 @@ function renderItems() {
     <tr>
       <td style="text-align:center;color:#64748b;font-weight:700;font-size:12px">${i + 1}</td>
       <td>
-        <input class="item-desc" data-id="${x.id}" data-k="desc" value="${esc(x.desc)}" placeholder="e.g. Fly ash brick masonry with cement mortar">
+        <input class="item-desc" list="catalogDatalist" data-id="${x.id}" data-k="desc" value="${esc(x.desc)}" placeholder="e.g. Fly ash brick masonry with cement mortar">
       </td>
       <td>
         <input class="num" type="number" min="0" step="0.01" data-id="${x.id}" data-k="rate" value="${x.rate}" placeholder="Rate in ₹ / sq.m">
@@ -97,10 +296,30 @@ function renderItems() {
       const key = e.target.dataset.k;
       if (key === 'rate') {
         x.rate = Number(e.target.value) || 0;
-      } else {
-        x[key] = e.target.value;
+        // Auto-update catalog rate if exists
+        if (x.desc && x.desc.trim()) {
+          saveItemToCatalog(x.desc, x.rate, false);
+        }
+      } else if (key === 'desc') {
+        x.desc = e.target.value;
+        // Check if entered description matches a catalog item to autofill rate
+        const matched = itemCatalog.find(c => c.desc.toLowerCase() === x.desc.trim().toLowerCase());
+        if (matched && (!x.rate || x.rate === 450 || x.rate === 0)) {
+          x.rate = matched.rate;
+          const row = e.target.closest('tr');
+          const rateInput = row ? row.querySelector('[data-k="rate"]') : null;
+          if (rateInput) rateInput.value = matched.rate;
+        }
       }
       updatePreview();
+    });
+
+    el.addEventListener('change', e => {
+      const x = items.find(a => a.id === e.target.dataset.id);
+      if (!x) return;
+      if (x.desc && x.desc.trim()) {
+        saveItemToCatalog(x.desc, x.rate, false);
+      }
     });
   });
 
@@ -238,6 +457,7 @@ function initSupabase() {
             badge.className = 'cloud-status-pill online';
           }
           loadCompanyDefaults();
+          loadItemCatalog();
         } else {
           console.warn('Supabase connect check:', error.message);
           if (badge) {
@@ -294,7 +514,6 @@ async function saveCompanyDefaults() {
 }
 
 async function loadCompanyDefaults() {
-  // If Supabase is connected, attempt to fetch cloud defaults
   if (supabaseClient) {
     try {
       const { data, error } = await supabaseClient.from('company_settings').select('*').eq('id', 'default').single();
@@ -333,6 +552,13 @@ async function saveQuotationToCloud() {
   const gst = taxable * (Math.max(Number(val('gstRate')) || 0, 0) / 100);
   const total = taxable + gst;
 
+  // Auto-sync items from this quotation to Item Library
+  items.forEach(item => {
+    if (item.desc && item.desc.trim()) {
+      saveItemToCatalog(item.desc, item.rate, false);
+    }
+  });
+
   const quotePayload = {
     quote_no: (val('quoteNo') || '').trim() || null,
     quote_date: val('quoteDate') || today(),
@@ -366,7 +592,7 @@ async function saveQuotationToCloud() {
     try {
       const { error } = await supabaseClient.from('quotations').upsert(quotePayload);
       if (error) throw error;
-      showToast('☁️ Quotation saved to Cloud Database successfully!');
+      showToast('☁️ Quotation & items saved to Cloud Database successfully!');
       saveDraftState();
       return;
     } catch (err) {
@@ -389,7 +615,7 @@ async function saveQuotationToCloud() {
   }
   localStorage.setItem(localQuotesKey, JSON.stringify(localQuotes));
   saveDraftState();
-  showToast('💾 Quotation saved to local cloud cache!');
+  showToast('💾 Quotation & items saved to local cloud cache!');
 }
 
 async function fetchSavedQuotations() {
@@ -538,12 +764,19 @@ $('addItemBtn').addEventListener('click', () => {
   addItem('New work item', 450);
 });
 
-// Quick Presets
-document.querySelectorAll('[data-preset]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const [desc, rate] = btn.dataset.preset.split('|');
-    addItem(desc, Number(rate) || 0);
-  });
+$('saveCatalogBtn').addEventListener('click', syncCurrentQuoteToCatalog);
+$('syncCatalogFromCurrentBtn').addEventListener('click', syncCurrentQuoteToCatalog);
+
+$('addNewCatalogItemBtn').addEventListener('click', () => {
+  const desc = $('newCatalogDesc').value.trim();
+  const rate = Number($('newCatalogRate').value) || 0;
+  if (!desc) {
+    showToast('Please enter an item description.', 'error');
+    return;
+  }
+  saveItemToCatalog(desc, rate, true);
+  $('newCatalogDesc').value = '';
+  $('newCatalogRate').value = '';
 });
 
 $('saveCompanyDefaultBtn').addEventListener('click', saveCompanyDefaults);
@@ -579,6 +812,7 @@ $('resetBtn').addEventListener('click', () => {
 $('cloudModalBtn').addEventListener('click', () => {
   $('cloudModal').classList.remove('hidden');
   fetchSavedQuotations();
+  renderCatalogManager();
 });
 
 $('closeCloudModalBtn').addEventListener('click', () => {
@@ -593,17 +827,31 @@ $('cloudModal').addEventListener('click', e => {
 
 $('tabSavedBtn').addEventListener('click', () => {
   $('tabSavedBtn').classList.add('active');
+  $('tabCatalogBtn').classList.remove('active');
   $('tabConfigBtn').classList.remove('active');
   $('tabSavedContent').classList.remove('hidden');
+  $('tabCatalogContent').classList.add('hidden');
   $('tabConfigContent').classList.add('hidden');
   fetchSavedQuotations();
+});
+
+$('tabCatalogBtn').addEventListener('click', () => {
+  $('tabCatalogBtn').classList.add('active');
+  $('tabSavedBtn').classList.remove('active');
+  $('tabConfigBtn').classList.remove('active');
+  $('tabCatalogContent').classList.remove('hidden');
+  $('tabSavedContent').classList.add('hidden');
+  $('tabConfigContent').classList.add('hidden');
+  renderCatalogManager();
 });
 
 $('tabConfigBtn').addEventListener('click', () => {
   $('tabConfigBtn').classList.add('active');
   $('tabSavedBtn').classList.remove('active');
+  $('tabCatalogBtn').classList.remove('active');
   $('tabConfigContent').classList.remove('hidden');
   $('tabSavedContent').classList.add('hidden');
+  $('tabCatalogContent').classList.add('hidden');
 });
 
 $('saveSupabaseConfigBtn').addEventListener('click', () => {
@@ -618,7 +866,10 @@ $('saveSupabaseConfigBtn').addEventListener('click', () => {
   localStorage.setItem(supabaseConfigKey, JSON.stringify({ url, key }));
   initSupabase();
   showToast('✅ Supabase configuration saved! Testing connection...');
-  setTimeout(() => fetchSavedQuotations(), 1000);
+  setTimeout(() => {
+    fetchSavedQuotations();
+    loadItemCatalog();
+  }, 1000);
 });
 
 $('clearSupabaseConfigBtn').addEventListener('click', () => {
@@ -633,6 +884,7 @@ $('clearSupabaseConfigBtn').addEventListener('click', () => {
   }
   showToast('Disconnected from Supabase. Running in local database mode.');
   fetchSavedQuotations();
+  loadItemCatalog();
 });
 
 $('copySqlBtn').addEventListener('click', () => {
@@ -660,6 +912,7 @@ $('refreshCloudListBtn').addEventListener('click', fetchSavedQuotations);
 
 // Initialize on page load
 loadDraftState();
+loadItemCatalog();
 initSupabase();
 
 if (!items.length) {
@@ -671,5 +924,6 @@ if (!items.length) {
   renderItems();
   updatePreview();
 }
+
 
 

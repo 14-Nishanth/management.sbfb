@@ -88,11 +88,15 @@
           <div class="card-head">
             <div>
               <h2>Work & Building Items</h2>
-              <p>Enter work item description and quoted <strong>Rate per sq. meter (₹/sq.m)</strong>.</p>
+              <p>Enter work item description and quoted <strong>Rate per sq. meter (₹/sq.m)</strong>. Items are saved in your library for reuse.</p>
             </div>
-            <button class="btn small primary" id="addItemBtn">+ Add item</button>
+            <div style="display:flex;gap:8px;">
+              <button type="button" class="btn small outline" id="saveCatalogBtn" title="Save items to reusable library">💾 Save to Library</button>
+              <button class="btn small primary" id="addItemBtn">+ Add item</button>
+            </div>
           </div>
           <div class="table-wrap">
+            <datalist id="catalogDatalist"></datalist>
             <table class="items-table">
               <thead>
                 <tr>
@@ -106,13 +110,8 @@
             </table>
           </div>
           <div class="quick-items">
-            <span>Quick add presets:</span>
-            <button data-preset="Building construction & structural civil work|1850">🏢 Building Construction (₹1,850/sq.m)</button>
-            <button data-preset="Fly ash brick masonry with cement mortar|450">🧱 Brickwork Masonry (₹450/sq.m)</button>
-            <button data-preset="Internal & external wall plastering|220">🏗️ Wall Plastering (₹220/sq.m)</button>
-            <button data-preset="Bitumen road surfacing & laying|380">🛣️ Road Surfacing (₹380/sq.m)</button>
-            <button data-preset="Earthwork excavation & site grading|140">🚜 Earthwork Excavation (₹140/sq.m)</button>
-            <button data-preset="Concrete flooring & PCC work|320">📐 Concrete Flooring (₹320/sq.m)</button>
+            <span>📚 Stored Items (Click to add):</span>
+            <div id="catalogPills" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;"></div>
           </div>
         </div>
 
@@ -243,6 +242,7 @@
 
         <div class="modal-tabs">
           <button class="tab-btn active" id="tabSavedBtn">📁 Saved Cloud Quotations (<span id="savedCount">0</span>)</button>
+          <button class="tab-btn" id="tabCatalogBtn">📚 Stored Item Library (<span id="catalogCount">0</span>)</button>
           <button class="tab-btn" id="tabConfigBtn">⚙️ Cloud Database Settings (Supabase)</button>
         </div>
 
@@ -257,12 +257,39 @@
           </div>
         </div>
 
-        <!-- Tab 2: Supabase Settings & SQL Schema -->
+        <!-- Tab 2: Stored Item Library Management -->
+        <div id="tabCatalogContent" class="tab-content hidden">
+          <div class="catalog-add-box">
+            <h4>Add New Item to Stored Library</h4>
+            <p class="helper-text">Add items here or directly in any quotation — they will be stored in your cloud database and available across all quotations.</p>
+            <div class="grid two" style="margin-top:10px;margin-bottom:12px;">
+              <label>Work / Item Description
+                <input id="newCatalogDesc" placeholder="e.g. Waterproof Exterior Texture Painting" />
+              </label>
+              <label>Rate per Sq. Meter (₹/sq.m)
+                <div style="display:flex;gap:6px;">
+                  <input id="newCatalogRate" type="number" min="0" step="0.01" placeholder="e.g. 180" />
+                  <button type="button" class="btn primary small" id="addNewCatalogItemBtn" style="white-space:nowrap;">+ Add to Library</button>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin:18px 0 10px;">
+            <h4 style="margin:0;font-size:13px;">Stored Master Items (<span id="catalogCount2">0</span>)</h4>
+            <button class="btn small" id="syncCatalogFromCurrentBtn">📥 Add Current Quote Items to Library</button>
+          </div>
+          <div class="saved-list" id="catalogManagerList">
+            <div class="empty-state">No items in library yet.</div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Supabase Settings & SQL Schema -->
         <div id="tabConfigContent" class="tab-content hidden">
           <div class="config-grid">
             <div class="config-section">
               <h4>Supabase Credentials</h4>
-              <p class="helper-text">Connect your free Supabase Postgres project to store quotations and company details in the cloud.</p>
+              <p class="helper-text">Connect your free Supabase Postgres project to store quotations, items, and company details in the cloud.</p>
               <label>Supabase Project URL
                 <input id="supabaseUrl" placeholder="https://xyzcompany.supabase.co" />
               </label>
@@ -277,7 +304,7 @@
 
             <div class="config-section">
               <h4>Database SQL Setup (One-Time)</h4>
-              <p class="helper-text">Paste this SQL in your Supabase SQL Editor to create the <code>quotations</code> and <code>company_settings</code> tables.</p>
+              <p class="helper-text">Paste this SQL in your Supabase SQL Editor to create the <code>quotations</code>, <code>company_settings</code>, and <code>item_catalog</code> tables.</p>
               <div class="sql-box-wrap">
                 <pre id="sqlSchemaBox">-- 1. Create quotations table
 CREATE TABLE IF NOT EXISTS public.quotations (
@@ -317,12 +344,22 @@ CREATE TABLE IF NOT EXISTS public.company_settings (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 3. Enable Row Level Security & grant access
+-- 3. Create reusable item_catalog table
+CREATE TABLE IF NOT EXISTS public.item_catalog (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  description TEXT NOT NULL UNIQUE,
+  rate NUMERIC NOT NULL DEFAULT 0,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 4. Enable Row Level Security & grant access
 ALTER TABLE public.quotations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.company_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.item_catalog ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Allow public access to quotations" ON public.quotations FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public access to company_settings" ON public.company_settings FOR ALL USING (true) WITH CHECK (true);</pre>
+CREATE POLICY "Allow public access to company_settings" ON public.company_settings FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public access to item_catalog" ON public.item_catalog FOR ALL USING (true) WITH CHECK (true);</pre>
                 <button type="button" class="btn small btn-copy" id="copySqlBtn">📋 Copy SQL</button>
               </div>
             </div>

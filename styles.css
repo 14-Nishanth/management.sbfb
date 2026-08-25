@@ -400,7 +400,7 @@ textarea { resize: vertical; }
 
 .quick-items {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
   flex-wrap: wrap;
   padding: 12px 18px;
@@ -415,20 +415,39 @@ textarea { resize: vertical; }
   margin-right: 4px;
 }
 
-.quick-items button {
+.quick-items button, .catalog-pill {
   border: 1px solid #e2e8f0;
   background: #fff;
   border-radius: 99px;
-  padding: 5px 10px;
+  padding: 5px 12px;
   font-size: 11px;
+  font-weight: 600;
   color: #334155;
+  cursor: pointer;
   transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.quick-items button:hover {
+.quick-items button:hover, .catalog-pill:hover {
   border-color: #f59e0b;
   background: #fffbeb;
   color: #b45309;
+  transform: translateY(-1px);
+}
+
+.catalog-add-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.catalog-add-box h4 {
+  margin: 0 0 4px;
+  font: 700 14px 'Manrope', sans-serif;
+  color: #0f172a;
 }
 
 /* Preview Sheet */
