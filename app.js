@@ -795,9 +795,17 @@ $('saveCompanyDefaultBtn').addEventListener('click', saveCompanyDefaults);
 $('saveCloudBtn').addEventListener('click', saveQuotationToCloud);
 $('printBtn').addEventListener('click', () => window.print());
 
-// New quotation reset
-$('resetBtn').addEventListener('click', () => {
-  if (!confirm('Start a new quotation? Current unsaved draft will be cleared.')) return;
+// New quotation reset: saves previous draft and starts a clean blank quotation
+$('resetBtn').addEventListener('click', async () => {
+  // Automatically save current work to database if there's content
+  if (items.length > 0 || (val('clientName') && val('clientName').trim()) || (val('projectName') && val('projectName').trim())) {
+    try {
+      await saveQuotationToCloud();
+    } catch (e) {
+      console.warn('Auto-save on reset error:', e);
+    }
+  }
+
   currentQuoteId = crypto.randomUUID();
   $('quoteNo').value = '';
   $('quoteDate').value = today();
@@ -812,12 +820,13 @@ $('resetBtn').addEventListener('click', () => {
   $('paymentTerms').value = '30% advance with work order. Balance as per measured progress / agreed milestones.';
   $('notes').value = 'Rates are quoted per sq. meter based on the specifications above. Final billing will be based on actual site measurements.';
 
+  // Start with clean, empty items (no automatic dummy items generated)
   items = [];
   loadCompanyDefaults();
-  addItem('Building construction & structural civil work', 1850);
-  addItem('Fly ash brick masonry with cement mortar', 450);
-  addItem('Internal & external wall plastering', 220);
-  showToast('✨ Started a new quotation.');
+  renderItems();
+  updatePreview();
+  saveDraftState();
+  showToast('✨ Current draft saved & started a fresh blank quotation.');
 });
 
 // Cloud Modal Controls
@@ -927,15 +936,8 @@ loadDraftState();
 loadItemCatalog();
 initSupabase();
 
-if (!items.length) {
-  addItem('Building construction & structural civil work', 1850);
-  addItem('Fly ash brick masonry with cement mortar', 450);
-  addItem('Internal & external wall plastering', 220);
-  addItem('Bitumen road surfacing & laying', 380);
-} else {
-  renderItems();
-  updatePreview();
-}
+renderItems();
+updatePreview();
 
 
 
