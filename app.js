@@ -53,23 +53,12 @@ function showToast(message, type = 'success') {
   }, 3500);
 }
 
-function itemAmount(item) {
-  if (item.mode === 'building-approx') {
-    return Number(item.totalCost) || 0;
-  }
-  return (Number(item.qty) || 0) * (Number(item.rate) || 0);
-}
-
-/* --- Work Items Logic --- */
-function addItem(mode = 'sqm', desc = '', unit = 'sq.m', qty = 100, rate = 450, totalCost = 0) {
+/* --- Work Items Logic (Description + Rate per Sq. Meter) --- */
+function addItem(desc = '', rate = 450) {
   items.push({
     id: crypto.randomUUID(),
-    mode, // 'sqm' | 'building-approx' | 'general'
     desc,
-    unit: mode === 'building-approx' ? 'approx' : (mode === 'sqm' ? 'sq.m' : unit),
-    qty: mode === 'building-approx' ? 1 : qty,
-    rate: mode === 'building-approx' ? 0 : rate,
-    totalCost: mode === 'building-approx' ? (totalCost || 500000) : (qty * rate)
+    rate: Number(rate) || 0
   });
   renderItems();
   updatePreview();
@@ -80,48 +69,24 @@ function renderItems() {
   if (!tbody) return;
 
   if (!items.length) {
-    tbody.innerHTML = `<tr><td colspan="7" style="padding:28px;text-align:center;color:#94a3b8;font-size:12px">No items added yet. Click "+ Add item" or use quick presets below.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="4" style="padding:24px;text-align:center;color:#94a3b8;font-size:12px">No items added yet. Click "+ Add item" or use quick presets below.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = items.map(x => {
-    const isApprox = x.mode === 'building-approx';
-    const isSqm = x.mode === 'sqm';
-    const modeClass = isApprox ? 'mode-approx' : (isSqm ? 'mode-sqm' : '');
-
-    return `
-      <tr>
-        <td>
-          <select class="item-mode-select ${modeClass}" data-id="${x.id}" data-k="mode">
-            <option value="sqm" ${x.mode === 'sqm' ? 'selected' : ''}>📐 Rate / Sq.m</option>
-            <option value="building-approx" ${isApprox ? 'selected' : ''}>🏢 Building (Approx. Total)</option>
-            <option value="general" ${x.mode === 'general' ? 'selected' : ''}>📦 Unit Rate</option>
-          </select>
-        </td>
-        <td>
-          <input class="item-desc" data-id="${x.id}" data-k="desc" value="${esc(x.desc)}" placeholder="${isApprox ? 'e.g. Building structure & civil work (Approx)' : 'e.g. Brickwork / road laying'}">
-        </td>
-        <td>
-          <input class="item-unit num" data-id="${x.id}" data-k="unit" value="${esc(x.unit)}" placeholder="sq.m" ${isApprox ? 'readonly style="background:#f8fafc;color:#94a3b8"' : ''}>
-        </td>
-        <td>
-          <input class="num ${isApprox ? 'input-disabled-approx' : ''}" type="number" min="0" step="0.01" data-id="${x.id}" data-k="qty" value="${x.qty}" ${isApprox ? 'disabled placeholder="Approx"' : 'placeholder="Area / Qty"'}>
-        </td>
-        <td>
-          <input class="num ${isApprox ? 'input-disabled-approx' : ''}" type="number" min="0" step="0.01" data-id="${x.id}" data-k="rate" value="${x.rate}" ${isApprox ? 'disabled placeholder="Approx"' : 'placeholder="Rate (₹)"'}>
-        </td>
-        <td>
-          ${isApprox
-            ? `<input class="num input-approx-total" type="number" min="0" step="1" data-id="${x.id}" data-k="totalCost" value="${x.totalCost || 0}" placeholder="Approx Total ₹">`
-            : `<input class="num input-calculated" readonly value="${money(itemAmount(x))}">`
-          }
-        </td>
-        <td>
-          <button class="remove" data-remove="${x.id}" title="Remove item">&times;</button>
-        </td>
-      </tr>
-    `;
-  }).join('');
+  tbody.innerHTML = items.map((x, i) => `
+    <tr>
+      <td style="text-align:center;color:#64748b;font-weight:700;font-size:12px">${i + 1}</td>
+      <td>
+        <input class="item-desc" data-id="${x.id}" data-k="desc" value="${esc(x.desc)}" placeholder="e.g. Fly ash brick masonry with cement mortar">
+      </td>
+      <td>
+        <input class="num" type="number" min="0" step="0.01" data-id="${x.id}" data-k="rate" value="${x.rate}" placeholder="Rate in ₹ / sq.m">
+      </td>
+      <td style="text-align:center;">
+        <button class="remove" data-remove="${x.id}" title="Remove item">&times;</button>
+      </td>
+    </tr>
+  `).join('');
 
   // Attach input listeners
   tbody.querySelectorAll('[data-id][data-k]').forEach(el => {
@@ -130,45 +95,13 @@ function renderItems() {
       if (!x) return;
 
       const key = e.target.dataset.k;
-      if (key === 'qty' || key === 'rate' || key === 'totalCost') {
-        x[key] = Number(e.target.value) || 0;
+      if (key === 'rate') {
+        x.rate = Number(e.target.value) || 0;
       } else {
         x[key] = e.target.value;
       }
-
-      if (x.mode !== 'building-approx') {
-        x.totalCost = (Number(x.qty) || 0) * (Number(x.rate) || 0);
-      }
-
-      const row = e.target.closest('tr');
-      const calcInput = row.querySelector('.input-calculated');
-      if (calcInput) {
-        calcInput.value = money(itemAmount(x));
-      }
       updatePreview();
     });
-
-    if (el.tagName === 'SELECT') {
-      el.addEventListener('change', e => {
-        const x = items.find(a => a.id === e.target.dataset.id);
-        if (!x) return;
-        x.mode = e.target.value;
-        if (x.mode === 'building-approx') {
-          x.unit = 'approx';
-          if (!x.totalCost) x.totalCost = (Number(x.qty) || 1) * (Number(x.rate) || 500000);
-        } else if (x.mode === 'sqm') {
-          x.unit = 'sq.m';
-          if (!x.qty) x.qty = 100;
-          if (!x.rate) x.rate = 450;
-          x.totalCost = x.qty * x.rate;
-        } else {
-          x.unit = 'nos';
-          x.totalCost = (Number(x.qty) || 1) * (Number(x.rate) || 0);
-        }
-        renderItems();
-        updatePreview();
-      });
-    }
   });
 
   tbody.querySelectorAll('[data-remove]').forEach(el => {
@@ -222,7 +155,7 @@ function updatePreview() {
   $('pPaymentTerms').textContent = val('paymentTerms');
   $('pNotes').textContent = val('notes');
 
-  const subtotal = items.reduce((s, x) => s + itemAmount(x), 0);
+  const subtotal = items.reduce((s, x) => s + (Number(x.rate) || 0), 0);
   const discount = Math.min(Math.max(Number(val('discount')) || 0, 0), subtotal);
   const taxable = subtotal - discount;
   const gst = taxable * (Math.max(Number(val('gstRate')) || 0, 0) / 100);
@@ -237,44 +170,15 @@ function updatePreview() {
   const previewTbody = $('previewItems');
   if (previewTbody) {
     if (!items.length) {
-      previewTbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:25px">Add work items to build quotation preview.</td></tr>`;
+      previewTbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#94a3b8;padding:25px">Add work items to build quotation preview.</td></tr>`;
     } else {
-      previewTbody.innerHTML = items.map((x, i) => {
-        if (x.mode === 'building-approx') {
-          return `
-            <tr>
-              <td>${i + 1}</td>
-              <td><strong>${esc(x.desc || 'Building construction work')}</strong> <span class="badge-approx">Approx. Total</span></td>
-              <td>Lump-sum</td>
-              <td>-</td>
-              <td>Approximate</td>
-              <td class="right"><strong>${money(x.totalCost || 0)}</strong> <span style="font-size:8px;color:#b45309">(Approx)</span></td>
-            </tr>
-          `;
-        } else if (x.mode === 'sqm') {
-          return `
-            <tr>
-              <td>${i + 1}</td>
-              <td>${esc(x.desc || 'Measured work')} <span class="badge-sqm">Rate/sq.m</span></td>
-              <td>${esc(x.unit || 'sq.m')}</td>
-              <td>${Number(x.qty || 0).toLocaleString('en-IN')}</td>
-              <td>${money(x.rate)} / sq.m</td>
-              <td class="right">${money((Number(x.qty) || 0) * (Number(x.rate) || 0))}</td>
-            </tr>
-          `;
-        } else {
-          return `
-            <tr>
-              <td>${i + 1}</td>
-              <td>${esc(x.desc || 'Material / supply')}</td>
-              <td>${esc(x.unit || 'nos')}</td>
-              <td>${Number(x.qty || 0).toLocaleString('en-IN')}</td>
-              <td>${money(x.rate)}</td>
-              <td class="right">${money((Number(x.qty) || 0) * (Number(x.rate) || 0))}</td>
-            </tr>
-          `;
-        }
-      }).join('');
+      previewTbody.innerHTML = items.map((x, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td><strong>${esc(x.desc || 'Work description')}</strong></td>
+          <td class="right"><strong>${money(x.rate || 0)}</strong> <span style="font-size:8.5px;color:#64748b">/ sq.m</span></td>
+        </tr>
+      `).join('');
     }
   }
 
@@ -423,7 +327,7 @@ async function loadCompanyDefaults() {
 }
 
 async function saveQuotationToCloud() {
-  const subtotal = items.reduce((s, x) => s + itemAmount(x), 0);
+  const subtotal = items.reduce((s, x) => s + (Number(x.rate) || 0), 0);
   const discount = Math.min(Math.max(Number(val('discount')) || 0, 0), subtotal);
   const taxable = subtotal - discount;
   const gst = taxable * (Math.max(Number(val('gstRate')) || 0, 0) / 100);
@@ -588,9 +492,14 @@ function loadQuotationById(id) {
   $('discount').value = q.discount ?? 0;
   $('validity').value = q.validity ?? 15;
   $('paymentTerms').value = q.payment_terms || '30% advance with work order. Balance as per measured progress / agreed milestones.';
-  $('notes').value = q.notes || 'Rates are based on the specifications and site conditions mentioned above.';
+  $('notes').value = q.notes || 'Rates are quoted per sq. meter based on the specifications above. Final billing will be based on actual site measurements.';
 
-  items = Array.isArray(q.items) ? q.items : [];
+  items = Array.isArray(q.items) ? q.items.map(item => ({
+    id: item.id || crypto.randomUUID(),
+    desc: item.desc || '',
+    rate: Number(item.rate) || 0
+  })) : [];
+
   renderItems();
   updatePreview();
 
@@ -626,14 +535,14 @@ fields.forEach(id => {
 });
 
 $('addItemBtn').addEventListener('click', () => {
-  addItem('sqm', 'New work / material', 'sq.m', 100, 450, 0);
+  addItem('New work item', 450);
 });
 
 // Quick Presets
 document.querySelectorAll('[data-preset]').forEach(btn => {
   btn.addEventListener('click', () => {
-    const [mode, desc, unit, qty, rate, totalCost] = btn.dataset.preset.split('|');
-    addItem(mode, desc, unit, Number(qty) || 1, Number(rate) || 0, Number(totalCost) || 0);
+    const [desc, rate] = btn.dataset.preset.split('|');
+    addItem(desc, Number(rate) || 0);
   });
 });
 
@@ -656,12 +565,13 @@ $('resetBtn').addEventListener('click', () => {
   $('discount').value = 0;
   $('validity').value = 15;
   $('paymentTerms').value = '30% advance with work order. Balance as per measured progress / agreed milestones.';
-  $('notes').value = 'Rates are based on the specifications and site conditions mentioned above. Building approximate totals are estimates subject to final architectural layout.';
+  $('notes').value = 'Rates are quoted per sq. meter based on the specifications above. Final billing will be based on actual site measurements.';
 
   items = [];
   loadCompanyDefaults();
-  addItem('building-approx', 'Building construction work (Approx. lump sum)', 'approx', 1, 0, 500000);
-  addItem('sqm', 'Building brickwork & plastering', 'sq.m', 120, 450, 0);
+  addItem('Building construction & structural civil work', 1850);
+  addItem('Fly ash brick masonry with cement mortar', 450);
+  addItem('Internal & external wall plastering', 220);
   showToast('✨ Started a new quotation.');
 });
 
@@ -740,7 +650,8 @@ $('searchQuoteInput').addEventListener('input', e => {
     (item.client_name && item.client_name.toLowerCase().includes(q)) ||
     (item.project_name && item.project_name.toLowerCase().includes(q)) ||
     (item.site_location && item.site_location.toLowerCase().includes(q)) ||
-    (item.quote_date && item.quote_date.includes(q))
+    (item.quote_date && item.quote_date.includes(q)) ||
+    (item.quote_no && item.quote_no.toLowerCase().includes(q))
   );
   renderSavedQuotesList(filtered);
 });
@@ -752,11 +663,13 @@ loadDraftState();
 initSupabase();
 
 if (!items.length) {
-  addItem('building-approx', 'Building construction work (Approx. lump sum)', 'approx', 1, 0, 500000);
-  addItem('sqm', 'Building brickwork & plastering', 'sq.m', 120, 450, 0);
-  addItem('sqm', 'Fly ash brick laying with mortar', 'sq.m', 100, 380, 0);
+  addItem('Building construction & structural civil work', 1850);
+  addItem('Fly ash brick masonry with cement mortar', 450);
+  addItem('Internal & external wall plastering', 220);
+  addItem('Bitumen road surfacing & laying', 380);
 } else {
   renderItems();
   updatePreview();
 }
+
 

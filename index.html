@@ -88,7 +88,7 @@
           <div class="card-head">
             <div>
               <h2>Work & Building Items</h2>
-              <p>Choose <strong>Rate per sq. meter</strong> for measured areas, or <strong>Building (Approx. Total)</strong> for approximate lump-sum costs.</p>
+              <p>Enter work item description and quoted <strong>Rate per sq. meter (₹/sq.m)</strong>.</p>
             </div>
             <button class="btn small primary" id="addItemBtn">+ Add item</button>
           </div>
@@ -96,13 +96,10 @@
             <table class="items-table">
               <thead>
                 <tr>
-                  <th style="width: 155px;">Pricing Mode</th>
-                  <th>Description</th>
-                  <th style="width: 80px;">Unit</th>
-                  <th style="width: 85px;">Area / Qty</th>
-                  <th style="width: 100px;">Rate (₹)</th>
-                  <th style="width: 120px;">Total Cost (₹)</th>
-                  <th style="width: 30px;"></th>
+                  <th style="width: 40px;">#</th>
+                  <th>Work / Item Description</th>
+                  <th style="width: 200px;">Rate per Sq. Meter (₹/sq.m)</th>
+                  <th style="width: 35px;"></th>
                 </tr>
               </thead>
               <tbody id="itemsBody"></tbody>
@@ -110,13 +107,12 @@
           </div>
           <div class="quick-items">
             <span>Quick add presets:</span>
-            <button data-preset="building-approx|Building construction work (Approx. lump sum)|approx|1|0|500000">🏢 Building (Approx. Total)</button>
-            <button data-preset="sqm|Building plastering & brickwork|sq.m|100|450|0">📐 Building (per sq.m)</button>
-            <button data-preset="sqm|Bitumen road surfacing & laying|sq.m|250|380|0">🛣️ Roadwork (per sq.m)</button>
-            <button data-preset="general|Earthwork / site excavation|m³|150|120|0">🚜 Earthwork (per m³)</button>
-            <button data-preset="general|Fly Ash Bricks Supply (Grade A)|nos|5000|7.5|0">🧱 Fly Ash Bricks</button>
-            <button data-preset="general|M-sand / P-sand supply|ton|40|1200|0">⏳ Sand / Aggregate</button>
-            <button data-preset="general|Transportation & logistics|trip|5|3500|0">🚚 Transport</button>
+            <button data-preset="Building construction & structural civil work|1850">🏢 Building Construction (₹1,850/sq.m)</button>
+            <button data-preset="Fly ash brick masonry with cement mortar|450">🧱 Brickwork Masonry (₹450/sq.m)</button>
+            <button data-preset="Internal & external wall plastering|220">🏗️ Wall Plastering (₹220/sq.m)</button>
+            <button data-preset="Bitumen road surfacing & laying|380">🛣️ Road Surfacing (₹380/sq.m)</button>
+            <button data-preset="Earthwork excavation & site grading|140">🚜 Earthwork Excavation (₹140/sq.m)</button>
+            <button data-preset="Concrete flooring & PCC work|320">📐 Concrete Flooring (₹320/sq.m)</button>
           </div>
         </div>
 
@@ -133,7 +129,7 @@
             <label>Discount (₹)<input id="discount" type="number" min="0" step="0.01" value="0" /></label>
             <label>Validity (days)<input id="validity" type="number" min="1" value="15" /></label>
             <label class="wide">Payment terms<textarea id="paymentTerms" rows="2">30% advance with work order. Balance as per measured progress / agreed milestones.</textarea></label>
-            <label class="wide">Notes<textarea id="notes" rows="3">Rates are based on the specifications and site conditions mentioned above. Building approximate totals are estimates subject to final architectural layout.</textarea></label>
+            <label class="wide">Notes<textarea id="notes" rows="3">Rates are quoted per sq. meter based on the specifications above. Final billing will be based on actual site measurements.</textarea></label>
           </div>
         </div>
       </section>
@@ -192,12 +188,9 @@
           <table class="preview-table">
             <thead>
               <tr>
-                <th>#</th>
-                <th>Description</th>
-                <th>Type / Unit</th>
-                <th>Area / Qty</th>
-                <th>Rate</th>
-                <th class="right">Amount</th>
+                <th style="width: 35px;">#</th>
+                <th>Work / Item Description</th>
+                <th class="right" style="width: 170px;">Rate per Sq. Meter</th>
               </tr>
             </thead>
             <tbody id="previewItems"></tbody>
