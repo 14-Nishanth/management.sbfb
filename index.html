@@ -42,14 +42,20 @@
         </div>
 
         <div class="card">
-          <div class="card-head"><div><h2>Client & project</h2><p>Quotation and site information.</p></div></div>
+          <div class="card-head"><div><h2>Quotation & client details</h2><p>Quotation identification, client and site information.</p></div></div>
           <div class="grid two">
+            <label>Quotation No.
+              <div class="input-action-group">
+                <input id="quoteNo" placeholder="e.g. RW-2026-001" />
+                <button type="button" class="btn-icon" id="autoQuoteBtn" title="Generate new quotation number">↺ Auto</button>
+              </div>
+            </label>
+            <label>Quotation date<input id="quoteDate" type="date" /></label>
             <label>Client / company<input id="clientName" placeholder="Client name" /></label>
             <label>Contact person<input id="clientContact" placeholder="Contact person" /></label>
             <label>Phone<input id="clientPhone" placeholder="Client phone" /></label>
-            <label>Quotation date<input id="quoteDate" type="date" /></label>
             <label>Project / road name<input id="projectName" placeholder="e.g. Village road development" /></label>
-            <label>Site location<input id="siteLocation" placeholder="Project location" /></label>
+            <label class="wide">Site location<input id="siteLocation" placeholder="Project location" /></label>
           </div>
         </div>
 
