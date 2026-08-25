@@ -73,7 +73,12 @@
             </div>
           </div>
           <div class="grid two">
-            <label>Quotation date<input id="quoteDate" type="date" /></label>
+            <label>Quotation date
+              <div style="display:flex;gap:6px;align-items:center;">
+                <input id="quoteDate" type="date" style="flex:1;" />
+                <button type="button" class="btn small" id="setTodayBtn" title="Reset date to today" style="padding:7px 10px;font-size:11px;white-space:nowrap;">📅 Today</button>
+              </div>
+            </label>
             <label>Quotation No. <span style="font-size:10px;color:#94a3b8;font-weight:400">(Optional — leave blank if not needed)</span><input id="quoteNo" placeholder="Leave blank if not needed (e.g. SBFB-001)" /></label>
             <label>Client / company name<input id="clientName" placeholder="e.g. ABC Developers / Client Name" /></label>
             <label>Contact person<input id="clientContact" placeholder="Contact person name" /></label>

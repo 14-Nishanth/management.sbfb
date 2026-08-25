@@ -757,8 +757,20 @@ async function deleteQuotationById(id) {
 /* --- Event Handlers & Initialization --- */
 fields.forEach(id => {
   const el = $(id);
-  if (el) el.addEventListener('input', updatePreview);
+  if (el) {
+    el.addEventListener('input', updatePreview);
+    el.addEventListener('change', updatePreview);
+  }
 });
+
+const setTodayBtn = $('setTodayBtn');
+if (setTodayBtn) {
+  setTodayBtn.addEventListener('click', () => {
+    $('quoteDate').value = today();
+    updatePreview();
+    showToast('📅 Quotation date set to Today.');
+  });
+}
 
 $('addItemBtn').addEventListener('click', () => {
   addItem('New work item', 450);
