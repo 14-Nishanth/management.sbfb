@@ -523,6 +523,14 @@ textarea { resize: vertical; }
   padding: 14px 20px;
 }
 
+.compact-logo-bar {
+  border-top: 1px solid var(--line);
+  border-bottom: none;
+  background: #f8fafc;
+  padding: 10px 20px;
+  margin-top: 14px;
+}
+
 .logo-mode-pill-bar {
   display: flex;
   gap: 6px;

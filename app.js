@@ -58,10 +58,15 @@ function esc(s) {
 
 function generateMonogram(name, customLetters) {
   const custom = (customLetters || '').trim();
-  if (custom && custom.toUpperCase() !== 'TNP') {
+  if (custom && custom.toUpperCase() !== 'TNP' && custom.toUpperCase() !== 'SBFA') {
     return custom.toUpperCase();
   }
   const cleanName = (name || 'Sri Balamurugan Fly Ash Bricks & Roadwork').trim();
+  const lower = cleanName.toLowerCase();
+  if (lower.includes('balamurugan') && (lower.includes('brick') || lower.includes('fly ash'))) {
+    return 'SBFB';
+  }
+
   const clean = cleanName.replace(/[^a-zA-Z0-9\s]/g, ' ');
   const words = clean.split(/\s+/).filter(Boolean);
 
@@ -69,7 +74,7 @@ function generateMonogram(name, customLetters) {
     return words[0].slice(0, 4).toUpperCase();
   }
 
-  const stopWords = new Set(['and', '&', 'of', 'the', 'in', 'co', 'pvt', 'ltd', 'inc', 'a', 'an', 'for', 'to']);
+  const stopWords = new Set(['and', '&', 'of', 'the', 'in', 'co', 'pvt', 'ltd', 'inc', 'a', 'an', 'for', 'to', 'ash']);
   const meaningfulWords = words.filter(w => !stopWords.has(w.toLowerCase()));
   const targetWords = meaningfulWords.length ? meaningfulWords : words;
 
@@ -961,7 +966,7 @@ function loadDraftState() {
     $('logoModeSelect').value = 'ai';
   }
 
-  if ($('companyLogoText') && $('companyLogoText').value === 'TNP') {
+  if ($('companyLogoText') && ($('companyLogoText').value === 'TNP' || $('companyLogoText').value === 'SBFA')) {
     $('companyLogoText').value = '';
   }
 }

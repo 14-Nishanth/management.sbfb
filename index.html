@@ -52,107 +52,70 @@
               <p>Configure company details and logo. AI automatically generates a custom logo if no file is provided.</p>
             </div>
             <div style="display:flex;gap:8px;align-items:center;">
-              <button type="button" class="btn small primary" id="headerAiLogoBtn" style="font-weight:800;">
-                ✨ AI Logo Studio
-              </button>
               <button type="button" class="btn small outline" id="saveCompanyDefaultBtn" title="Save company details to cloud as default">
                 💾 Save Default
               </button>
             </div>
           </div>
 
-          <!-- Prominent Logo Bar & Mode Selector -->
-          <div class="company-logo-config-bar">
+          <!-- Company Details Inputs (At the top of the card) -->
+          <div class="grid two" style="padding:16px 20px 0;">
+            <label>Company name<input id="companyName" value="Sri Balamurugan Fly Ash Bricks & Roadwork" /></label>
+            <label>Phone<input id="companyPhone" value="+91 98765 43210" /></label>
+            <label>Email<input id="companyEmail" value="info@sbfb.com" /></label>
+            <label>GSTIN / Tax ID<input id="companyGst" placeholder="e.g. 33AAAAA0000A1Z5" /></label>
+            <label class="wide">Company Address<textarea id="companyAddress" rows="2">Tamil Nadu, India</textarea></label>
+          </div>
+
+          <!-- Compact Logo Bar (Occupies small space beneath details) -->
+          <div class="company-logo-config-bar compact-logo-bar" style="margin-top:12px;">
             <div class="logo-preview-box">
               <div id="settingsLogoWrap">
                 <div class="company-logo" id="settingsLogoPreview"></div>
               </div>
               <div class="logo-preview-meta">
                 <div style="display:flex;align-items:center;gap:6px;">
-                  <strong style="font-size:13px;color:#0f172a;">Live Logo Preview</strong>
+                  <strong style="font-size:12.5px;color:#0f172a;">Company Logo</strong>
                   <span id="logoStatusBadge" style="background:#fef3c7;color:#b45309;font-size:9.5px;padding:2px 7px;border-radius:99px;font-weight:800;border:1px solid #fde68a;">🤖 AI ACTIVE</span>
                 </div>
-                <span style="font-size:11px;color:#64748b;">Updates live on quotation and topbar</span>
+                <span style="font-size:11px;color:#64748b;">Updates live on quotation and printout</span>
               </div>
             </div>
 
-            <!-- Segmented Mode Pills -->
-            <div class="logo-mode-pill-bar">
-              <button type="button" class="logo-mode-pill active" data-mode="ai" id="pillModeAi">
-                🤖 AI Smart Logo
+            <!-- Segmented Mode Pills & AI Studio button -->
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <div class="logo-mode-pill-bar">
+                <button type="button" class="logo-mode-pill active" data-mode="ai" id="pillModeAi">
+                  🤖 AI Logo
+                </button>
+                <button type="button" class="logo-mode-pill" data-mode="image" id="pillModeImage">
+                  📁 Upload
+                </button>
+                <button type="button" class="logo-mode-pill" data-mode="text" id="pillModeText">
+                  🔤 Text
+                </button>
+                <select id="logoModeSelect" style="display:none;">
+                  <option value="ai" selected>🤖 AI Smart Logo</option>
+                  <option value="image">🖼️ Image / File Upload</option>
+                  <option value="text">🔤 Monogram / Text</option>
+                </select>
+              </div>
+              <button type="button" class="btn small primary" id="openAiStudioBtn" style="font-size:11px;font-weight:800;padding:6px 11px;">
+                ✨ AI Studio
               </button>
-              <button type="button" class="logo-mode-pill" data-mode="image" id="pillModeImage">
-                📁 Upload File
+              <button type="button" class="btn small outline" id="aiRegenBtn" title="Generate another AI Variation" style="font-size:11px;padding:6px 9px;">
+                🎲
               </button>
-              <button type="button" class="logo-mode-pill" data-mode="text" id="pillModeText">
-                🔤 Text / Monogram
-              </button>
-              <select id="logoModeSelect" style="display:none;">
-                <option value="ai" selected>🤖 AI Smart Logo</option>
-                <option value="image">🖼️ Image / File Upload</option>
-                <option value="text">🔤 Monogram / Text</option>
-              </select>
             </div>
           </div>
 
-          <!-- AI Smart Logo Controls Panel -->
-          <div id="aiLogoGroup" class="ai-logo-panel">
-            <div class="ai-panel-header">
-              <div>
-                <strong style="font-size:13px;color:#0f172a;">✨ AI Logo Generator (Active)</strong>
-                <p style="margin:2px 0 0;font-size:11.5px;color:#64748b;">Custom vector mark crafted from your company name & industry.</p>
-              </div>
-              <div style="display:flex;gap:6px;">
-                <button type="button" class="btn small outline" id="aiRegenBtn" title="Generate another AI Variation">
-                  🎲 New Variation
-                </button>
-                <button type="button" class="btn small primary" id="openAiStudioBtn">
-                  🎨 Open AI Studio
-                </button>
-              </div>
-            </div>
+          <input type="hidden" id="aiLogoStyle" value="industrial" />
+          <input type="hidden" id="aiLogoColor" value="amber_slate" />
+          <input type="hidden" id="aiLogoSymbol" value="auto" />
+          <input type="hidden" id="aiLogoSeed" value="1" />
+          <input type="hidden" id="aiCustomSvgData" value="" />
 
-            <div class="grid three" style="padding:10px 0 0;gap:10px;">
-              <label>AI Design Style:
-                <select id="aiLogoStyle">
-                  <option value="industrial">🏗️ Industrial & Bricks (Civil & Roadwork)</option>
-                  <option value="hexagon">🛡️ Hexagon Shield (Engineering)</option>
-                  <option value="architectural">🏛️ Blueprint & Structure (Architectural)</option>
-                  <option value="gold_crest">👑 Luxury Gold Crest (Premium Seal)</option>
-                  <option value="gradient_tech">⚡ Dynamic Gradient (Modern Abstract)</option>
-                  <option value="eco_infra">🌿 Eco Infrastructure (Sustainable)</option>
-                  <option value="minimal_badge">📐 Minimalist Badge (Clean Swiss)</option>
-                </select>
-              </label>
-              <label>Color Theme:
-                <select id="aiLogoColor">
-                  <option value="amber_slate">🟡 Amber Gold & Slate</option>
-                  <option value="sapphire_silver">🔵 Sapphire & Platinum</option>
-                  <option value="emerald_carbon">🟢 Emerald & Dark Carbon</option>
-                  <option value="crimson_bronze">🔴 Crimson & Bronze</option>
-                  <option value="purple_platinum">🟣 Royal Purple</option>
-                  <option value="charcoal_mono">⚪ Charcoal Monochrome</option>
-                </select>
-              </label>
-              <label>Industry Symbol:
-                <select id="aiLogoSymbol">
-                  <option value="auto">✨ Auto-detect from Name</option>
-                  <option value="bricks">🧱 Bricks & Masonry</option>
-                  <option value="road">🛣️ Road & Asphalt</option>
-                  <option value="crane">🏗️ Construction Crane</option>
-                  <option value="building">🏛️ High-Rise Building</option>
-                  <option value="shield">🛡️ Shield of Quality</option>
-                  <option value="gear">⚙️ Industrial Gear</option>
-                  <option value="compass">📐 Drafting Compass</option>
-                  <option value="eco">🌿 Eco & Sustainable</option>
-                </select>
-              </label>
-            </div>
-            <input type="hidden" id="aiLogoSeed" value="1" />
-            <input type="hidden" id="aiCustomSvgData" value="" />
-          </div>
-
-          <!-- Embedded AI Logo Design Studio (Opens near AI controls, not at top) -->
+          <!-- Embedded AI Logo Design Studio (Expands in this compact space) -->
           <div id="inlineAiStudioBox" class="inline-ai-studio hidden">
             <div class="inline-studio-head">
               <div style="display:flex;align-items:center;gap:8px;">
@@ -321,14 +284,6 @@
               <span>✨ <strong>No file uploaded:</strong> AI Smart Logo is automatically active!</span>
               <button type="button" id="switchBackToAiBtn" class="btn small primary" style="padding:4px 9px;font-size:11px;margin:0;">Open AI Studio</button>
             </div>
-          </div>
-
-          <div class="grid two" style="margin-top:14px;">
-            <label>Company name<input id="companyName" value="Sri Balamurugan Fly Ash Bricks & Roadwork" /></label>
-            <label>Phone<input id="companyPhone" value="+91 98765 43210" /></label>
-            <label>Email<input id="companyEmail" value="info@sbfb.com" /></label>
-            <label>GSTIN / Tax ID<input id="companyGst" placeholder="e.g. 33AAAAA0000A1Z5" /></label>
-            <label class="wide">Company Address<textarea id="companyAddress" rows="2">Tamil Nadu, India</textarea></label>
           </div>
         </div>
 
