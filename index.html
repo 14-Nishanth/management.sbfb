@@ -152,6 +152,153 @@
             <input type="hidden" id="aiCustomSvgData" value="" />
           </div>
 
+          <!-- Embedded AI Logo Design Studio (Opens near AI controls, not at top) -->
+          <div id="inlineAiStudioBox" class="inline-ai-studio hidden">
+            <div class="inline-studio-head">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:15px;">✨</span>
+                <div>
+                  <strong style="font-size:12.5px;color:#0f172a;">AI Logo Design Studio</strong>
+                  <p style="margin:0;font-size:10.5px;color:#64748b;">Instant variations, ChatGPT AI generator & prompt designer</p>
+                </div>
+              </div>
+              <button type="button" class="btn small outline" id="closeInlineStudioBtn" style="padding:3px 8px;font-size:11px;">✕ Close</button>
+            </div>
+
+            <div class="inline-studio-tabs">
+              <button type="button" class="inline-tab-btn active" id="inlineTabPresetsBtn">🎲 6 Instant Variations</button>
+              <button type="button" class="inline-tab-btn" id="inlineTabChatGptBtn">🤖 ChatGPT Logo Creator</button>
+              <button type="button" class="inline-tab-btn" id="inlineTabCustomBtn">🎨 Prompt & Diffusion</button>
+            </div>
+
+            <!-- Tab 1: 6 Live Variations -->
+            <div id="inlineTabPresetsContent" class="inline-tab-content">
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <button type="button" class="catalog-pill ai-industry-pill" data-industry="bricks">🧱 Fly Ash & Road</button>
+                  <button type="button" class="catalog-pill ai-industry-pill" data-industry="civil">🏗️ Civil Works</button>
+                  <button type="button" class="catalog-pill ai-industry-pill" data-industry="architecture">🏛️ Architecture</button>
+                  <button type="button" class="catalog-pill ai-industry-pill" data-industry="eco">🌿 Eco Infra</button>
+                </div>
+                <button type="button" class="btn small primary" id="inlineRerollBtn" style="font-size:11px;padding:4px 9px;">
+                  🎲 Re-roll 6 Designs
+                </button>
+              </div>
+              <div class="ai-variation-grid" id="inlineVariationsGrid"></div>
+            </div>
+
+            <!-- Tab 2: ChatGPT Creator -->
+            <div id="inlineTabChatGptContent" class="inline-tab-content hidden">
+              <div class="catalog-add-box" style="background:#f0fdf4;border-color:#bbf7d0;padding:12px 14px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+                  <div>
+                    <strong style="color:#166534;font-size:12.5px;">🤖 ChatGPT Logo Generator (Free & Instant)</strong>
+                    <p class="helper-text" style="color:#15803d;margin:0;font-size:11px;">Powered by GPT-4o vector generator. Works free out-of-the-box, or connect your API key.</p>
+                  </div>
+                  <span class="badge-approx" style="background:#dcfce7;color:#166534;font-size:9.5px;padding:2px 6px;border-radius:4px;font-weight:700;">GPT-4o Engine</span>
+                </div>
+
+                <div class="grid two" style="margin-top:10px;gap:8px;">
+                  <label style="font-size:11px;">Generation Engine:
+                    <select id="chatGptEngineSelect" style="padding:6px 8px;font-size:11px;">
+                      <option value="free-gpt-4o" selected>⚡ Free GPT-4o Vector SVG (Instant / No Key)</option>
+                      <option value="free-diffusion">🎨 Free AI Diffusion Graphic (No Key)</option>
+                      <option value="openai-api">🔑 My OpenAI Account (API Key)</option>
+                    </select>
+                  </label>
+                  <label style="font-size:11px;">Design Tone:
+                    <select id="chatGptToneSelect" style="padding:6px 8px;font-size:11px;">
+                      <option value="modern_construction">🏗️ Modern Civil & Construction Emblem</option>
+                      <option value="luxury_geometric">👑 Luxury Geometric Crest & Gold Monogram</option>
+                      <option value="minimalist_tech">📐 Minimalist Swiss Architectural Mark</option>
+                      <option value="eco_infrastructure">🌿 Eco-Friendly Green Infrastructure</option>
+                      <option value="bold_industrial">⚙️ Heavy Industrial & Roadwork Badge</option>
+                    </select>
+                  </label>
+                </div>
+
+                <!-- Optional API Key row -->
+                <div id="openAiKeyRow" class="hidden" style="margin-top:8px;background:#fff;padding:8px 10px;border-radius:8px;border:1px solid #d1fae5;">
+                  <label style="font-size:10.5px;margin:0 0 4px;font-weight:700;">OpenAI API Key:
+                    <div style="display:flex;gap:6px;">
+                      <input type="password" id="openAiApiKey" placeholder="sk-proj-... (Paste OpenAI key)" style="flex:1;font-size:11px;padding:5px 8px;font-family:monospace;" />
+                      <button type="button" class="btn small outline" id="saveApiKeyBtn" style="padding:4px 8px;font-size:10px;">💾 Save</button>
+                    </div>
+                  </label>
+                </div>
+
+                <label style="margin-top:8px;font-size:11px;">Custom Instructions for ChatGPT (Optional):
+                  <input id="chatGptCustomPrompt" placeholder="e.g. bold interlocking bricks, asphalt road curve, golden monogram..." style="padding:6px 8px;font-size:11px;" />
+                </label>
+
+                <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;">
+                  <button type="button" class="btn primary small" id="generateWithChatGptBtn" style="font-weight:700;">
+                    🤖 Generate Logo with ChatGPT
+                  </button>
+                  <button type="button" class="btn outline small" id="copyChatGptPromptBtn" title="Copy ready prompt for ChatGPT.com" style="font-size:10.5px;">
+                    📋 Copy Prompt for ChatGPT.com
+                  </button>
+                </div>
+              </div>
+
+              <!-- ChatGPT Loading State -->
+              <div id="chatGptLoadingBox" class="hidden" style="text-align:center;padding:16px;background:#fff;border-radius:10px;margin-top:10px;border:1px solid #e2e8f0;">
+                <div class="ai-spinner" style="width:20px;height:20px;margin-bottom:6px;"></div>
+                <div id="chatGptLoadingText" style="font-weight:700;color:#0f172a;font-size:12px;">ChatGPT is designing your company logo...</div>
+                <div style="font-size:10.5px;color:#64748b;margin-top:2px;">Connecting to GPT-4o engine and generating vector geometry.</div>
+              </div>
+
+              <!-- ChatGPT Result Box -->
+              <div id="chatGptResultBox" style="margin-top:12px;text-align:center;background:#fff;padding:16px;border:1.5px dashed #10b981;border-radius:10px;" class="hidden">
+                <div id="chatGptPreviewHolder" style="display:inline-block;margin-bottom:8px;"></div>
+                <div id="chatGptStatusMsg" style="font-size:11.5px;color:#0f172a;font-weight:600;margin-bottom:8px;"></div>
+                <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+                  <button type="button" class="btn primary small" id="applyChatGptLogoBtn">
+                    ✅ Apply this ChatGPT Logo
+                  </button>
+                  <button type="button" class="btn outline small" id="copyChatGptSvgBtn">
+                    📋 Copy SVG Code
+                  </button>
+                </div>
+              </div>
+
+              <!-- Paste Box -->
+              <div style="margin-top:10px;background:#fff;padding:10px 12px;border-radius:8px;border:1px solid #e2e8f0;">
+                <strong style="font-size:11px;color:#0f172a;display:block;margin-bottom:2px;">📥 Or Paste Output from ChatGPT.com:</strong>
+                <div style="display:flex;gap:6px;">
+                  <textarea id="pasteChatGptInput" rows="1" placeholder="Paste <svg...> or https://... image URL from ChatGPT here" style="flex:1;font-size:10.5px;font-family:monospace;padding:5px 8px;"></textarea>
+                  <button type="button" class="btn small primary" id="applyPastedChatGptBtn" style="white-space:nowrap;padding:0 10px;font-size:11px;">Apply</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 3: Custom Prompt & Diffusion -->
+            <div id="inlineTabCustomContent" class="inline-tab-content hidden">
+              <div class="catalog-add-box" style="padding:12px 14px;">
+                <strong style="font-size:12px;color:#0f172a;display:block;">🎨 Custom Style Prompt</strong>
+                <label style="margin-top:6px;font-size:11px;">Prompt Description:
+                  <input id="customAiPromptInput" placeholder="e.g. Modern minimalist hexagon logo with roadwork and golden monogram..." style="padding:6px 8px;font-size:11px;" />
+                </label>
+                <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+                  <button type="button" class="btn primary small" id="generateCustomVectorBtn" style="font-size:11px;">
+                    ⚡ Procedural Vector Mark
+                  </button>
+                  <button type="button" class="btn accent-btn small" id="generateAiDiffusionBtn" style="font-size:11px;">
+                    🤖 AI Diffusion Image
+                  </button>
+                </div>
+              </div>
+
+              <div id="customAiResultBox" style="margin-top:10px;text-align:center;background:#fff;padding:16px;border:1px dashed #cbd5e1;border-radius:10px;" class="hidden">
+                <div id="customAiPreviewHolder" style="display:inline-block;margin-bottom:8px;"></div>
+                <div id="customAiStatusMsg" style="font-size:11.5px;color:#64748b;margin-bottom:8px;"></div>
+                <button type="button" class="btn primary small" id="applyCustomAiBtn" style="font-size:11px;">
+                  ✅ Apply this AI Logo
+                </button>
+              </div>
+            </div>
+          </div>
+
           <!-- Monogram / Text Logo Group -->
           <div id="textLogoGroup" class="hidden" style="margin:12px 20px 0;background:#f8fafc;padding:12px 16px;border-radius:10px;border:1px solid #e2e8f0;">
             <label>Logo Letters (Monogram) <span style="font-size:10px;color:#94a3b8;font-weight:400">(e.g. TNP, SBFB, NC — or leave blank to auto-create from company name)</span>
@@ -450,13 +597,22 @@
               <div class="sql-box-wrap">
                 <pre id="sqlSchemaBox">-- 1. Create quotations table
 CREATE TABLE IF NOT EXISTS public.quotations (
+                <pre id="sqlSchemaBox">-- 1. Create quotations table
+CREATE TABLE IF NOT EXISTS public.quotations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
   quote_no TEXT,
   quote_date DATE NOT NULL DEFAULT CURRENT_DATE,
   company_name TEXT,
+  logo_mode TEXT DEFAULT 'ai',
+  ai_logo_style TEXT DEFAULT 'industrial',
+  ai_logo_color TEXT DEFAULT 'amber_slate',
+  ai_logo_symbol TEXT DEFAULT 'auto',
+  ai_logo_seed NUMERIC DEFAULT 1,
+  ai_custom_svg TEXT,
   company_logo_text TEXT,
+  company_logo_img TEXT,
   company_phone TEXT,
   company_email TEXT,
   company_gst TEXT,
@@ -467,6 +623,7 @@ CREATE TABLE IF NOT EXISTS public.quotations (
   project_name TEXT,
   site_location TEXT,
   items JSONB DEFAULT '[]'::jsonb,
+  gst_mode TEXT DEFAULT '18',
   gst_rate NUMERIC DEFAULT 18,
   discount NUMERIC DEFAULT 0,
   validity INTEGER DEFAULT 15,
@@ -480,7 +637,14 @@ CREATE TABLE IF NOT EXISTS public.quotations (
 CREATE TABLE IF NOT EXISTS public.company_settings (
   id TEXT PRIMARY KEY DEFAULT 'default',
   company_name TEXT,
+  logo_mode TEXT DEFAULT 'ai',
+  ai_logo_style TEXT DEFAULT 'industrial',
+  ai_logo_color TEXT DEFAULT 'amber_slate',
+  ai_logo_symbol TEXT DEFAULT 'auto',
+  ai_logo_seed NUMERIC DEFAULT 1,
+  ai_custom_svg TEXT,
   company_logo_text TEXT,
+  company_logo_img TEXT,
   company_phone TEXT,
   company_email TEXT,
   company_gst TEXT,
@@ -496,7 +660,25 @@ CREATE TABLE IF NOT EXISTS public.item_catalog (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 4. Enable Row Level Security & grant access
+-- 4. Ensure extra columns exist on existing databases (safe migrations)
+ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS logo_mode TEXT DEFAULT 'ai';
+ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS ai_logo_style TEXT DEFAULT 'industrial';
+ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS ai_logo_color TEXT DEFAULT 'amber_slate';
+ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS ai_logo_symbol TEXT DEFAULT 'auto';
+ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS ai_logo_seed NUMERIC DEFAULT 1;
+ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS ai_custom_svg TEXT;
+ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS company_logo_img TEXT;
+ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS gst_mode TEXT DEFAULT '18';
+
+ALTER TABLE public.company_settings ADD COLUMN IF NOT EXISTS logo_mode TEXT DEFAULT 'ai';
+ALTER TABLE public.company_settings ADD COLUMN IF NOT EXISTS ai_logo_style TEXT DEFAULT 'industrial';
+ALTER TABLE public.company_settings ADD COLUMN IF NOT EXISTS ai_logo_color TEXT DEFAULT 'amber_slate';
+ALTER TABLE public.company_settings ADD COLUMN IF NOT EXISTS ai_logo_symbol TEXT DEFAULT 'auto';
+ALTER TABLE public.company_settings ADD COLUMN IF NOT EXISTS ai_logo_seed NUMERIC DEFAULT 1;
+ALTER TABLE public.company_settings ADD COLUMN IF NOT EXISTS ai_custom_svg TEXT;
+ALTER TABLE public.company_settings ADD COLUMN IF NOT EXISTS company_logo_img TEXT;
+
+-- 5. Enable Row Level Security & grant access
 ALTER TABLE public.quotations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.company_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.item_catalog ENABLE ROW LEVEL SECURITY;
