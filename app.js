@@ -1353,6 +1353,60 @@ function closeInlineStudio() {
   }
 }
 
+function openLogoPreviewModal(styleId, seed) {
+  const modal = $('logoPreviewModal');
+  if (!modal) return;
+
+  const compName = val('companyName') || 'Sri Balamurugan Fly Ash Bricks & Roadwork';
+  const customLogoText = ($('companyLogoText') ? $('companyLogoText').value : '').trim();
+  const monogram = generateMonogram(compName, customLogoText);
+  const colorKey = ($('modalAiColorSelect') ? $('modalAiColorSelect').value : null) || val('aiLogoColor') || 'amber_slate';
+  const symbolKey = ($('modalAiSymbolSelect') ? $('modalAiSymbolSelect').value : null) || val('aiLogoSymbol') || 'auto';
+
+  const svg = generateAILogoSVG({
+    name: compName,
+    monogram,
+    style: styleId,
+    colorKey,
+    symbolKey,
+    seed: Number(seed) || 1
+  });
+
+  const stObj = AI_STYLES.find(s => s.id === styleId);
+  if ($('previewModalTitle')) $('previewModalTitle').textContent = `🔍 ${stObj ? stObj.name : 'Logo'} Preview`;
+  if ($('previewModalBrandCode')) $('previewModalBrandCode').textContent = monogram;
+  if ($('previewModalCompName')) $('previewModalCompName').textContent = compName;
+
+  const logoBox = $('previewModalLogoBox');
+  if (logoBox) logoBox.innerHTML = svg;
+
+  const miniLogo = $('previewModalMiniLogo');
+  if (miniLogo) miniLogo.innerHTML = svg;
+
+  if ($('previewModalApplyBtn')) {
+    $('previewModalApplyBtn').onclick = () => {
+      $('logoModeSelect').value = 'ai';
+      if ($('aiLogoStyle')) $('aiLogoStyle').value = styleId;
+      if ($('aiLogoSeed')) $('aiLogoSeed').value = seed;
+      if ($('aiLogoColor')) $('aiLogoColor').value = colorKey;
+      if ($('aiLogoSymbol')) $('aiLogoSymbol').value = symbolKey;
+      if ($('aiCustomSvgData')) $('aiCustomSvgData').value = '';
+      updatePreview();
+      modal.classList.add('hidden');
+      renderAiVariationsGrid();
+      showToast(`✨ Applied "${stObj ? stObj.name : 'AI'}" logo to quotation!`);
+    };
+  }
+
+  if ($('previewModalCopyBtn')) {
+    $('previewModalCopyBtn').onclick = () => {
+      navigator.clipboard.writeText(svg).then(() => showToast('📋 Copied SVG markup to clipboard!'));
+    };
+  }
+
+  modal.classList.remove('hidden');
+}
+
 function renderAiVariationsGrid() {
   const container = $('inlineVariationsGrid') || $('aiVariationsGrid');
   if (!container) return;
@@ -1388,19 +1442,34 @@ function renderAiVariationsGrid() {
 
   container.innerHTML = variations.map(v => `
     <div class="ai-card ${v.isActive ? 'active' : ''}" data-ai-style="${v.styleId}" data-ai-seed="${v.seed}">
-      <div class="ai-card-preview">${v.svg}</div>
-      <div class="ai-card-title">${v.styleName}</div>
+      <div class="ai-card-preview" title="Click to view full preview">${v.svg}</div>
+      <div class="ai-card-title" title="${esc(v.styleName)}">${v.styleName}</div>
       <div class="ai-card-badge">${v.badge}</div>
       <div class="ai-card-actions">
-        <button type="button" class="btn small ${v.isActive ? 'primary' : 'outline'}" style="width:100%;font-size:11px;">
-          ${v.isActive ? '✓ Active Logo' : 'Select & Apply'}
+        <button type="button" class="btn small outline btn-preview-logo" data-ai-style="${v.styleId}" data-ai-seed="${v.seed}" title="Preview in large modal">
+          👁️ View
+        </button>
+        <button type="button" class="btn small ${v.isActive ? 'primary' : 'outline'} btn-apply-logo" data-ai-style="${v.styleId}" data-ai-seed="${v.seed}">
+          ${v.isActive ? '✓ Active' : 'Apply'}
         </button>
       </div>
     </div>
   `).join('');
 
-  container.querySelectorAll('.ai-card').forEach(card => {
-    card.addEventListener('click', () => {
+  container.querySelectorAll('.ai-card-preview, .btn-preview-logo').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const card = el.closest('.ai-card');
+      if (card) {
+        openLogoPreviewModal(card.dataset.aiStyle, card.dataset.aiSeed);
+      }
+    });
+  });
+
+  container.querySelectorAll('.btn-apply-logo').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const card = btn.closest('.ai-card');
       const selectedStyle = card.dataset.aiStyle;
       const selectedSeed = card.dataset.aiSeed;
 
@@ -1412,6 +1481,7 @@ function renderAiVariationsGrid() {
       if ($('aiCustomSvgData')) $('aiCustomSvgData').value = '';
 
       updatePreview();
+      renderAiVariationsGrid();
       showToast(`✨ Applied "${card.querySelector('.ai-card-title').textContent}" AI logo!`);
     });
   });
@@ -1507,6 +1577,38 @@ if ($('aiRegenBtn')) {
 
 if ($('openAiStudioBtn')) {
   $('openAiStudioBtn').addEventListener('click', openAiLogoStudio);
+}
+
+if ($('closePreviewModalBtn')) {
+  $('closePreviewModalBtn').addEventListener('click', () => {
+    $('logoPreviewModal').classList.add('hidden');
+  });
+}
+
+if ($('logoPreviewModal')) {
+  $('logoPreviewModal').addEventListener('click', e => {
+    if (e.target === $('logoPreviewModal')) {
+      $('logoPreviewModal').classList.add('hidden');
+    }
+  });
+}
+
+if ($('previewBgDarkBtn')) {
+  $('previewBgDarkBtn').addEventListener('click', () => {
+    const box = $('previewModalLogoBox');
+    if (box) box.style.background = '#0f172a';
+    $('previewBgDarkBtn').classList.add('active');
+    $('previewBgLightBtn').classList.remove('active');
+  });
+}
+
+if ($('previewBgLightBtn')) {
+  $('previewBgLightBtn').addEventListener('click', () => {
+    const box = $('previewModalLogoBox');
+    if (box) box.style.background = '#ffffff';
+    $('previewBgLightBtn').classList.add('active');
+    $('previewBgDarkBtn').classList.remove('active');
+  });
 }
 
 if ($('closeAiModalBtn')) {
