@@ -58,25 +58,23 @@ function esc(s) {
 
 function generateMonogram(name, customLetters) {
   const custom = (customLetters || '').trim();
-  if (custom) {
+  if (custom && custom.toUpperCase() !== 'TNP') {
     return custom.toUpperCase();
   }
-  const cleanName = (name || '').trim();
-  if (!cleanName) return 'TNP';
-
+  const cleanName = (name || 'Sri Balamurugan Fly Ash Bricks & Roadwork').trim();
   const clean = cleanName.replace(/[^a-zA-Z0-9\s]/g, ' ');
   const words = clean.split(/\s+/).filter(Boolean);
 
   if (words.length === 1) {
-    return words[0].slice(0, 3).toUpperCase();
+    return words[0].slice(0, 4).toUpperCase();
   }
 
-  const stopWords = new Set(['and', '&', 'of', 'the', 'in', 'co', 'pvt', 'ltd', 'inc', 'a', 'an']);
+  const stopWords = new Set(['and', '&', 'of', 'the', 'in', 'co', 'pvt', 'ltd', 'inc', 'a', 'an', 'for', 'to']);
   const meaningfulWords = words.filter(w => !stopWords.has(w.toLowerCase()));
   const targetWords = meaningfulWords.length ? meaningfulWords : words;
 
   const letters = targetWords.map(w => w[0]).join('').toUpperCase();
-  return letters.slice(0, 5) || 'TNP';
+  return letters.slice(0, 4) || 'SBFB';
 }
 
 function showToast(message, type = 'success') {
@@ -479,66 +477,70 @@ function getSymbolSvg(symbolKey, p) {
     case 'road':
       return `
         <g>
-          <polygon points="26,56 74,56 58,22 42,22" fill="${p.secondary}" opacity="0.9"/>
-          <line x1="50" y1="24" x2="50" y2="54" stroke="${p.accent}" stroke-width="2.5" stroke-dasharray="4,3"/>
-          <line x1="24" y1="56" x2="40" y2="22" stroke="${p.primary}" stroke-width="2"/>
-          <line x1="76" y1="56" x2="60" y2="22" stroke="${p.primary}" stroke-width="2"/>
+          <!-- Modern Highway Horizon -->
+          <polygon points="50,16 76,64 24,64" fill="${p.secondary}" opacity="0.95"/>
+          <polygon points="48,16 52,16 58,64 42,64" fill="${p.primary}"/>
+          <line x1="50" y1="20" x2="50" y2="60" stroke="${p.accent}" stroke-width="2" stroke-dasharray="5,4"/>
+          <circle cx="50" cy="14" r="3.5" fill="${p.accent}"/>
         </g>`;
     case 'crane':
       return `
-        <g stroke="${p.accent}" stroke-width="2.5" stroke-linecap="round">
-          <line x1="36" y1="58" x2="36" y2="18"/>
-          <line x1="26" y1="20" x2="74" y2="20" stroke-width="3" stroke="${p.primary}"/>
-          <line x1="36" y1="20" x2="68" y2="38" stroke-width="1.5" opacity="0.8"/>
-          <line x1="68" y1="20" x2="68" y2="34" stroke-width="1.5"/>
-          <circle cx="68" cy="36" r="2.5" fill="${p.accent}"/>
+        <g stroke="${p.accent}" stroke-width="2" stroke-linecap="round">
+          <line x1="32" y1="64" x2="32" y2="16" stroke-width="3" stroke="${p.primary}"/>
+          <line x1="22" y1="18" x2="78" y2="18" stroke-width="3" stroke="${p.accent}"/>
+          <line x1="32" y1="18" x2="70" y2="38" stroke-width="1.5"/>
+          <line x1="32" y1="36" x2="52" y2="18" stroke-width="1.5"/>
+          <line x1="70" y1="18" x2="70" y2="32" stroke-width="1.5"/>
+          <circle cx="70" cy="35" r="2.5" fill="${p.accent}"/>
         </g>`;
     case 'building':
       return `
         <g>
-          <rect x="25" y="30" width="22" height="28" rx="1.5" fill="${p.secondary}" stroke="${p.primary}" stroke-width="1.5"/>
-          <rect x="51" y="18" width="24" height="40" rx="1.5" fill="${p.primary}" stroke="${p.accent}" stroke-width="1.5"/>
-          <line x1="59" y1="24" x2="67" y2="24" stroke="${p.bg1}" stroke-width="2"/>
-          <line x1="59" y1="32" x2="67" y2="32" stroke="${p.bg1}" stroke-width="2"/>
-          <line x1="59" y1="40" x2="67" y2="40" stroke="${p.bg1}" stroke-width="2"/>
+          <rect x="22" y="30" width="22" height="34" rx="2" fill="${p.secondary}" stroke="${p.primary}" stroke-width="1.5"/>
+          <rect x="48" y="16" width="28" height="48" rx="2" fill="${p.primary}" stroke="${p.accent}" stroke-width="1.5"/>
+          <line x1="56" y1="24" x2="68" y2="24" stroke="${p.bg1}" stroke-width="2"/>
+          <line x1="56" y1="34" x2="68" y2="34" stroke="${p.bg1}" stroke-width="2"/>
+          <line x1="56" y1="44" x2="68" y2="44" stroke="${p.bg1}" stroke-width="2"/>
         </g>`;
     case 'shield':
       return `
-        <path d="M50 16 L74 26 V44 C74 58 50 68 50 68 C50 68 26 58 26 44 V26 Z" fill="${p.secondary}" stroke="${p.accent}" stroke-width="2.5"/>`;
+        <path d="M50 14 L76 24 V44 C76 60 50 70 50 70 C50 70 24 60 24 44 V24 Z" fill="${p.primary}" stroke="${p.accent}" stroke-width="2.5"/>`;
     case 'gear':
       return `
         <g fill="${p.primary}">
-          <circle cx="50" cy="38" r="18" fill="${p.secondary}" stroke="${p.accent}" stroke-width="2"/>
-          <circle cx="50" cy="38" r="8" fill="${p.bg1}"/>
-          <rect x="47" y="16" width="6" height="44" rx="2" fill="${p.accent}"/>
-          <rect x="28" y="35" width="44" height="6" rx="2" fill="${p.accent}"/>
+          <circle cx="50" cy="40" r="18" fill="${p.secondary}" stroke="${p.accent}" stroke-width="2"/>
+          <circle cx="50" cy="40" r="8" fill="${p.bg1}"/>
+          <rect x="47" y="18" width="6" height="44" rx="2" fill="${p.accent}"/>
+          <rect x="28" y="37" width="44" height="6" rx="2" fill="${p.accent}"/>
         </g>`;
     case 'compass':
       return `
         <g stroke="${p.accent}" stroke-width="2.5" stroke-linecap="round">
-          <circle cx="50" cy="20" r="4" fill="${p.primary}"/>
-          <line x1="48" y1="23" x2="32" y2="58"/>
-          <line x1="52" y1="23" x2="68" y2="58"/>
-          <path d="M38 46 Q50 42 62 46" fill="none" stroke="${p.primary}" stroke-width="1.5"/>
+          <circle cx="50" cy="18" r="4" fill="${p.primary}"/>
+          <line x1="48" y1="21" x2="30" y2="62"/>
+          <line x1="52" y1="21" x2="70" y2="62"/>
+          <path d="M38 48 Q50 44 62 48" fill="none" stroke="${p.primary}" stroke-width="1.5"/>
         </g>`;
     case 'eco':
       return `
         <g>
-          <path d="M32 58 C32 36 50 22 68 18 C68 40 50 58 32 58 Z" fill="${p.primary}" stroke="${p.accent}" stroke-width="2"/>
-          <path d="M32 58 Q48 40 68 18" stroke="${p.bg1}" stroke-width="2" fill="none"/>
+          <path d="M32 62 C32 38 52 20 70 16 C70 42 50 62 32 62 Z" fill="${p.primary}" stroke="${p.accent}" stroke-width="2"/>
+          <path d="M32 62 Q50 42 70 16" stroke="${p.bg1}" stroke-width="2" fill="none"/>
         </g>`;
     case 'bricks':
     default:
       return `
-        <g fill="${p.accent}">
-          <rect x="22" y="24" width="26" height="11" rx="2" fill="${p.primary}" stroke="${p.bg1}" stroke-width="1.5"/>
-          <rect x="52" y="24" width="26" height="11" rx="2" fill="${p.primary}" stroke="${p.bg1}" stroke-width="1.5"/>
-          <rect x="35" y="38" width="30" height="11" rx="2" fill="${p.accent}" stroke="${p.bg1}" stroke-width="1.5"/>
+        <g>
+          <!-- Sleek 3D Isometric Interlocking Architectural Prism -->
+          <polygon points="50,16 78,30 50,44 22,30" fill="${p.accent}" opacity="0.95"/>
+          <polygon points="22,30 50,44 50,70 22,56" fill="${p.primary}"/>
+          <polygon points="50,44 78,30 78,56 50,70" fill="${p.secondary}"/>
+          <line x1="50" y1="44" x2="50" y2="70" stroke="${p.bg1}" stroke-width="1.5"/>
         </g>`;
   }
 }
 
-function generateAILogoSVG({ name = 'SBFB', monogram = 'TNP', style = 'industrial', colorKey = 'amber_slate', symbolKey = 'auto', seed = 1 }) {
+function generateAILogoSVG({ name = 'Sri Balamurugan Fly Ash Bricks & Roadwork', monogram = '', style = 'industrial', colorKey = 'amber_slate', symbolKey = 'auto', seed = 1 }) {
   const p = AI_PALETTES[colorKey] || AI_PALETTES.amber_slate;
   let effectiveSymbol = symbolKey;
   if (!effectiveSymbol || effectiveSymbol === 'auto') {
@@ -547,7 +549,7 @@ function generateAILogoSVG({ name = 'SBFB', monogram = 'TNP', style = 'industria
 
   const uid = 'ai_' + Math.abs((Number(seed) || 1) * 31 + (style ? style.charCodeAt(0) : 0) + (colorKey ? colorKey.charCodeAt(0) : 0)).toString(36);
   const symbolMarkup = getSymbolSvg(effectiveSymbol, p);
-  const cleanMono = (monogram || generateMonogram(name, '')).toUpperCase().slice(0, 5);
+  const cleanMono = (monogram || generateMonogram(name, '')).toUpperCase().slice(0, 4) || 'SBFB';
 
   let content = '';
 
@@ -559,13 +561,13 @@ function generateAILogoSVG({ name = 'SBFB', monogram = 'TNP', style = 'industria
           <stop offset="100%" stop-color="${p.bg1}" />
         </linearGradient>
       </defs>
-      <polygon points="50,6 88,27 88,73 50,94 12,73 12,27" fill="url(#${uid}_g)" stroke="${p.border}" stroke-width="3" />
-      <polygon points="50,12 82,30 82,70 50,88 18,70 18,30" fill="none" stroke="${p.accent}" stroke-width="1" opacity="0.6" stroke-dasharray="3,3" />
+      <polygon points="50,4 90,26 90,74 50,96 10,74 10,26" fill="url(#${uid}_g)" stroke="${p.primary}" stroke-width="3" />
+      <polygon points="50,10 84,29 84,71 50,90 16,71 16,29" fill="none" stroke="${p.accent}" stroke-width="1" opacity="0.6" stroke-dasharray="3,3" />
       <g transform="translate(0, -6)">
         ${symbolMarkup}
       </g>
-      <rect x="24" y="68" width="52" height="18" rx="4" fill="${p.bg1}" stroke="${p.primary}" stroke-width="1.5" />
-      <text x="50" y="81" font-family="'Manrope', sans-serif" font-weight="800" font-size="${cleanMono.length > 3 ? '10' : '12'}" fill="${p.accent}" text-anchor="middle" letter-spacing="1">${esc(cleanMono)}</text>
+      <rect x="22" y="68" width="56" height="19" rx="4" fill="${p.bg1}" stroke="${p.accent}" stroke-width="1.5" />
+      <text x="50" y="82" font-family="'Manrope', sans-serif" font-weight="800" font-size="${cleanMono.length > 3 ? '10.5' : '12.5'}" fill="${p.accent}" text-anchor="middle" letter-spacing="1.2">${esc(cleanMono)}</text>
     `;
   } else if (style === 'architectural') {
     content = `
@@ -575,19 +577,19 @@ function generateAILogoSVG({ name = 'SBFB', monogram = 'TNP', style = 'industria
           <stop offset="100%" stop-color="${p.bg1}" />
         </linearGradient>
       </defs>
-      <rect x="8" y="8" width="84" height="84" rx="8" fill="url(#${uid}_g)" stroke="${p.primary}" stroke-width="2" />
+      <rect x="6" y="6" width="88" height="88" rx="8" fill="url(#${uid}_g)" stroke="${p.primary}" stroke-width="2" />
       <!-- Blueprint grid -->
-      <line x1="8" y1="30" x2="92" y2="30" stroke="${p.accent}" stroke-width="0.7" opacity="0.3" />
-      <line x1="8" y1="50" x2="92" y2="50" stroke="${p.accent}" stroke-width="0.7" opacity="0.3" />
-      <line x1="8" y1="70" x2="92" y2="70" stroke="${p.accent}" stroke-width="0.7" opacity="0.3" />
-      <line x1="30" y1="8" x2="30" y2="92" stroke="${p.accent}" stroke-width="0.7" opacity="0.3" />
-      <line x1="50" y1="8" x2="50" y2="92" stroke="${p.accent}" stroke-width="0.7" opacity="0.3" />
-      <line x1="70" y1="8" x2="70" y2="92" stroke="${p.accent}" stroke-width="0.7" opacity="0.3" />
-      <g transform="translate(0, -8)">
+      <line x1="6" y1="28" x2="94" y2="28" stroke="${p.accent}" stroke-width="0.7" opacity="0.25" />
+      <line x1="6" y1="50" x2="94" y2="50" stroke="${p.accent}" stroke-width="0.7" opacity="0.25" />
+      <line x1="6" y1="72" x2="94" y2="72" stroke="${p.accent}" stroke-width="0.7" opacity="0.25" />
+      <line x1="28" y1="6" x2="28" y2="94" stroke="${p.accent}" stroke-width="0.7" opacity="0.25" />
+      <line x1="50" y1="6" x2="50" y2="94" stroke="${p.accent}" stroke-width="0.7" opacity="0.25" />
+      <line x1="72" y1="6" x2="72" y2="94" stroke="${p.accent}" stroke-width="0.7" opacity="0.25" />
+      <g transform="translate(0, -7)">
         ${symbolMarkup}
       </g>
-      <rect x="20" y="66" width="60" height="20" rx="3" fill="${p.bg1}" stroke="${p.accent}" stroke-width="1.5" />
-      <text x="50" y="80" font-family="'Manrope', sans-serif" font-weight="800" font-size="${cleanMono.length > 3 ? '10.5' : '13'}" fill="${p.text}" text-anchor="middle" letter-spacing="1.2">${esc(cleanMono)}</text>
+      <rect x="18" y="66" width="64" height="20" rx="3" fill="${p.bg1}" stroke="${p.accent}" stroke-width="1.5" />
+      <text x="50" y="80.5" font-family="'Manrope', sans-serif" font-weight="800" font-size="${cleanMono.length > 3 ? '10.5' : '13'}" fill="${p.text}" text-anchor="middle" letter-spacing="1.2">${esc(cleanMono)}</text>
     `;
   } else if (style === 'gold_crest') {
     content = `
@@ -597,13 +599,13 @@ function generateAILogoSVG({ name = 'SBFB', monogram = 'TNP', style = 'industria
           <stop offset="100%" stop-color="${p.bg1}" />
         </radialGradient>
       </defs>
-      <circle cx="50" cy="50" r="44" fill="url(#${uid}_r)" stroke="${p.primary}" stroke-width="3" />
-      <circle cx="50" cy="50" r="39" fill="none" stroke="${p.accent}" stroke-width="1.5" stroke-dasharray="2,2" />
+      <circle cx="50" cy="50" r="45" fill="url(#${uid}_r)" stroke="${p.primary}" stroke-width="3" />
+      <circle cx="50" cy="50" r="40" fill="none" stroke="${p.accent}" stroke-width="1.5" stroke-dasharray="2,2" />
       <g transform="scale(0.8) translate(12, 4)">
         ${symbolMarkup}
       </g>
-      <rect x="22" y="64" width="56" height="18" rx="9" fill="${p.primary}" />
-      <text x="50" y="77" font-family="'Manrope', sans-serif" font-weight="800" font-size="${cleanMono.length > 3 ? '10' : '11.5'}" fill="${p.bg1}" text-anchor="middle" letter-spacing="1.5">${esc(cleanMono)}</text>
+      <rect x="20" y="65" width="60" height="19" rx="9.5" fill="${p.primary}" />
+      <text x="50" y="78.5" font-family="'Manrope', sans-serif" font-weight="800" font-size="${cleanMono.length > 3 ? '10' : '12'}" fill="${p.bg1}" text-anchor="middle" letter-spacing="1.5">${esc(cleanMono)}</text>
     `;
   } else if (style === 'gradient_tech') {
     content = `
@@ -613,11 +615,11 @@ function generateAILogoSVG({ name = 'SBFB', monogram = 'TNP', style = 'industria
           <stop offset="100%" stop-color="${p.bg1}" />
         </linearGradient>
       </defs>
-      <rect x="8" y="8" width="84" height="84" rx="22" fill="url(#${uid}_gt)" stroke="${p.accent}" stroke-width="2" />
+      <rect x="6" y="6" width="88" height="88" rx="20" fill="url(#${uid}_gt)" stroke="${p.accent}" stroke-width="2" />
       <g transform="translate(0, -6)">
         ${symbolMarkup}
       </g>
-      <text x="50" y="80" font-family="'Manrope', sans-serif" font-weight="800" font-size="${cleanMono.length > 3 ? '13' : '16'}" fill="${p.accent}" text-anchor="middle" letter-spacing="1.5">${esc(cleanMono)}</text>
+      <text x="50" y="81" font-family="'Manrope', sans-serif" font-weight="800" font-size="${cleanMono.length > 3 ? '13' : '16'}" fill="${p.accent}" text-anchor="middle" letter-spacing="1.5">${esc(cleanMono)}</text>
     `;
   } else if (style === 'eco_infra') {
     content = `
@@ -627,21 +629,27 @@ function generateAILogoSVG({ name = 'SBFB', monogram = 'TNP', style = 'industria
           <stop offset="100%" stop-color="${p.bg1}" />
         </linearGradient>
       </defs>
-      <path d="M50 8 C76 8 88 24 88 52 C88 78 64 92 50 92 C36 92 12 78 12 52 C12 24 24 8 50 8 Z" fill="url(#${uid}_eco)" stroke="${p.primary}" stroke-width="2.5" />
+      <path d="M50 6 C78 6 90 22 90 52 C90 80 66 94 50 94 C34 94 10 80 10 52 C10 22 22 6 50 6 Z" fill="url(#${uid}_eco)" stroke="${p.primary}" stroke-width="2.5" />
       <g transform="translate(0, -6)">
         ${symbolMarkup}
       </g>
-      <rect x="25" y="66" width="50" height="17" rx="8" fill="${p.primary}" />
-      <text x="50" y="78.5" font-family="'Manrope', sans-serif" font-weight="800" font-size="${cleanMono.length > 3 ? '9.5' : '11.5'}" fill="${p.bg1}" text-anchor="middle" letter-spacing="1">${esc(cleanMono)}</text>
+      <rect x="24" y="67" width="52" height="18" rx="8" fill="${p.primary}" />
+      <text x="50" y="79.5" font-family="'Manrope', sans-serif" font-weight="800" font-size="${cleanMono.length > 3 ? '9.5' : '11.5'}" fill="${p.bg1}" text-anchor="middle" letter-spacing="1">${esc(cleanMono)}</text>
     `;
   } else if (style === 'minimal_badge') {
     content = `
-      <rect x="10" y="10" width="80" height="80" rx="14" fill="${p.bg1}" stroke="${p.border}" stroke-width="3" />
-      <g transform="scale(0.85) translate(8, 0)">
+      <defs>
+        <linearGradient id="${uid}_min" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="${p.bg2}" />
+          <stop offset="100%" stop-color="${p.bg1}" />
+        </linearGradient>
+      </defs>
+      <circle cx="50" cy="50" r="44" fill="url(#${uid}_min)" stroke="${p.primary}" stroke-width="2.5" />
+      <g transform="scale(0.8) translate(12, 2)">
         ${symbolMarkup}
       </g>
-      <line x1="22" y1="62" x2="78" y2="62" stroke="${p.primary}" stroke-width="2" />
-      <text x="50" y="79" font-family="'Manrope', sans-serif" font-weight="800" font-size="${cleanMono.length > 3 ? '12' : '15'}" fill="${p.accent}" text-anchor="middle" letter-spacing="1.5">${esc(cleanMono)}</text>
+      <line x1="24" y1="64" x2="76" y2="64" stroke="${p.accent}" stroke-width="1.5" />
+      <text x="50" y="80" font-family="'Manrope', sans-serif" font-weight="800" font-size="${cleanMono.length > 3 ? '11' : '14'}" fill="${p.accent}" text-anchor="middle" letter-spacing="1.5">${esc(cleanMono)}</text>
     `;
   } else {
     // default: industrial
@@ -652,15 +660,15 @@ function generateAILogoSVG({ name = 'SBFB', monogram = 'TNP', style = 'industria
           <stop offset="100%" stop-color="${p.bg1}" />
         </linearGradient>
       </defs>
-      <rect x="8" y="8" width="84" height="84" rx="14" fill="url(#${uid}_ind)" stroke="${p.primary}" stroke-width="2.5" />
-      <!-- Hazard accent notches -->
-      <polygon points="8,20 20,8 26,8 8,26" fill="${p.primary}" opacity="0.7"/>
-      <polygon points="74,92 92,74 92,80 80,92" fill="${p.primary}" opacity="0.7"/>
+      <rect x="6" y="6" width="88" height="88" rx="14" fill="url(#${uid}_ind)" stroke="${p.primary}" stroke-width="2.5" />
+      <!-- Top/bottom tech notch accents -->
+      <polygon points="6,18 18,6 24,6 6,24" fill="${p.primary}" opacity="0.8"/>
+      <polygon points="76,94 94,76 94,82 82,94" fill="${p.primary}" opacity="0.8"/>
       <g transform="translate(0, -6)">
         ${symbolMarkup}
       </g>
-      <rect x="20" y="65" width="60" height="20" rx="5" fill="${p.bg1}" stroke="${p.accent}" stroke-width="1.5" />
-      <text x="50" y="79" font-family="'Manrope', sans-serif" font-weight="800" font-size="${cleanMono.length > 3 ? '11' : '13.5'}" fill="${p.accent}" text-anchor="middle" letter-spacing="1.2">${esc(cleanMono)}</text>
+      <rect x="18" y="66" width="64" height="20" rx="5" fill="${p.bg1}" stroke="${p.accent}" stroke-width="1.5" />
+      <text x="50" y="80.5" font-family="'Manrope', sans-serif" font-weight="800" font-size="${cleanMono.length > 3 ? '11' : '13.5'}" fill="${p.accent}" text-anchor="middle" letter-spacing="1.2">${esc(cleanMono)}</text>
     `;
   }
 
@@ -951,6 +959,10 @@ function loadDraftState() {
 
   if (!$('logoModeSelect').value || !['ai', 'image', 'text'].includes($('logoModeSelect').value)) {
     $('logoModeSelect').value = 'ai';
+  }
+
+  if ($('companyLogoText') && $('companyLogoText').value === 'TNP') {
+    $('companyLogoText').value = '';
   }
 }
 
