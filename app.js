@@ -13,6 +13,7 @@ const companyDefaultsKey = 'sbfbCompanyDefaults';
 const localQuotesKey = 'sbfbLocalCloudQuotes';
 const supabaseConfigKey = 'sbfbSupabaseConfig';
 const catalogStorageKey = 'sbfbItemCatalog';
+const openAiKeyStorage = 'sbfbOpenAiKey';
 
 const defaultCatalog = [
   { id: 'cat-1', desc: 'Building construction & structural civil work', rate: 1850 },
@@ -1508,24 +1509,63 @@ if ($('aiLogoModal')) {
   });
 }
 
-if ($('tabAiPresetsBtn')) {
-  $('tabAiPresetsBtn').addEventListener('click', () => {
-    $('tabAiPresetsBtn').classList.add('active');
-    $('tabAiCustomBtn').classList.remove('active');
-    $('tabAiPresetsContent').classList.remove('hidden');
-    $('tabAiCustomContent').classList.add('hidden');
-    renderAiVariationsGrid();
+// OpenAI API Key management
+function initOpenAiApiKey() {
+  const savedKey = localStorage.getItem(openAiKeyStorage) || '';
+  if ($('openAiApiKey') && savedKey) {
+    $('openAiApiKey').value = savedKey;
+  }
+}
+
+if ($('saveApiKeyBtn')) {
+  $('saveApiKeyBtn').addEventListener('click', () => {
+    const key = ($('openAiApiKey') ? $('openAiApiKey').value : '').trim();
+    if (key) {
+      localStorage.setItem(openAiKeyStorage, key);
+      showToast('🔑 OpenAI API Key saved safely in browser!');
+    } else {
+      localStorage.removeItem(openAiKeyStorage);
+      showToast('API Key cleared.');
+    }
   });
 }
 
-if ($('tabAiCustomBtn')) {
-  $('tabAiCustomBtn').addEventListener('click', () => {
-    $('tabAiCustomBtn').classList.add('active');
-    $('tabAiPresetsBtn').classList.remove('active');
-    $('tabAiCustomContent').classList.remove('hidden');
-    $('tabAiPresetsContent').classList.add('hidden');
+if ($('toggleApiKeyVisibilityBtn')) {
+  $('toggleApiKeyVisibilityBtn').addEventListener('click', () => {
+    const inp = $('openAiApiKey');
+    if (inp) {
+      inp.type = inp.type === 'password' ? 'text' : 'password';
+    }
   });
 }
+
+// Modal tab switcher for 3 tabs: Presets, ChatGPT, Custom
+function switchAiModalTab(activeTabId) {
+  const tabs = [
+    { btn: $('tabAiPresetsBtn'), content: $('tabAiPresetsContent'), id: 'presets' },
+    { btn: $('tabAiChatGptBtn'), content: $('tabAiChatGptContent'), id: 'chatgpt' },
+    { btn: $('tabAiCustomBtn'), content: $('tabAiCustomContent'), id: 'custom' }
+  ];
+
+  tabs.forEach(t => {
+    if (t.btn && t.content) {
+      if (t.id === activeTabId) {
+        t.btn.classList.add('active');
+        t.content.classList.remove('hidden');
+      } else {
+        t.btn.classList.remove('active');
+        t.content.classList.add('hidden');
+      }
+    }
+  });
+
+  if (activeTabId === 'presets') renderAiVariationsGrid();
+  if (activeTabId === 'chatgpt') initOpenAiApiKey();
+}
+
+if ($('tabAiPresetsBtn')) $('tabAiPresetsBtn').addEventListener('click', () => switchAiModalTab('presets'));
+if ($('tabAiChatGptBtn')) $('tabAiChatGptBtn').addEventListener('click', () => switchAiModalTab('chatgpt'));
+if ($('tabAiCustomBtn')) $('tabAiCustomBtn').addEventListener('click', () => switchAiModalTab('custom'));
 
 if ($('modalAiSymbolSelect')) {
   $('modalAiSymbolSelect').addEventListener('change', () => {
@@ -1583,6 +1623,214 @@ if ($('switchBackToAiBtn')) {
     $('logoModeSelect').value = 'ai';
     updatePreview();
     openAiLogoStudio();
+  });
+}
+
+// ChatGPT Prompt Copier for chatgpt.com
+if ($('copyChatGptPromptBtn')) {
+  $('copyChatGptPromptBtn').addEventListener('click', () => {
+    const compName = val('companyName') || 'Sri Balamurugan Fly Ash Bricks & Roadwork';
+    const monogram = generateMonogram(compName, val('companyLogoText'));
+    const tone = val('chatGptToneSelect') || 'Modern Civil & Construction Emblem';
+    const color = val('chatGptColorSelect') || 'Amber Gold & Slate Dark';
+    const customExtra = ($('chatGptCustomPrompt') ? $('chatGptCustomPrompt').value : '').trim();
+
+    const masterPrompt = `You are a world-class graphic designer and SVG vector brand engineer.
+Create a modern, luxury company logo for:
+• Company Name: "${compName}"
+• Monogram: "${monogram}"
+• Style: ${tone}
+• Palette: ${color}
+${customExtra ? `• Additional Instructions: ${customExtra}` : ''}
+
+Output Requirement:
+Please write clean, self-contained SVG code formatted with:
+1. <svg viewBox="0 0 160 160" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+2. Vibrant gradients (<linearGradient>), rounded badge framing, clean construction/civil vector elements, and bold monogram letters "${monogram}".
+3. Return STRICTLY pure SVG markup without markdown or commentary so I can paste it into my invoice software.`;
+
+    navigator.clipboard.writeText(masterPrompt).then(() => {
+      showToast('📋 Copied master prompt! Paste it into ChatGPT.com');
+    }).catch(() => {
+      showToast('Prompt copied to clipboard!');
+    });
+  });
+}
+
+// Generate with ChatGPT (OpenAI API - GPT-4o Vector SVG or DALL-E 3)
+if ($('generateWithChatGptBtn')) {
+  $('generateWithChatGptBtn').addEventListener('click', async () => {
+    const apiKey = (($('openAiApiKey') ? $('openAiApiKey').value : '') || localStorage.getItem(openAiKeyStorage) || '').trim();
+    if (!apiKey) {
+      showToast('🔑 Please enter your OpenAI API key or use the Copy Prompt button below.', 'error');
+      if ($('openAiApiKey')) $('openAiApiKey').focus();
+      return;
+    }
+
+    const compName = val('companyName') || 'Sri Balamurugan Fly Ash Bricks & Roadwork';
+    const monogram = generateMonogram(compName, val('companyLogoText'));
+    const modelChoice = val('chatGptModelSelect') || 'gpt-4o-svg';
+    const tone = val('chatGptToneSelect') || 'Modern Civil & Construction Emblem';
+    const color = val('chatGptColorSelect') || 'Amber Gold & Slate Dark';
+    const customPrompt = ($('chatGptCustomPrompt') ? $('chatGptCustomPrompt').value : '').trim();
+
+    const loadingBox = $('chatGptLoadingBox');
+    const resultBox = $('chatGptResultBox');
+    const previewHolder = $('chatGptPreviewHolder');
+    const statusMsg = $('chatGptStatusMsg');
+    const loadingText = $('chatGptLoadingText');
+
+    if (resultBox) resultBox.classList.add('hidden');
+    if (loadingBox) loadingBox.classList.remove('hidden');
+    if (loadingText) loadingText.textContent = `ChatGPT (${modelChoice.includes('dall-e') ? 'DALL-E 3' : 'GPT-4o'}) is designing your logo...`;
+
+    try {
+      if (modelChoice === 'dall-e-3') {
+        // OpenAI DALL-E 3 Image Generation
+        const imagePrompt = `Minimalist modern vector company logo emblem for "${compName}", ${tone}, ${color} palette, clean flat design, crisp vector badge on solid white background, premium civil construction branding, 8k resolution, flat graphic logo`;
+        const res = await fetch('https://api.openai.com/v1/images/generations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: 'dall-e-3',
+            prompt: imagePrompt,
+            n: 1,
+            size: '1024x1024',
+            quality: 'standard'
+          })
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error?.message || `OpenAI API error (${res.status})`);
+        }
+
+        const data = await res.json();
+        const imageUrl = data.data && data.data[0] && data.data[0].url;
+        if (!imageUrl) throw new Error('No image URL returned from DALL-E 3.');
+
+        if (loadingBox) loadingBox.classList.add('hidden');
+        if (resultBox) resultBox.classList.remove('hidden');
+
+        previewHolder.innerHTML = `<img src="${imageUrl}" style="width:120px;height:120px;border-radius:12px;object-fit:cover;box-shadow:0 6px 18px rgba(0,0,0,0.15);" alt="ChatGPT DALL-E Logo" />`;
+        statusMsg.textContent = `✨ DALL-E 3 created a custom graphic emblem for ${compName}!`;
+
+        $('applyChatGptLogoBtn').onclick = () => {
+          $('companyLogoImgUrl').value = imageUrl;
+          $('logoModeSelect').value = 'image';
+          updatePreview();
+          $('aiLogoModal').classList.add('hidden');
+          showToast('✅ Applied ChatGPT DALL-E Logo!');
+        };
+
+        if ($('copyChatGptSvgBtn')) $('copyChatGptSvgBtn').style.display = 'none';
+
+      } else {
+        // GPT-4o / GPT-4o-mini Vector SVG Generation
+        const modelName = modelChoice === 'gpt-4o-mini-svg' ? 'gpt-4o-mini' : 'gpt-4o';
+        const systemPrompt = `You are an elite vector logo artist and SVG programmer.
+You must output ONLY valid, self-contained SVG markup starting with <svg viewBox="0 0 160 160" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"> and ending with </svg>.
+Do NOT include markdown formatting, backticks, or explanation.
+Use lush <linearGradient> definitions with unique IDs, clean geometric civil/construction/infrastructure silhouettes, professional badges/shields, and elegant monogram text.`;
+
+        const userPrompt = `Generate a high-end vector logo for "${compName}" (Monogram: "${monogram}").
+Design style: ${tone}.
+Color theme: ${color}.
+${customPrompt ? `Additional specs: ${customPrompt}` : ''}
+Output strictly raw SVG code.`;
+
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: modelName,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ],
+            temperature: 0.7
+          })
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error?.message || `OpenAI API error (${res.status})`);
+        }
+
+        const data = await res.json();
+        let rawSvg = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+        if (!rawSvg) throw new Error('No SVG code returned from ChatGPT.');
+
+        rawSvg = rawSvg.replace(/```xml/gi, '').replace(/```svg/gi, '').replace(/```/g, '').trim();
+        const svgStart = rawSvg.indexOf('<svg');
+        const svgEnd = rawSvg.lastIndexOf('</svg>');
+        if (svgStart === -1 || svgEnd === -1) {
+          throw new Error('ChatGPT output did not contain valid <svg> markup. Try generating again.');
+        }
+        const cleanSvg = rawSvg.substring(svgStart, svgEnd + 6);
+
+        if (loadingBox) loadingBox.classList.add('hidden');
+        if (resultBox) resultBox.classList.remove('hidden');
+
+        previewHolder.innerHTML = `<div class="ai-card-preview" style="width:120px;height:120px;border-radius:12px;">${cleanSvg}</div>`;
+        statusMsg.textContent = `✨ ChatGPT (${modelName.toUpperCase()}) created a custom vector SVG logo!`;
+
+        $('applyChatGptLogoBtn').onclick = () => {
+          $('aiCustomSvgData').value = cleanSvg;
+          $('logoModeSelect').value = 'ai';
+          updatePreview();
+          $('aiLogoModal').classList.add('hidden');
+          showToast('✅ Applied ChatGPT Vector Logo to Quotation!');
+        };
+
+        if ($('copyChatGptSvgBtn')) {
+          $('copyChatGptSvgBtn').style.display = '';
+          $('copyChatGptSvgBtn').onclick = () => {
+            navigator.clipboard.writeText(cleanSvg).then(() => showToast('📋 Copied SVG code to clipboard!'));
+          };
+        }
+      }
+
+    } catch (err) {
+      if (loadingBox) loadingBox.classList.add('hidden');
+      showToast(`ChatGPT Error: ${err.message}`, 'error');
+    }
+  });
+}
+
+// Paste output directly from ChatGPT.com
+if ($('applyPastedChatGptBtn')) {
+  $('applyPastedChatGptBtn').addEventListener('click', () => {
+    const input = ($('pasteChatGptInput') ? $('pasteChatGptInput').value : '').trim();
+    if (!input) {
+      showToast('Please paste SVG markup or an image URL.', 'error');
+      return;
+    }
+
+    if (input.includes('<svg') && input.includes('</svg>')) {
+      const svgStart = input.indexOf('<svg');
+      const svgEnd = input.lastIndexOf('</svg>');
+      const cleanSvg = input.substring(svgStart, svgEnd + 6);
+      $('aiCustomSvgData').value = cleanSvg;
+      $('logoModeSelect').value = 'ai';
+      updatePreview();
+      $('aiLogoModal').classList.add('hidden');
+      showToast('✅ Applied pasted ChatGPT Vector SVG Logo!');
+    } else if (input.startsWith('http://') || input.startsWith('https://') || input.startsWith('data:image/')) {
+      $('companyLogoImgUrl').value = input;
+      $('logoModeSelect').value = 'image';
+      updatePreview();
+      $('aiLogoModal').classList.add('hidden');
+      showToast('✅ Applied pasted ChatGPT Image Logo!');
+    } else {
+      showToast('Invalid input. Please paste valid <svg> code or an image URL.', 'error');
+    }
   });
 }
 

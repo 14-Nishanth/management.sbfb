@@ -522,8 +522,9 @@ CREATE POLICY "Allow public access to item_catalog" ON public.item_catalog FOR A
         </div>
 
         <div class="modal-tabs">
-          <button class="tab-btn active" id="tabAiPresetsBtn">🎲 Instant AI Variations (6 Designs)</button>
-          <button class="tab-btn" id="tabAiCustomBtn">🎨 Custom AI Prompt & Diffusion</button>
+          <button class="tab-btn active" id="tabAiPresetsBtn">🎲 Instant Variations (6 Designs)</button>
+          <button class="tab-btn" id="tabAiChatGptBtn">🤖 ChatGPT Logo Creator</button>
+          <button class="tab-btn" id="tabAiCustomBtn">🎨 Custom Prompt & Diffusion</button>
         </div>
 
         <!-- Tab 1: Preset Variations -->
@@ -574,7 +575,106 @@ CREATE POLICY "Allow public access to item_catalog" ON public.item_catalog FOR A
           <div class="ai-variation-grid" id="aiVariationsGrid"></div>
         </div>
 
-        <!-- Tab 2: Custom Prompt & Diffusion -->
+        <!-- Tab 2: ChatGPT Logo Creator (OpenAI) -->
+        <div id="tabAiChatGptContent" class="tab-content hidden">
+          <div class="catalog-add-box" style="background:#f0fdf4;border-color:#bbf7d0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+              <div>
+                <h4 style="color:#166534;margin:0 0 2px;">🤖 ChatGPT Logo Generator (OpenAI)</h4>
+                <p class="helper-text" style="color:#15803d;margin:0;">Generate custom vector SVGs or graphic emblems directly with ChatGPT & OpenAI.</p>
+              </div>
+              <span class="badge-approx" style="background:#dcfce7;color:#166534;font-size:10px;padding:3px 8px;border-radius:6px;font-weight:700;">OpenAI GPT-4o / DALL-E</span>
+            </div>
+
+            <!-- OpenAI API Key Setup -->
+            <div style="margin-top:12px;background:#fff;padding:12px 14px;border-radius:10px;border:1px solid #d1fae5;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <label style="margin:0;font-size:11.5px;font-weight:700;color:#1e293b;">OpenAI API Key (Stored safely in local browser):</label>
+                <a href="https://platform.openai.com/api-keys" target="_blank" style="font-size:10.5px;color:#2563eb;text-decoration:none;font-weight:600;">🔑 Get API Key</a>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input type="password" id="openAiApiKey" placeholder="sk-proj-... (Paste OpenAI API Key here)" style="flex:1;font-family:monospace;font-size:12px;" />
+                <button type="button" class="btn small outline" id="toggleApiKeyVisibilityBtn" title="Show/Hide Key" style="padding:7px 10px;font-size:11px;">👁️</button>
+                <button type="button" class="btn small outline" id="saveApiKeyBtn" title="Save Key" style="padding:7px 10px;font-size:11px;">💾 Save</button>
+              </div>
+            </div>
+
+            <!-- Generation Settings -->
+            <div class="grid three" style="margin-top:10px;gap:10px;">
+              <label>Model & Engine:
+                <select id="chatGptModelSelect">
+                  <option value="gpt-4o-svg" selected>⚡ GPT-4o Vector SVG (Crisp 300 DPI)</option>
+                  <option value="gpt-4o-mini-svg">🚀 GPT-4o-mini Vector SVG (Fast)</option>
+                  <option value="dall-e-3">🎨 DALL-E 3 Graphic Image (High-Res)</option>
+                </select>
+              </label>
+              <label>Design Tone / Style:
+                <select id="chatGptToneSelect">
+                  <option value="modern_construction">🏗️ Modern Civil & Construction Emblem</option>
+                  <option value="luxury_geometric">👑 Luxury Geometric Crest & Gold Monogram</option>
+                  <option value="minimalist_tech">📐 Minimalist Swiss Architectural Mark</option>
+                  <option value="eco_infrastructure">🌿 Eco-Friendly Green Infrastructure</option>
+                  <option value="bold_industrial">⚙️ Heavy Industrial & Roadwork Badge</option>
+                </select>
+              </label>
+              <label>Color Accent:
+                <select id="chatGptColorSelect">
+                  <option value="gold_slate">🟡 Amber Gold & Slate Dark</option>
+                  <option value="sapphire_silver">🔵 Sapphire Blue & Platinum</option>
+                  <option value="emerald_black">🟢 Emerald Green & Onyx</option>
+                  <option value="crimson_bronze">🔴 Crimson Red & Bronze</option>
+                  <option value="monochrome">⚪ High-Contrast Monochrome</option>
+                </select>
+              </label>
+            </div>
+
+            <label style="margin-top:10px;">Custom Instructions for ChatGPT (Optional):
+              <input id="chatGptCustomPrompt" placeholder="e.g. Include interlocking bricks silhouette and bold road perspective curve..." />
+            </label>
+
+            <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center;">
+              <button type="button" class="btn primary" id="generateWithChatGptBtn" style="font-weight:700;">
+                🤖 Generate Logo with ChatGPT
+              </button>
+              <button type="button" class="btn outline small" id="copyChatGptPromptBtn" title="Copy ready prompt to paste in chatgpt.com">
+                📋 Copy Master Prompt for ChatGPT.com
+              </button>
+            </div>
+          </div>
+
+          <!-- Loading Indicator -->
+          <div id="chatGptLoadingBox" class="hidden" style="text-align:center;padding:24px;background:#f8fafc;border-radius:12px;margin-top:14px;border:1px solid #e2e8f0;">
+            <div class="ai-spinner" style="margin-bottom:10px;"></div>
+            <div id="chatGptLoadingText" style="font-weight:700;color:#0f172a;font-size:13px;">ChatGPT is designing your company logo...</div>
+            <div style="font-size:11.5px;color:#64748b;margin-top:4px;">Writing precision vector geometry and color palette.</div>
+          </div>
+
+          <!-- Result Preview Box -->
+          <div id="chatGptResultBox" style="margin-top:16px;text-align:center;background:#f8fafc;padding:24px;border:1.5px dashed #10b981;border-radius:12px;" class="hidden">
+            <div id="chatGptPreviewHolder" style="display:inline-block;margin-bottom:12px;"></div>
+            <div id="chatGptStatusMsg" style="font-size:12px;color:#0f172a;font-weight:600;margin-bottom:10px;"></div>
+            <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+              <button type="button" class="btn primary small" id="applyChatGptLogoBtn">
+                ✅ Apply this ChatGPT Logo to Quotation
+              </button>
+              <button type="button" class="btn outline small" id="copyChatGptSvgBtn">
+                📋 Copy SVG Code
+              </button>
+            </div>
+          </div>
+
+          <!-- Paste Manual ChatGPT Output Box -->
+          <div style="margin-top:16px;background:#f8fafc;padding:12px 14px;border-radius:10px;border:1px solid #e2e8f0;">
+            <strong style="font-size:12px;color:#0f172a;display:block;margin-bottom:4px;">📥 Or Paste Output from ChatGPT.com:</strong>
+            <p style="font-size:11px;color:#64748b;margin:0 0 8px;">If you chatted on ChatGPT.com, paste the generated SVG code or image URL below:</p>
+            <div style="display:flex;gap:8px;">
+              <textarea id="pasteChatGptInput" rows="2" placeholder="Paste <svg...> or https://... image URL from ChatGPT here" style="flex:1;font-size:11px;font-family:monospace;"></textarea>
+              <button type="button" class="btn small primary" id="applyPastedChatGptBtn" style="white-space:nowrap;padding:0 14px;">Apply Logo</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Custom Prompt & Diffusion -->
         <div id="tabAiCustomContent" class="tab-content hidden">
           <div class="catalog-add-box">
             <h4>Generate Custom AI Logo with Prompt</h4>
