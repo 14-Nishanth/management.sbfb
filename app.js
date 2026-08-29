@@ -5,7 +5,7 @@ const fields = [
   'quoteNo', 'companyName', 'logoModeSelect', 'aiLogoStyle', 'aiLogoColor', 'aiLogoSeed', 'aiLogoSymbol', 'aiCustomSvgData',
   'companyLogoText', 'companyLogoImgUrl', 'companyPhone', 'companyEmail', 'companyGst', 'companyAddress',
   'clientName', 'clientContact', 'clientPhone', 'quoteDate', 'projectName', 'siteLocation',
-  'gstRate', 'discount', 'validity', 'paymentTerms', 'notes'
+  'gstModeSelect', 'gstRate', 'discount', 'validity', 'paymentTerms', 'notes'
 ];
 
 const stateKey = 'sbfbQuotationState';
@@ -353,6 +353,19 @@ function renderItems() {
       renderItems();
       updatePreview();
     });
+  });
+
+  disableWheelOnNumbers();
+}
+
+function preventWheelScroll(e) {
+  e.preventDefault();
+}
+
+function disableWheelOnNumbers() {
+  document.querySelectorAll('input[type="number"], .num').forEach(el => {
+    el.removeEventListener('wheel', preventWheelScroll);
+    el.addEventListener('wheel', preventWheelScroll, { passive: false });
   });
 }
 
@@ -838,16 +851,51 @@ function updatePreview() {
   $('pPaymentTerms').textContent = val('paymentTerms');
   $('pNotes').textContent = val('notes');
 
+  const gstMode = val('gstModeSelect') || '18';
+  let gstRate = 0;
+  if (gstMode === 'custom') {
+    if ($('customGstGroup')) $('customGstGroup').classList.remove('hidden');
+    gstRate = Math.max(Number(val('gstRate')) || 0, 0);
+  } else {
+    if ($('customGstGroup')) $('customGstGroup').classList.add('hidden');
+    gstRate = Math.max(Number(gstMode) || 0, 0);
+    if ($('gstRate')) $('gstRate').value = gstRate;
+  }
+
   const subtotal = items.reduce((s, x) => s + (Number(x.rate) || 0), 0);
   const discount = Math.min(Math.max(Number(val('discount')) || 0, 0), subtotal);
-  const taxable = subtotal - discount;
-  const gst = taxable * (Math.max(Number(val('gstRate')) || 0, 0) / 100);
+  const taxable = Math.max(subtotal - discount, 0);
+  const gst = taxable * (gstRate / 100);
   const total = taxable + gst;
 
   $('pSubtotal').textContent = money(subtotal);
-  $('pDiscount').textContent = money(discount);
-  $('pGst').textContent = money(gst);
+
+  const pDiscountRow = $('pDiscountRow');
+  if (pDiscountRow) {
+    if (discount > 0) {
+      $('pDiscount').textContent = money(discount);
+      pDiscountRow.style.display = '';
+    } else {
+      $('pDiscount').textContent = money(0);
+      pDiscountRow.style.display = 'none';
+    }
+  }
+
+  const pGstRow = $('pGstRow');
+  const pGstPercent = $('pGstPercent');
+  if (pGstPercent) pGstPercent.textContent = `${gstRate}%`;
+
+  if (gstRate > 0) {
+    $('pGst').textContent = money(gst);
+    if (pGstRow) pGstRow.style.display = '';
+  } else {
+    $('pGst').textContent = '₹0.00';
+    if (pGstRow) pGstRow.style.display = gstMode === '0' ? 'none' : '';
+  }
+
   $('pTotal').textContent = money(total);
+
+  disableWheelOnNumbers();
 
   // Render preview table rows
   const previewTbody = $('previewItems');
@@ -1220,6 +1268,14 @@ function loadQuotationById(id) {
   $('projectName').value = q.project_name || '';
   $('siteLocation').value = q.site_location || '';
 
+  if ($('gstModeSelect')) {
+    const r = q.gst_rate != null ? String(q.gst_rate) : '18';
+    if (['0', '5', '12', '18', '28'].includes(r)) {
+      $('gstModeSelect').value = r;
+    } else {
+      $('gstModeSelect').value = 'custom';
+    }
+  }
   $('gstRate').value = q.gst_rate ?? 18;
   $('discount').value = q.discount ?? 0;
   $('validity').value = q.validity ?? 15;
@@ -1681,6 +1737,7 @@ $('resetBtn').addEventListener('click', async () => {
   $('clientPhone').value = '';
   $('projectName').value = '';
   $('siteLocation').value = '';
+  if ($('gstModeSelect')) $('gstModeSelect').value = '18';
   $('gstRate').value = 18;
   $('discount').value = 0;
   $('validity').value = 15;

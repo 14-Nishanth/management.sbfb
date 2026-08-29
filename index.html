@@ -200,7 +200,7 @@
                 <button type="button" class="btn small" id="setTodayBtn" title="Reset date to today" style="padding:7px 10px;font-size:11px;white-space:nowrap;">📅 Today</button>
               </div>
             </label>
-            <label>Quotation No. <span style="font-size:10px;color:#94a3b8;font-weight:400">(Optional — leave blank if not needed)</span><input id="quoteNo" placeholder="Leave blank if not needed (e.g. SBFB-001)" /></label>
+            <label>Quotation No. <span style="font-size:10px;color:#94a3b8;font-weight:400">(Optional — leave blank to omit from print & PDF)</span><input id="quoteNo" placeholder="Leave blank if not needed (e.g. SBFB-001)" /></label>
             <label>Client / company name<input id="clientName" placeholder="e.g. ABC Developers / Client Name" /></label>
             <label>Contact person<input id="clientContact" placeholder="Contact person name" /></label>
             <label>Client phone<input id="clientPhone" placeholder="+91..." /></label>
@@ -245,14 +245,28 @@
         <div class="card">
           <div class="card-head">
             <div>
-              <h2>Commercial terms & notes</h2>
-              <p>GST, discounts, validity period, and payment terms.</p>
+              <h2>Commercial Terms & Taxes</h2>
+              <p>GST options, discounts, validity period, and payment terms.</p>
             </div>
           </div>
           <div class="grid three">
-            <label>GST (%)<input id="gstRate" type="number" min="0" step="0.01" value="18" /></label>
-            <label>Discount (₹)<input id="discount" type="number" min="0" step="0.01" value="0" /></label>
-            <label>Validity (days)<input id="validity" type="number" min="1" value="15" /></label>
+            <label>GST Tax Option:
+              <select id="gstModeSelect">
+                <option value="0">❌ No GST / Exempt (0%)</option>
+                <option value="5">📦 5% GST (Standard Materials)</option>
+                <option value="12">🧱 12% GST (Civil & Bricks)</option>
+                <option value="18" selected>🏗️ 18% GST (Standard Works)</option>
+                <option value="28">⚡ 28% GST (Heavy Equipment)</option>
+                <option value="custom">✏️ Custom GST %</option>
+              </select>
+            </label>
+            <div id="customGstGroup" class="hidden">
+              <label>Custom GST (%)
+                <input id="gstRate" type="number" min="0" max="100" step="0.01" value="18" placeholder="Enter GST %" />
+              </label>
+            </div>
+            <label>Discount (₹)<input id="discount" type="number" min="0" step="0.01" value="0" placeholder="0.00" /></label>
+            <label>Validity (days)<input id="validity" type="number" min="1" value="15" placeholder="15" /></label>
             <label class="wide">Payment terms<textarea id="paymentTerms" rows="2">30% advance with work order. Balance as per measured progress / agreed milestones.</textarea></label>
             <label class="wide">Notes<textarea id="notes" rows="3">Rates are quoted per sq. meter based on the specifications above. Final billing will be based on actual site measurements.</textarea></label>
           </div>
@@ -269,7 +283,7 @@
           <div class="quote-header">
             <div>
               <div id="pCompanyLogoWrap">
-                <div class="company-logo" id="pCompanyLogo">TNP</div>
+                <div class="company-logo" id="pCompanyLogo"></div>
               </div>
               <div>
                 <h2 id="pCompanyName">Sri Balamurugan Fly Ash Bricks & Roadwork</h2>
@@ -280,7 +294,7 @@
             </div>
             <div class="quote-title">
               <div class="title-tag">QUOTATION</div>
-              <div id="pQuoteNoWrap" class="title-quote-no hidden">
+              <div id="pQuoteNoWrap" class="title-quote-no hidden" style="display:none;">
                 <span>Quote No:</span>
                 <strong id="pQuoteNo"></strong>
               </div>
@@ -327,8 +341,8 @@
             <div></div>
             <div class="totals">
               <div><span>Subtotal</span><strong id="pSubtotal">₹0.00</strong></div>
-              <div><span>Discount</span><strong id="pDiscount">₹0.00</strong></div>
-              <div><span>GST</span><strong id="pGst">₹0.00</strong></div>
+              <div id="pDiscountRow"><span>Discount</span><strong id="pDiscount">₹0.00</strong></div>
+              <div id="pGstRow"><span>GST (<span id="pGstPercent">18%</span>)</span><strong id="pGst">₹0.00</strong></div>
               <div class="grand"><span>Grand total</span><strong id="pTotal">₹0.00</strong></div>
             </div>
           </div>
