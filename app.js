@@ -2,7 +2,8 @@ const $ = id => document.getElementById(id);
 
 // Quotation fields (Quotation Number is optional and stays blank if omitted)
 const fields = [
-  'quoteNo', 'companyName', 'logoModeSelect', 'companyLogoText', 'companyLogoImgUrl', 'companyPhone', 'companyEmail', 'companyGst', 'companyAddress',
+  'quoteNo', 'companyName', 'logoModeSelect', 'aiLogoStyle', 'aiLogoColor', 'aiLogoSeed', 'aiLogoSymbol', 'aiCustomSvgData',
+  'companyLogoText', 'companyLogoImgUrl', 'companyPhone', 'companyEmail', 'companyGst', 'companyAddress',
   'clientName', 'clientContact', 'clientPhone', 'quoteDate', 'projectName', 'siteLocation',
   'gstRate', 'discount', 'validity', 'paymentTerms', 'notes'
 ];
@@ -372,28 +373,384 @@ function adjustLogoFontSize(el, text) {
   }
 }
 
+/* --- AI Logo Generation Engine --- */
+
+const AI_PALETTES = {
+  amber_slate: {
+    name: 'Amber Gold & Slate',
+    primary: '#f59e0b',
+    secondary: '#d97706',
+    accent: '#fbbf24',
+    bg1: '#0f172a',
+    bg2: '#1e293b',
+    border: '#f59e0b',
+    text: '#ffffff'
+  },
+  sapphire_silver: {
+    name: 'Sapphire & Platinum',
+    primary: '#3b82f6',
+    secondary: '#1d4ed8',
+    accent: '#60a5fa',
+    bg1: '#0a192f',
+    bg2: '#172a46',
+    border: '#60a5fa',
+    text: '#ffffff'
+  },
+  emerald_carbon: {
+    name: 'Emerald & Dark Carbon',
+    primary: '#10b981',
+    secondary: '#059669',
+    accent: '#34d399',
+    bg1: '#052317',
+    bg2: '#064e3b',
+    border: '#10b981',
+    text: '#ffffff'
+  },
+  crimson_bronze: {
+    name: 'Crimson & Bronze',
+    primary: '#ef4444',
+    secondary: '#b91c1c',
+    accent: '#f87171',
+    bg1: '#260b0b',
+    bg2: '#450a0a',
+    border: '#ef4444',
+    text: '#ffffff'
+  },
+  purple_platinum: {
+    name: 'Royal Purple',
+    primary: '#a855f7',
+    secondary: '#7e22ce',
+    accent: '#c084fc',
+    bg1: '#19082d',
+    bg2: '#3b0764',
+    border: '#a855f7',
+    text: '#ffffff'
+  },
+  charcoal_mono: {
+    name: 'Charcoal Monochrome',
+    primary: '#e2e8f0',
+    secondary: '#94a3b8',
+    accent: '#cbd5e1',
+    bg1: '#090d16',
+    bg2: '#1e293b',
+    border: '#94a3b8',
+    text: '#ffffff'
+  }
+};
+
+const AI_STYLES = [
+  { id: 'industrial', name: 'Industrial & Bricks', badge: 'Civil & Roadwork' },
+  { id: 'hexagon', name: 'Hexagon Shield', badge: 'Modern Engineering' },
+  { id: 'architectural', name: 'Blueprint & Structure', badge: 'Architectural' },
+  { id: 'gold_crest', name: 'Luxury Gold Crest', badge: 'Seal & Quality' },
+  { id: 'gradient_tech', name: 'Dynamic Gradient', badge: 'High-Tech' },
+  { id: 'eco_infra', name: 'Eco Infrastructure', badge: 'Sustainable' },
+  { id: 'minimal_badge', name: 'Minimalist Badge', badge: 'Swiss Clean' }
+];
+
+function detectIndustryKeywords(name) {
+  const n = (name || '').toLowerCase();
+  if (n.includes('brick') || n.includes('fly ash') || n.includes('masonry')) return 'bricks';
+  if (n.includes('road') || n.includes('highway') || n.includes('asphalt') || n.includes('bitumen') || n.includes('tar') || n.includes('pave')) return 'road';
+  if (n.includes('civil') || n.includes('crane') || n.includes('builder') || n.includes('construct') || n.includes('infra')) return 'crane';
+  if (n.includes('architect') || n.includes('plan') || n.includes('design') || n.includes('structure') || n.includes('steel') || n.includes('complex') || n.includes('tower')) return 'building';
+  if (n.includes('eco') || n.includes('green') || n.includes('earth') || n.includes('organic') || n.includes('nature') || n.includes('bio')) return 'eco';
+  if (n.includes('tech') || n.includes('engine') || n.includes('machine') || n.includes('gear') || n.includes('industry') || n.includes('works') || n.includes('factory')) return 'gear';
+  if (n.includes('survey') || n.includes('measure') || n.includes('consult') || n.includes('draft') || n.includes('cad')) return 'compass';
+  return 'bricks';
+}
+
+function getSymbolSvg(symbolKey, p) {
+  switch (symbolKey) {
+    case 'road':
+      return `
+        <g>
+          <polygon points="26,56 74,56 58,22 42,22" fill="${p.secondary}" opacity="0.9"/>
+          <line x1="50" y1="24" x2="50" y2="54" stroke="${p.accent}" stroke-width="2.5" stroke-dasharray="4,3"/>
+          <line x1="24" y1="56" x2="40" y2="22" stroke="${p.primary}" stroke-width="2"/>
+          <line x1="76" y1="56" x2="60" y2="22" stroke="${p.primary}" stroke-width="2"/>
+        </g>`;
+    case 'crane':
+      return `
+        <g stroke="${p.accent}" stroke-width="2.5" stroke-linecap="round">
+          <line x1="36" y1="58" x2="36" y2="18"/>
+          <line x1="26" y1="20" x2="74" y2="20" stroke-width="3" stroke="${p.primary}"/>
+          <line x1="36" y1="20" x2="68" y2="38" stroke-width="1.5" opacity="0.8"/>
+          <line x1="68" y1="20" x2="68" y2="34" stroke-width="1.5"/>
+          <circle cx="68" cy="36" r="2.5" fill="${p.accent}"/>
+        </g>`;
+    case 'building':
+      return `
+        <g>
+          <rect x="25" y="30" width="22" height="28" rx="1.5" fill="${p.secondary}" stroke="${p.primary}" stroke-width="1.5"/>
+          <rect x="51" y="18" width="24" height="40" rx="1.5" fill="${p.primary}" stroke="${p.accent}" stroke-width="1.5"/>
+          <line x1="59" y1="24" x2="67" y2="24" stroke="${p.bg1}" stroke-width="2"/>
+          <line x1="59" y1="32" x2="67" y2="32" stroke="${p.bg1}" stroke-width="2"/>
+          <line x1="59" y1="40" x2="67" y2="40" stroke="${p.bg1}" stroke-width="2"/>
+        </g>`;
+    case 'shield':
+      return `
+        <path d="M50 16 L74 26 V44 C74 58 50 68 50 68 C50 68 26 58 26 44 V26 Z" fill="${p.secondary}" stroke="${p.accent}" stroke-width="2.5"/>`;
+    case 'gear':
+      return `
+        <g fill="${p.primary}">
+          <circle cx="50" cy="38" r="18" fill="${p.secondary}" stroke="${p.accent}" stroke-width="2"/>
+          <circle cx="50" cy="38" r="8" fill="${p.bg1}"/>
+          <rect x="47" y="16" width="6" height="44" rx="2" fill="${p.accent}"/>
+          <rect x="28" y="35" width="44" height="6" rx="2" fill="${p.accent}"/>
+        </g>`;
+    case 'compass':
+      return `
+        <g stroke="${p.accent}" stroke-width="2.5" stroke-linecap="round">
+          <circle cx="50" cy="20" r="4" fill="${p.primary}"/>
+          <line x1="48" y1="23" x2="32" y2="58"/>
+          <line x1="52" y1="23" x2="68" y2="58"/>
+          <path d="M38 46 Q50 42 62 46" fill="none" stroke="${p.primary}" stroke-width="1.5"/>
+        </g>`;
+    case 'eco':
+      return `
+        <g>
+          <path d="M32 58 C32 36 50 22 68 18 C68 40 50 58 32 58 Z" fill="${p.primary}" stroke="${p.accent}" stroke-width="2"/>
+          <path d="M32 58 Q48 40 68 18" stroke="${p.bg1}" stroke-width="2" fill="none"/>
+        </g>`;
+    case 'bricks':
+    default:
+      return `
+        <g fill="${p.accent}">
+          <rect x="22" y="24" width="26" height="11" rx="2" fill="${p.primary}" stroke="${p.bg1}" stroke-width="1.5"/>
+          <rect x="52" y="24" width="26" height="11" rx="2" fill="${p.primary}" stroke="${p.bg1}" stroke-width="1.5"/>
+          <rect x="35" y="38" width="30" height="11" rx="2" fill="${p.accent}" stroke="${p.bg1}" stroke-width="1.5"/>
+        </g>`;
+  }
+}
+
+function generateAILogoSVG({ name = 'SBFB', monogram = 'TNP', style = 'industrial', colorKey = 'amber_slate', symbolKey = 'auto', seed = 1 }) {
+  const p = AI_PALETTES[colorKey] || AI_PALETTES.amber_slate;
+  let effectiveSymbol = symbolKey;
+  if (!effectiveSymbol || effectiveSymbol === 'auto') {
+    effectiveSymbol = detectIndustryKeywords(name);
+  }
+
+  const uid = 'ai_' + Math.abs((Number(seed) || 1) * 31 + (style ? style.charCodeAt(0) : 0) + (colorKey ? colorKey.charCodeAt(0) : 0)).toString(36);
+  const symbolMarkup = getSymbolSvg(effectiveSymbol, p);
+  const cleanMono = (monogram || generateMonogram(name, '')).toUpperCase().slice(0, 5);
+
+  let content = '';
+
+  if (style === 'hexagon') {
+    content = `
+      <defs>
+        <linearGradient id="${uid}_g" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="${p.bg2}" />
+          <stop offset="100%" stop-color="${p.bg1}" />
+        </linearGradient>
+      </defs>
+      <polygon points="50,6 88,27 88,73 50,94 12,73 12,27" fill="url(#${uid}_g)" stroke="${p.border}" stroke-width="3" />
+      <polygon points="50,12 82,30 82,70 50,88 18,70 18,30" fill="none" stroke="${p.accent}" stroke-width="1" opacity="0.6" stroke-dasharray="3,3" />
+      <g transform="translate(0, -6)">
+        ${symbolMarkup}
+      </g>
+      <rect x="24" y="68" width="52" height="18" rx="4" fill="${p.bg1}" stroke="${p.primary}" stroke-width="1.5" />
+      <text x="50" y="81" font-family="'Manrope', sans-serif" font-weight="800" font-size="${cleanMono.length > 3 ? '10' : '12'}" fill="${p.accent}" text-anchor="middle" letter-spacing="1">${esc(cleanMono)}</text>
+    `;
+  } else if (style === 'architectural') {
+    content = `
+      <defs>
+        <linearGradient id="${uid}_g" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="${p.bg2}" />
+          <stop offset="100%" stop-color="${p.bg1}" />
+        </linearGradient>
+      </defs>
+      <rect x="8" y="8" width="84" height="84" rx="8" fill="url(#${uid}_g)" stroke="${p.primary}" stroke-width="2" />
+      <!-- Blueprint grid -->
+      <line x1="8" y1="30" x2="92" y2="30" stroke="${p.accent}" stroke-width="0.7" opacity="0.3" />
+      <line x1="8" y1="50" x2="92" y2="50" stroke="${p.accent}" stroke-width="0.7" opacity="0.3" />
+      <line x1="8" y1="70" x2="92" y2="70" stroke="${p.accent}" stroke-width="0.7" opacity="0.3" />
+      <line x1="30" y1="8" x2="30" y2="92" stroke="${p.accent}" stroke-width="0.7" opacity="0.3" />
+      <line x1="50" y1="8" x2="50" y2="92" stroke="${p.accent}" stroke-width="0.7" opacity="0.3" />
+      <line x1="70" y1="8" x2="70" y2="92" stroke="${p.accent}" stroke-width="0.7" opacity="0.3" />
+      <g transform="translate(0, -8)">
+        ${symbolMarkup}
+      </g>
+      <rect x="20" y="66" width="60" height="20" rx="3" fill="${p.bg1}" stroke="${p.accent}" stroke-width="1.5" />
+      <text x="50" y="80" font-family="'Manrope', sans-serif" font-weight="800" font-size="${cleanMono.length > 3 ? '10.5' : '13'}" fill="${p.text}" text-anchor="middle" letter-spacing="1.2">${esc(cleanMono)}</text>
+    `;
+  } else if (style === 'gold_crest') {
+    content = `
+      <defs>
+        <radialGradient id="${uid}_r" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="${p.bg2}" />
+          <stop offset="100%" stop-color="${p.bg1}" />
+        </radialGradient>
+      </defs>
+      <circle cx="50" cy="50" r="44" fill="url(#${uid}_r)" stroke="${p.primary}" stroke-width="3" />
+      <circle cx="50" cy="50" r="39" fill="none" stroke="${p.accent}" stroke-width="1.5" stroke-dasharray="2,2" />
+      <g transform="scale(0.8) translate(12, 4)">
+        ${symbolMarkup}
+      </g>
+      <rect x="22" y="64" width="56" height="18" rx="9" fill="${p.primary}" />
+      <text x="50" y="77" font-family="'Manrope', sans-serif" font-weight="800" font-size="${cleanMono.length > 3 ? '10' : '11.5'}" fill="${p.bg1}" text-anchor="middle" letter-spacing="1.5">${esc(cleanMono)}</text>
+    `;
+  } else if (style === 'gradient_tech') {
+    content = `
+      <defs>
+        <linearGradient id="${uid}_gt" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="${p.primary}" />
+          <stop offset="100%" stop-color="${p.bg1}" />
+        </linearGradient>
+      </defs>
+      <rect x="8" y="8" width="84" height="84" rx="22" fill="url(#${uid}_gt)" stroke="${p.accent}" stroke-width="2" />
+      <g transform="translate(0, -6)">
+        ${symbolMarkup}
+      </g>
+      <text x="50" y="80" font-family="'Manrope', sans-serif" font-weight="800" font-size="${cleanMono.length > 3 ? '13' : '16'}" fill="${p.accent}" text-anchor="middle" letter-spacing="1.5">${esc(cleanMono)}</text>
+    `;
+  } else if (style === 'eco_infra') {
+    content = `
+      <defs>
+        <linearGradient id="${uid}_eco" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="${p.bg2}" />
+          <stop offset="100%" stop-color="${p.bg1}" />
+        </linearGradient>
+      </defs>
+      <path d="M50 8 C76 8 88 24 88 52 C88 78 64 92 50 92 C36 92 12 78 12 52 C12 24 24 8 50 8 Z" fill="url(#${uid}_eco)" stroke="${p.primary}" stroke-width="2.5" />
+      <g transform="translate(0, -6)">
+        ${symbolMarkup}
+      </g>
+      <rect x="25" y="66" width="50" height="17" rx="8" fill="${p.primary}" />
+      <text x="50" y="78.5" font-family="'Manrope', sans-serif" font-weight="800" font-size="${cleanMono.length > 3 ? '9.5' : '11.5'}" fill="${p.bg1}" text-anchor="middle" letter-spacing="1">${esc(cleanMono)}</text>
+    `;
+  } else if (style === 'minimal_badge') {
+    content = `
+      <rect x="10" y="10" width="80" height="80" rx="14" fill="${p.bg1}" stroke="${p.border}" stroke-width="3" />
+      <g transform="scale(0.85) translate(8, 0)">
+        ${symbolMarkup}
+      </g>
+      <line x1="22" y1="62" x2="78" y2="62" stroke="${p.primary}" stroke-width="2" />
+      <text x="50" y="79" font-family="'Manrope', sans-serif" font-weight="800" font-size="${cleanMono.length > 3 ? '12' : '15'}" fill="${p.accent}" text-anchor="middle" letter-spacing="1.5">${esc(cleanMono)}</text>
+    `;
+  } else {
+    // default: industrial
+    content = `
+      <defs>
+        <linearGradient id="${uid}_ind" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="${p.bg2}" />
+          <stop offset="100%" stop-color="${p.bg1}" />
+        </linearGradient>
+      </defs>
+      <rect x="8" y="8" width="84" height="84" rx="14" fill="url(#${uid}_ind)" stroke="${p.primary}" stroke-width="2.5" />
+      <!-- Hazard accent notches -->
+      <polygon points="8,20 20,8 26,8 8,26" fill="${p.primary}" opacity="0.7"/>
+      <polygon points="74,92 92,74 92,80 80,92" fill="${p.primary}" opacity="0.7"/>
+      <g transform="translate(0, -6)">
+        ${symbolMarkup}
+      </g>
+      <rect x="20" y="65" width="60" height="20" rx="5" fill="${p.bg1}" stroke="${p.accent}" stroke-width="1.5" />
+      <text x="50" y="79" font-family="'Manrope', sans-serif" font-weight="800" font-size="${cleanMono.length > 3 ? '11' : '13.5'}" fill="${p.accent}" text-anchor="middle" letter-spacing="1.2">${esc(cleanMono)}</text>
+    `;
+  }
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%" style="display:block;">${content}</svg>`;
+}
+
 function updateLogo() {
   const compName = (val('companyName') || 'Sri Balamurugan Fly Ash Bricks & Roadwork').trim();
-  const mode = val('logoModeSelect') || 'text';
+  const mode = val('logoModeSelect') || 'ai';
   const customLogoText = ($('companyLogoText') ? $('companyLogoText').value : '').trim();
   const imgUrl = ($('companyLogoImgUrl') ? $('companyLogoImgUrl').value : '').trim();
+
+  const aiStyle = val('aiLogoStyle') || 'industrial';
+  const aiColor = val('aiLogoColor') || 'amber_slate';
+  const aiSymbol = val('aiLogoSymbol') || 'auto';
+  const aiSeed = Number(val('aiLogoSeed')) || 1;
+  const customSvg = val('aiCustomSvgData');
 
   // Toggle editor UI fields based on mode
   if (mode === 'image') {
     if ($('imageLogoGroup')) $('imageLogoGroup').classList.remove('hidden');
     if ($('textLogoGroup')) $('textLogoGroup').classList.add('hidden');
-  } else {
+    if ($('aiLogoGroup')) $('aiLogoGroup').classList.add('hidden');
+
+    const notice = $('imageAiFallbackNotice');
+    if (notice) {
+      if (!imgUrl) {
+        notice.classList.remove('hidden');
+      } else {
+        notice.classList.add('hidden');
+      }
+    }
+  } else if (mode === 'text') {
     if ($('imageLogoGroup')) $('imageLogoGroup').classList.add('hidden');
     if ($('textLogoGroup')) $('textLogoGroup').classList.remove('hidden');
+    if ($('aiLogoGroup')) $('aiLogoGroup').classList.add('hidden');
+  } else {
+    // mode === 'ai' (Default)
+    if ($('imageLogoGroup')) $('imageLogoGroup').classList.add('hidden');
+    if ($('textLogoGroup')) $('textLogoGroup').classList.add('hidden');
+    if ($('aiLogoGroup')) $('aiLogoGroup').classList.remove('hidden');
+  }
+
+  // Update Segmented Mode Pills
+  const pillAi = $('pillModeAi');
+  const pillImg = $('pillModeImage');
+  const pillText = $('pillModeText');
+  if (pillAi && pillImg && pillText) {
+    pillAi.classList.toggle('active', mode === 'ai');
+    pillImg.classList.toggle('active', mode === 'image');
+    pillText.classList.toggle('active', mode === 'text');
+  }
+
+  // Update Status Badge
+  const statusBadge = $('logoStatusBadge');
+  if (statusBadge) {
+    if (mode === 'ai') {
+      statusBadge.textContent = '🤖 AI ACTIVE';
+      statusBadge.style.background = '#fef3c7';
+      statusBadge.style.color = '#b45309';
+    } else if (mode === 'image') {
+      if (imgUrl) {
+        statusBadge.textContent = '🖼️ IMAGE LOGO';
+        statusBadge.style.background = '#e0f2fe';
+        statusBadge.style.color = '#0369a1';
+      } else {
+        statusBadge.textContent = '🤖 AI (NO FILE)';
+        statusBadge.style.background = '#fef3c7';
+        statusBadge.style.color = '#b45309';
+      }
+    } else {
+      statusBadge.textContent = '🔤 MONOGRAM';
+      statusBadge.style.background = '#f1f5f9';
+      statusBadge.style.color = '#475569';
+    }
   }
 
   const monogram = generateMonogram(compName, customLogoText);
+
+  // If user does not give any file in image mode, or selects AI mode, automatically generate AI Logo!
+  const useAiLogo = mode === 'ai' || (mode === 'image' && !imgUrl);
+  let logoSvgMarkup = '';
+  if (useAiLogo) {
+    if (customSvg && customSvg.trim().startsWith('<svg')) {
+      logoSvgMarkup = customSvg;
+    } else {
+      logoSvgMarkup = generateAILogoSVG({
+        name: compName,
+        monogram: monogram,
+        style: aiStyle,
+        colorKey: aiColor,
+        symbolKey: aiSymbol,
+        seed: aiSeed
+      });
+    }
+  }
 
   // 1. Settings Card Live Preview
   const settingsLogoWrap = $('settingsLogoWrap');
   if (settingsLogoWrap) {
     if (mode === 'image' && imgUrl) {
       settingsLogoWrap.innerHTML = `<img src="${esc(imgUrl)}" class="company-logo-img" alt="Logo" onerror="this.src='';this.alt='Invalid Image';" />`;
+    } else if (useAiLogo) {
+      settingsLogoWrap.innerHTML = `<div class="company-logo" id="settingsLogoPreview" style="padding:0;background:transparent;border:0;box-shadow:none;">${logoSvgMarkup}</div>`;
     } else {
       settingsLogoWrap.innerHTML = `<div class="company-logo" id="settingsLogoPreview">${esc(monogram)}</div>`;
       const sLogo = $('settingsLogoPreview');
@@ -406,6 +763,8 @@ function updateLogo() {
   if (pLogoWrap) {
     if (mode === 'image' && imgUrl) {
       pLogoWrap.innerHTML = `<img src="${esc(imgUrl)}" class="company-logo-img" alt="Logo" />`;
+    } else if (useAiLogo) {
+      pLogoWrap.innerHTML = `<div class="company-logo" id="pCompanyLogo" style="padding:0;background:transparent;border:0;box-shadow:none;">${logoSvgMarkup}</div>`;
     } else {
       pLogoWrap.innerHTML = `<div class="company-logo" id="pCompanyLogo">${esc(monogram)}</div>`;
       const pLogo = $('pCompanyLogo');
@@ -418,6 +777,8 @@ function updateLogo() {
   if (topBrandMark) {
     if (mode === 'image' && imgUrl) {
       topBrandMark.innerHTML = `<img src="${esc(imgUrl)}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" alt="Logo" />`;
+    } else if (useAiLogo) {
+      topBrandMark.innerHTML = `<div style="width:100%;height:100%;">${logoSvgMarkup}</div>`;
     } else {
       topBrandMark.textContent = monogram;
     }
@@ -442,11 +803,17 @@ function updatePreview() {
   const pQuoteNo = $('pQuoteNo');
   if (qNo) {
     if (pQuoteNo) pQuoteNo.textContent = qNo;
-    if (pQuoteNoWrap) pQuoteNoWrap.classList.remove('hidden');
+    if (pQuoteNoWrap) {
+      pQuoteNoWrap.classList.remove('hidden');
+      pQuoteNoWrap.style.display = '';
+    }
     $('quoteDateBadge').textContent = `${formatDate(quoteDate)} (${qNo})`;
   } else {
     if (pQuoteNo) pQuoteNo.textContent = '';
-    if (pQuoteNoWrap) pQuoteNoWrap.classList.add('hidden');
+    if (pQuoteNoWrap) {
+      pQuoteNoWrap.classList.add('hidden');
+      pQuoteNoWrap.style.display = 'none';
+    }
     $('quoteDateBadge').textContent = formatDate(quoteDate) || 'Today';
   }
 
@@ -532,6 +899,10 @@ function loadDraftState() {
   if (!$('quoteDate').value) {
     $('quoteDate').value = today();
   }
+
+  if (!$('logoModeSelect').value || !['ai', 'image', 'text'].includes($('logoModeSelect').value)) {
+    $('logoModeSelect').value = 'ai';
+  }
 }
 
 /* --- Cloud Database (Supabase Integration) --- */
@@ -582,7 +953,12 @@ function initSupabase() {
 async function saveCompanyDefaults() {
   const companyData = {
     company_name: val('companyName'),
-    logo_mode: val('logoModeSelect') || 'text',
+    logo_mode: val('logoModeSelect') || 'ai',
+    ai_logo_style: val('aiLogoStyle') || 'industrial',
+    ai_logo_color: val('aiLogoColor') || 'amber_slate',
+    ai_logo_symbol: val('aiLogoSymbol') || 'auto',
+    ai_logo_seed: val('aiLogoSeed') || '1',
+    ai_custom_svg: val('aiCustomSvgData') || '',
     company_logo_text: val('companyLogoText'),
     company_logo_img: val('companyLogoImgUrl'),
     company_phone: val('companyPhone'),
@@ -620,6 +996,11 @@ async function loadCompanyDefaults() {
       if (!error && data) {
         if (data.company_name) $('companyName').value = data.company_name;
         if (data.logo_mode) $('logoModeSelect').value = data.logo_mode;
+        if (data.ai_logo_style && $('aiLogoStyle')) $('aiLogoStyle').value = data.ai_logo_style;
+        if (data.ai_logo_color && $('aiLogoColor')) $('aiLogoColor').value = data.ai_logo_color;
+        if (data.ai_logo_symbol && $('aiLogoSymbol')) $('aiLogoSymbol').value = data.ai_logo_symbol;
+        if (data.ai_logo_seed && $('aiLogoSeed')) $('aiLogoSeed').value = data.ai_logo_seed;
+        if (data.ai_custom_svg != null && $('aiCustomSvgData')) $('aiCustomSvgData').value = data.ai_custom_svg;
         if (data.company_logo_text != null) $('companyLogoText').value = data.company_logo_text;
         if (data.company_logo_img != null) $('companyLogoImgUrl').value = data.company_logo_img;
         if (data.company_phone) $('companyPhone').value = data.company_phone;
@@ -638,6 +1019,11 @@ async function loadCompanyDefaults() {
     if (local) {
       if (local.company_name) $('companyName').value = local.company_name;
       if (local.logo_mode) $('logoModeSelect').value = local.logo_mode;
+      if (local.ai_logo_style && $('aiLogoStyle')) $('aiLogoStyle').value = local.ai_logo_style;
+      if (local.ai_logo_color && $('aiLogoColor')) $('aiLogoColor').value = local.ai_logo_color;
+      if (local.ai_logo_symbol && $('aiLogoSymbol')) $('aiLogoSymbol').value = local.ai_logo_symbol;
+      if (local.ai_logo_seed && $('aiLogoSeed')) $('aiLogoSeed').value = local.ai_logo_seed;
+      if (local.ai_custom_svg != null && $('aiCustomSvgData')) $('aiCustomSvgData').value = local.ai_custom_svg;
       if (local.company_logo_text != null) $('companyLogoText').value = local.company_logo_text;
       if (local.company_logo_img != null) $('companyLogoImgUrl').value = local.company_logo_img;
       if (local.company_phone) $('companyPhone').value = local.company_phone;
@@ -667,7 +1053,12 @@ async function saveQuotationToCloud() {
     quote_no: (val('quoteNo') || '').trim() || null,
     quote_date: val('quoteDate') || today(),
     company_name: val('companyName'),
-    logo_mode: val('logoModeSelect') || 'text',
+    logo_mode: val('logoModeSelect') || 'ai',
+    ai_logo_style: val('aiLogoStyle') || 'industrial',
+    ai_logo_color: val('aiLogoColor') || 'amber_slate',
+    ai_logo_symbol: val('aiLogoSymbol') || 'auto',
+    ai_logo_seed: val('aiLogoSeed') || '1',
+    ai_custom_svg: val('aiCustomSvgData') || '',
     company_logo_text: val('companyLogoText'),
     company_logo_img: val('companyLogoImgUrl'),
     company_phone: val('companyPhone'),
@@ -810,7 +1201,12 @@ function loadQuotationById(id) {
   $('quoteNo').value = q.quote_no || q.quoteNo || '';
   $('quoteDate').value = q.quote_date || today();
   $('companyName').value = q.company_name || 'Sri Balamurugan Fly Ash Bricks & Roadwork';
-  if ($('logoModeSelect')) $('logoModeSelect').value = q.logo_mode || 'text';
+  if ($('logoModeSelect')) $('logoModeSelect').value = q.logo_mode || 'ai';
+  if ($('aiLogoStyle')) $('aiLogoStyle').value = q.ai_logo_style || 'industrial';
+  if ($('aiLogoColor')) $('aiLogoColor').value = q.ai_logo_color || 'amber_slate';
+  if ($('aiLogoSymbol')) $('aiLogoSymbol').value = q.ai_logo_symbol || 'auto';
+  if ($('aiLogoSeed')) $('aiLogoSeed').value = q.ai_logo_seed || '1';
+  if ($('aiCustomSvgData')) $('aiCustomSvgData').value = q.ai_custom_svg || '';
   if ($('companyLogoText')) $('companyLogoText').value = q.company_logo_text || '';
   if ($('companyLogoImgUrl')) $('companyLogoImgUrl').value = q.company_logo_img || '';
   $('companyPhone').value = q.company_phone || '';
@@ -864,6 +1260,92 @@ async function deleteQuotationById(id) {
   fetchSavedQuotations();
 }
 
+/* --- AI Logo Studio Modal & Controls --- */
+function openAiLogoStudio() {
+  const modal = $('aiLogoModal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+
+  const compName = val('companyName') || 'Sri Balamurugan Fly Ash Bricks & Roadwork';
+  if ($('modalAiSymbolSelect')) {
+    $('modalAiSymbolSelect').value = val('aiLogoSymbol') || 'auto';
+  }
+  if ($('modalAiColorSelect')) {
+    $('modalAiColorSelect').value = val('aiLogoColor') || 'amber_slate';
+  }
+
+  if ($('customAiPromptInput') && !$('customAiPromptInput').value) {
+    $('customAiPromptInput').value = `Modern minimalist vector logo emblem for ${compName}, clean industrial construction and civil roadwork theme, premium gold and slate finish`;
+  }
+
+  renderAiVariationsGrid();
+}
+
+function renderAiVariationsGrid() {
+  const container = $('aiVariationsGrid');
+  if (!container) return;
+
+  const compName = val('companyName') || 'Sri Balamurugan Fly Ash Bricks & Roadwork';
+  const customLogoText = ($('companyLogoText') ? $('companyLogoText').value : '').trim();
+  const monogram = generateMonogram(compName, customLogoText);
+  const colorKey = ($('modalAiColorSelect') ? $('modalAiColorSelect').value : null) || val('aiLogoColor') || 'amber_slate';
+  const symbolKey = ($('modalAiSymbolSelect') ? $('modalAiSymbolSelect').value : null) || val('aiLogoSymbol') || 'auto';
+  const seed = Number(val('aiLogoSeed')) || 1;
+  const currentStyle = val('aiLogoStyle') || 'industrial';
+
+  const variations = AI_STYLES.map((st, idx) => {
+    const cardSeed = seed + idx * 7;
+    const svg = generateAILogoSVG({
+      name: compName,
+      monogram,
+      style: st.id,
+      colorKey,
+      symbolKey,
+      seed: cardSeed
+    });
+    const isActive = (val('logoModeSelect') === 'ai' || (val('logoModeSelect') === 'image' && !val('companyLogoImgUrl'))) && currentStyle === st.id;
+    return {
+      styleId: st.id,
+      styleName: st.name,
+      badge: st.badge,
+      seed: cardSeed,
+      svg,
+      isActive
+    };
+  });
+
+  container.innerHTML = variations.map(v => `
+    <div class="ai-card ${v.isActive ? 'active' : ''}" data-ai-style="${v.styleId}" data-ai-seed="${v.seed}">
+      <div class="ai-card-preview">${v.svg}</div>
+      <div class="ai-card-title">${v.styleName}</div>
+      <div class="ai-card-badge">${v.badge}</div>
+      <div class="ai-card-actions">
+        <button type="button" class="btn small ${v.isActive ? 'primary' : 'outline'}" style="width:100%;">
+          ${v.isActive ? '✓ Active Logo' : 'Select & Apply'}
+        </button>
+      </div>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.ai-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const selectedStyle = card.dataset.aiStyle;
+      const selectedSeed = card.dataset.aiSeed;
+
+      $('logoModeSelect').value = 'ai';
+      if ($('aiLogoStyle')) $('aiLogoStyle').value = selectedStyle;
+      if ($('aiLogoSeed')) $('aiLogoSeed').value = selectedSeed;
+      if ($('aiLogoColor')) $('aiLogoColor').value = colorKey;
+      if ($('aiLogoSymbol')) $('aiLogoSymbol').value = symbolKey;
+      if ($('aiCustomSvgData')) $('aiCustomSvgData').value = '';
+
+      updatePreview();
+      $('aiLogoModal').classList.add('hidden');
+      showToast(`✨ Applied "${card.querySelector('.ai-card-title').textContent}" AI logo!`);
+    });
+  });
+}
+
 /* --- Event Handlers & Initialization --- */
 fields.forEach(id => {
   const el = $(id);
@@ -883,7 +1365,12 @@ if (logoInput) {
 const companyNameInput = $('companyName');
 if (companyNameInput) {
   ['input', 'keyup', 'change', 'paste'].forEach(evt => {
-    companyNameInput.addEventListener(evt, updatePreview);
+    companyNameInput.addEventListener(evt, () => {
+      updatePreview();
+      if ($('aiLogoModal') && !$('aiLogoModal').classList.contains('hidden')) {
+        renderAiVariationsGrid();
+      }
+    });
   });
 }
 
@@ -913,6 +1400,233 @@ if (logoFileInput) {
       };
       reader.readAsDataURL(file);
     }
+  });
+}
+
+// Segmented Logo Mode Pills
+document.querySelectorAll('.logo-mode-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    const targetMode = pill.dataset.mode;
+    if ($('logoModeSelect')) $('logoModeSelect').value = targetMode;
+    updatePreview();
+    if (targetMode === 'ai') {
+      showToast('🤖 AI Smart Logo Mode active!');
+    }
+  });
+});
+
+if ($('headerAiLogoBtn')) {
+  $('headerAiLogoBtn').addEventListener('click', openAiLogoStudio);
+}
+
+// AI Logo Quick Controls
+if ($('aiLogoStyle')) $('aiLogoStyle').addEventListener('change', updatePreview);
+if ($('aiLogoColor')) $('aiLogoColor').addEventListener('change', updatePreview);
+if ($('aiLogoSymbol')) $('aiLogoSymbol').addEventListener('change', updatePreview);
+
+if ($('aiRegenBtn')) {
+  $('aiRegenBtn').addEventListener('click', () => {
+    const currentSeed = Number(val('aiLogoSeed')) || 1;
+    $('aiLogoSeed').value = currentSeed + 1;
+    $('aiCustomSvgData').value = '';
+    updatePreview();
+    showToast('🎲 Generated fresh AI logo variation!');
+  });
+}
+
+if ($('openAiStudioBtn')) {
+  $('openAiStudioBtn').addEventListener('click', openAiLogoStudio);
+}
+
+if ($('closeAiModalBtn')) {
+  $('closeAiModalBtn').addEventListener('click', () => {
+    $('aiLogoModal').classList.add('hidden');
+  });
+}
+
+if ($('aiLogoModal')) {
+  $('aiLogoModal').addEventListener('click', e => {
+    if (e.target === $('aiLogoModal')) {
+      $('aiLogoModal').classList.add('hidden');
+    }
+  });
+}
+
+if ($('tabAiPresetsBtn')) {
+  $('tabAiPresetsBtn').addEventListener('click', () => {
+    $('tabAiPresetsBtn').classList.add('active');
+    $('tabAiCustomBtn').classList.remove('active');
+    $('tabAiPresetsContent').classList.remove('hidden');
+    $('tabAiCustomContent').classList.add('hidden');
+    renderAiVariationsGrid();
+  });
+}
+
+if ($('tabAiCustomBtn')) {
+  $('tabAiCustomBtn').addEventListener('click', () => {
+    $('tabAiCustomBtn').classList.add('active');
+    $('tabAiPresetsBtn').classList.remove('active');
+    $('tabAiCustomContent').classList.remove('hidden');
+    $('tabAiPresetsContent').classList.add('hidden');
+  });
+}
+
+if ($('modalAiSymbolSelect')) {
+  $('modalAiSymbolSelect').addEventListener('change', () => {
+    if ($('aiLogoSymbol')) $('aiLogoSymbol').value = $('modalAiSymbolSelect').value;
+    renderAiVariationsGrid();
+  });
+}
+
+if ($('modalAiColorSelect')) {
+  $('modalAiColorSelect').addEventListener('change', () => {
+    if ($('aiLogoColor')) $('aiLogoColor').value = $('modalAiColorSelect').value;
+    renderAiVariationsGrid();
+  });
+}
+
+if ($('modalRerollAllBtn')) {
+  $('modalRerollAllBtn').addEventListener('click', () => {
+    const newSeed = Math.floor(Math.random() * 500) + 1;
+    $('aiLogoSeed').value = newSeed;
+    renderAiVariationsGrid();
+    updatePreview();
+    showToast('🎲 Re-rolled all AI logo designs!');
+  });
+}
+
+document.querySelectorAll('.ai-industry-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    const ind = pill.dataset.industry;
+    if (ind === 'bricks') {
+      if ($('modalAiSymbolSelect')) $('modalAiSymbolSelect').value = 'bricks';
+      if ($('modalAiColorSelect')) $('modalAiColorSelect').value = 'amber_slate';
+      if ($('aiLogoSymbol')) $('aiLogoSymbol').value = 'bricks';
+      if ($('aiLogoColor')) $('aiLogoColor').value = 'amber_slate';
+    } else if (ind === 'civil') {
+      if ($('modalAiSymbolSelect')) $('modalAiSymbolSelect').value = 'crane';
+      if ($('modalAiColorSelect')) $('modalAiColorSelect').value = 'amber_slate';
+      if ($('aiLogoSymbol')) $('aiLogoSymbol').value = 'crane';
+    } else if (ind === 'architecture') {
+      if ($('modalAiSymbolSelect')) $('modalAiSymbolSelect').value = 'building';
+      if ($('modalAiColorSelect')) $('modalAiColorSelect').value = 'sapphire_silver';
+      if ($('aiLogoSymbol')) $('aiLogoSymbol').value = 'building';
+      if ($('aiLogoColor')) $('aiLogoColor').value = 'sapphire_silver';
+    } else if (ind === 'eco') {
+      if ($('modalAiSymbolSelect')) $('modalAiSymbolSelect').value = 'eco';
+      if ($('modalAiColorSelect')) $('modalAiColorSelect').value = 'emerald_carbon';
+      if ($('aiLogoSymbol')) $('aiLogoSymbol').value = 'eco';
+      if ($('aiLogoColor')) $('aiLogoColor').value = 'emerald_carbon';
+    }
+    renderAiVariationsGrid();
+  });
+});
+
+if ($('switchBackToAiBtn')) {
+  $('switchBackToAiBtn').addEventListener('click', () => {
+    $('logoModeSelect').value = 'ai';
+    updatePreview();
+    openAiLogoStudio();
+  });
+}
+
+// Procedural vector from custom prompt
+if ($('generateCustomVectorBtn')) {
+  $('generateCustomVectorBtn').addEventListener('click', () => {
+    const prompt = ($('customAiPromptInput') ? $('customAiPromptInput').value : '').toLowerCase();
+    const compName = val('companyName') || 'Sri Balamurugan Fly Ash Bricks & Roadwork';
+    const monogram = generateMonogram(compName, $('companyLogoText') ? $('companyLogoText').value : '');
+
+    let detectedStyle = 'industrial';
+    if (prompt.includes('hexagon') || prompt.includes('shield')) detectedStyle = 'hexagon';
+    else if (prompt.includes('blueprint') || prompt.includes('architect') || prompt.includes('structure')) detectedStyle = 'architectural';
+    else if (prompt.includes('gold') || prompt.includes('crest') || prompt.includes('luxury') || prompt.includes('seal') || prompt.includes('crown')) detectedStyle = 'gold_crest';
+    else if (prompt.includes('gradient') || prompt.includes('tech') || prompt.includes('future') || prompt.includes('dynamic')) detectedStyle = 'gradient_tech';
+    else if (prompt.includes('eco') || prompt.includes('green') || prompt.includes('nature') || prompt.includes('leaf')) detectedStyle = 'eco_infra';
+    else if (prompt.includes('minimal') || prompt.includes('clean') || prompt.includes('swiss') || prompt.includes('badge')) detectedStyle = 'minimal_badge';
+
+    let detectedColor = 'amber_slate';
+    if (prompt.includes('blue') || prompt.includes('sapphire') || prompt.includes('silver')) detectedColor = 'sapphire_silver';
+    else if (prompt.includes('green') || prompt.includes('emerald') || prompt.includes('eco')) detectedColor = 'emerald_carbon';
+    else if (prompt.includes('red') || prompt.includes('crimson') || prompt.includes('ruby')) detectedColor = 'crimson_bronze';
+    else if (prompt.includes('purple') || prompt.includes('royal')) detectedColor = 'purple_platinum';
+    else if (prompt.includes('white') || prompt.includes('black') || prompt.includes('mono') || prompt.includes('charcoal')) detectedColor = 'charcoal_mono';
+
+    let detectedSymbol = detectIndustryKeywords(prompt + ' ' + compName);
+
+    const newSeed = Math.floor(Math.random() * 1000) + 1;
+    const svg = generateAILogoSVG({
+      name: compName,
+      monogram,
+      style: detectedStyle,
+      colorKey: detectedColor,
+      symbolKey: detectedSymbol,
+      seed: newSeed
+    });
+
+    const resultBox = $('customAiResultBox');
+    const previewHolder = $('customAiPreviewHolder');
+    const statusMsg = $('customAiStatusMsg');
+
+    if (resultBox && previewHolder && statusMsg) {
+      resultBox.classList.remove('hidden');
+      previewHolder.innerHTML = `<div class="ai-card-preview" style="width:110px;height:110px;">${svg}</div>`;
+      statusMsg.textContent = `Generated ${detectedStyle.replace('_', ' ')} vector mark with ${detectedColor.replace('_', ' ')} theme.`;
+
+      $('applyCustomAiBtn').onclick = () => {
+        $('logoModeSelect').value = 'ai';
+        $('aiLogoStyle').value = detectedStyle;
+        $('aiLogoColor').value = detectedColor;
+        $('aiLogoSymbol').value = detectedSymbol;
+        $('aiLogoSeed').value = newSeed;
+        $('aiCustomSvgData').value = '';
+        updatePreview();
+        $('aiLogoModal').classList.add('hidden');
+        showToast('✅ Applied Custom Vector AI Logo!');
+      };
+    }
+  });
+}
+
+// AI Diffusion Image generator via Pollinations AI
+if ($('generateAiDiffusionBtn')) {
+  $('generateAiDiffusionBtn').addEventListener('click', () => {
+    const compName = val('companyName') || 'SBFB Construction';
+    const prompt = ($('customAiPromptInput') ? $('customAiPromptInput').value : '').trim() ||
+      `Modern vector company logo for ${compName}, clean industrial construction and bricks emblem`;
+
+    const resultBox = $('customAiResultBox');
+    const previewHolder = $('customAiPreviewHolder');
+    const statusMsg = $('customAiStatusMsg');
+
+    if (!resultBox || !previewHolder || !statusMsg) return;
+
+    resultBox.classList.remove('hidden');
+    previewHolder.innerHTML = `<div class="ai-spinner"></div>`;
+    statusMsg.textContent = 'Generating AI diffusion logo... please wait a moment.';
+
+    const seed = Math.floor(Math.random() * 999999);
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt + ' minimalist vector logo graphic mark on dark background')}?width=256&height=256&nologo=true&seed=${seed}`;
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      previewHolder.innerHTML = `<img src="${imageUrl}" style="width:110px;height:110px;border-radius:12px;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,0.15);" alt="AI Logo" />`;
+      statusMsg.textContent = '✨ AI Diffusion logo generated successfully!';
+
+      $('applyCustomAiBtn').onclick = () => {
+        $('companyLogoImgUrl').value = imageUrl;
+        $('logoModeSelect').value = 'image';
+        updatePreview();
+        $('aiLogoModal').classList.add('hidden');
+        showToast('✅ Applied AI Diffusion Image Logo!');
+      };
+    };
+    img.onerror = () => {
+      previewHolder.innerHTML = `<div style="color:#64748b;font-size:12px;margin-bottom:8px;">Network image service offline. Switched to procedural vector generator!</div>`;
+      if ($('generateCustomVectorBtn')) $('generateCustomVectorBtn').click();
+    };
+    img.src = imageUrl;
   });
 }
 
