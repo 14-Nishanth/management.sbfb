@@ -1,12 +1,72 @@
 const $ = id => document.getElementById(id);
 
-// Quotation fields (Quotation Number is optional and stays blank if omitted)
+// Quotation & Bill fields
 const fields = [
-  'quoteNo', 'companyName', 'logoModeSelect', 'aiLogoStyle', 'aiLogoColor', 'aiLogoSeed', 'aiLogoSymbol', 'aiCustomSvgData',
+  'docType', 'docTemplate', 'billingMode', 'quoteNo', 'companyName',
+  'logoModeSelect', 'aiLogoStyle', 'aiLogoColor', 'aiLogoSeed', 'aiLogoSymbol', 'aiCustomSvgData',
   'companyLogoText', 'companyLogoImgUrl', 'companyPhone', 'companyEmail', 'companyGst', 'companyAddress',
-  'clientName', 'clientContact', 'clientPhone', 'quoteDate', 'projectName', 'siteLocation',
+  'clientName', 'clientContact', 'clientPhone', 'quoteDate', 'dueDate', 'paymentStatusSelect', 'paymentModeSelect', 'poNumber',
+  'projectName', 'siteLocation',
+  'bankName', 'bankAccount', 'bankIfsc', 'bankBranch', 'bankUpi',
   'gstModeSelect', 'gstRate', 'discount', 'validity', 'paymentTerms', 'notes'
 ];
+
+const TEMPLATES = {
+  modern: { name: '🌟 Modern Executive', subtitle: 'Sleek Slate & Amber', color: '#f59e0b' },
+  classic: { name: '🏛️ Classic Corporate', subtitle: 'Formal Tax Grid', color: '#0f172a' },
+  industrial: { name: '🧱 Industrial Amber', subtitle: 'SBFB Construction', color: '#f59e0b' },
+  sapphire: { name: '💎 Sapphire Clean', subtitle: 'Minimalist Blue', color: '#2563eb' },
+  emerald: { name: '🌿 Emerald Green', subtitle: 'Eco Infrastructure', color: '#059669' },
+  monochrome: { name: '🖤 Monochrome Sleek', subtitle: 'High-Contrast B&W', color: '#000000' }
+};
+
+const DOC_TYPES = {
+  quotation: {
+    name: 'Quotation',
+    heading: 'Create & manage quotations',
+    eyebrow: 'QUOTATION STUDIO & CLOUD DATABASE',
+    tag: 'QUOTATION',
+    dateLabel: 'Quotation date',
+    noLabel: 'Quotation No.',
+    noPrefix: 'QTN',
+    clientHeader: 'BILL TO / CLIENT',
+    clientSub: 'Date, quotation number, client contact, and project site location.',
+    thirdBoxTag: 'VALIDITY',
+    defaultTerms: '30% advance with work order. Balance as per measured progress / agreed milestones.',
+    defaultNotes: 'Rates are quoted based on the specifications above. Final billing will be based on actual site measurements.',
+    footer: 'Thank you for your valued business.'
+  },
+  invoice: {
+    name: 'Tax Invoice',
+    heading: 'Create & manage Tax Invoices',
+    eyebrow: 'TAX INVOICE & BILLING STUDIO',
+    tag: 'TAX INVOICE',
+    dateLabel: 'Invoice date',
+    noLabel: 'Invoice No.',
+    noPrefix: 'INV',
+    clientHeader: 'BILL TO / BUYER',
+    clientSub: 'Invoice date, invoice number, payment due, client contact, and delivery location.',
+    thirdBoxTag: 'PAYMENT DUE',
+    defaultTerms: 'Payment is due within 7 days of invoice date. Please transfer to the bank account / UPI ID mentioned below.',
+    defaultNotes: 'Goods / services delivered as per agreed specifications. All disputes subject to local jurisdiction.',
+    footer: 'Thank you for your business! Please remit payment at your earliest convenience.'
+  },
+  cash_bill: {
+    name: 'Cash Bill',
+    heading: 'Create & manage Cash Bills',
+    eyebrow: 'CASH BILL & RETAIL RECEIPT',
+    tag: 'CASH BILL / RECEIPT',
+    dateLabel: 'Bill date',
+    noLabel: 'Bill No.',
+    noPrefix: 'BILL',
+    clientHeader: 'CUSTOMER / BUYER',
+    clientSub: 'Bill date, bill number, payment mode, customer contact, and delivery site.',
+    thirdBoxTag: 'PAYMENT STATUS',
+    defaultTerms: 'Payment received in full. Verified by cashier / authorized signatory.',
+    defaultNotes: 'Thank you for choosing us! Goods once sold and inspected are not returnable.',
+    footer: 'Thank you for your purchase! Visit again.'
+  }
+};
 
 const stateKey = 'sbfbQuotationState';
 const companyDefaultsKey = 'sbfbCompanyDefaults';
@@ -280,12 +340,17 @@ function syncCurrentQuoteToCatalog() {
   }
 }
 
-/* --- Work Items Logic (Description + Rate per Sq. Meter) --- */
-function addItem(desc = '', rate = 450) {
+/* --- Work Items Logic (Rate per Sq.M or Itemized Quantity x Rate) --- */
+function addItem(desc = '', rate = 450, qty = 1, unit = 'sq.m') {
+  const r = Number(rate) || 0;
+  const q = Number(qty) || 1;
   items.push({
     id: crypto.randomUUID(),
     desc,
-    rate: Number(rate) || 0
+    qty: q,
+    unit: unit || 'sq.m',
+    rate: r,
+    amount: q * r
   });
   renderItems();
   updatePreview();
@@ -295,25 +360,73 @@ function renderItems() {
   const tbody = $('itemsBody');
   if (!tbody) return;
 
+  const mode = val('billingMode') || 'sqm_rate';
+  const isQtyMode = mode === 'qty_rate';
+
   if (!items.length) {
-    tbody.innerHTML = `<tr><td colspan="4" style="padding:24px;text-align:center;color:#94a3b8;font-size:12px">No items added yet. Click "+ Add item" or pick from Stored Items library below.</td></tr>`;
+    const cols = isQtyMode ? 7 : 4;
+    tbody.innerHTML = `<tr><td colspan="${cols}" style="padding:24px;text-align:center;color:#94a3b8;font-size:12px">No items added yet. Click "+ Add item" or pick from Stored Items library below.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = items.map((x, i) => `
-    <tr>
-      <td style="text-align:center;color:#64748b;font-weight:700;font-size:12px">${i + 1}</td>
-      <td>
-        <input class="item-desc" list="catalogDatalist" data-id="${x.id}" data-k="desc" value="${esc(x.desc)}" placeholder="e.g. Fly ash brick masonry with cement mortar">
-      </td>
-      <td>
-        <input class="num" type="number" min="0" step="0.01" data-id="${x.id}" data-k="rate" value="${x.rate}" placeholder="Rate in ₹ / sq.m">
-      </td>
-      <td style="text-align:center;">
-        <button class="remove" data-remove="${x.id}" title="Remove item">&times;</button>
-      </td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = items.map((x, i) => {
+    const qty = Number(x.qty) || 1;
+    const rate = Number(x.rate) || 0;
+    const amount = qty * rate;
+    x.amount = amount;
+
+    if (isQtyMode) {
+      return `
+        <tr>
+          <td style="text-align:center;color:#64748b;font-weight:700;font-size:12px">${i + 1}</td>
+          <td>
+            <input class="item-desc" list="catalogDatalist" data-id="${x.id}" data-k="desc" value="${esc(x.desc)}" placeholder="e.g. Fly ash brick masonry">
+          </td>
+          <td>
+            <input class="num" type="number" min="0" step="0.01" data-id="${x.id}" data-k="qty" value="${qty}" placeholder="1">
+          </td>
+          <td>
+            <select data-id="${x.id}" data-k="unit" style="padding:6px 4px;font-size:11px;">
+              <option value="sq.m" ${x.unit === 'sq.m' ? 'selected' : ''}>sq.m</option>
+              <option value="sq.ft" ${x.unit === 'sq.ft' ? 'selected' : ''}>sq.ft</option>
+              <option value="nos" ${x.unit === 'nos' ? 'selected' : ''}>nos (pcs)</option>
+              <option value="tons" ${x.unit === 'tons' ? 'selected' : ''}>tons</option>
+              <option value="trips" ${x.unit === 'trips' ? 'selected' : ''}>trips</option>
+              <option value="brass" ${x.unit === 'brass' ? 'selected' : ''}>brass</option>
+              <option value="bags" ${x.unit === 'bags' ? 'selected' : ''}>bags</option>
+              <option value="days" ${x.unit === 'days' ? 'selected' : ''}>days</option>
+              <option value="hrs" ${x.unit === 'hrs' ? 'selected' : ''}>hrs</option>
+              <option value="lots" ${x.unit === 'lots' ? 'selected' : ''}>lots</option>
+            </select>
+          </td>
+          <td>
+            <input class="num" type="number" min="0" step="0.01" data-id="${x.id}" data-k="rate" value="${rate}" placeholder="Rate ₹">
+          </td>
+          <td style="text-align:right;font-weight:700;font-size:11.5px;color:#0f172a;padding:0 8px;white-space:nowrap;">
+            ${money(amount)}
+          </td>
+          <td style="text-align:center;">
+            <button class="remove" data-remove="${x.id}" title="Remove item">&times;</button>
+          </td>
+        </tr>
+      `;
+    } else {
+      return `
+        <tr>
+          <td style="text-align:center;color:#64748b;font-weight:700;font-size:12px">${i + 1}</td>
+          <td>
+            <input class="item-desc" list="catalogDatalist" data-id="${x.id}" data-k="desc" value="${esc(x.desc)}" placeholder="e.g. Fly ash brick masonry with cement mortar">
+          </td>
+          <td>
+            <input class="num" type="number" min="0" step="0.01" data-id="${x.id}" data-k="rate" value="${rate}" placeholder="Rate in ₹ / sq.m">
+          </td>
+          <td style="text-align:center;">
+            <button class="remove" data-remove="${x.id}" title="Remove item">&times;</button>
+          </td>
+        </tr>
+      `;
+    }
+  }).join('');
 
   // Attach input listeners
   tbody.querySelectorAll('[data-id][data-k]').forEach(el => {
@@ -324,16 +437,23 @@ function renderItems() {
       const key = e.target.dataset.k;
       if (key === 'rate') {
         x.rate = Number(e.target.value) || 0;
+        x.amount = (Number(x.qty) || 1) * x.rate;
         // Auto-update catalog rate if exists
         if (x.desc && x.desc.trim()) {
           saveItemToCatalog(x.desc, x.rate, false);
         }
+      } else if (key === 'qty') {
+        x.qty = Number(e.target.value) || 1;
+        x.amount = x.qty * (Number(x.rate) || 0);
+      } else if (key === 'unit') {
+        x.unit = e.target.value;
       } else if (key === 'desc') {
         x.desc = e.target.value;
         // Check if entered description matches a catalog item to autofill rate
         const matched = itemCatalog.find(c => c.desc.toLowerCase() === x.desc.trim().toLowerCase());
         if (matched && (!x.rate || x.rate === 450 || x.rate === 0)) {
           x.rate = matched.rate;
+          x.amount = (Number(x.qty) || 1) * matched.rate;
           const row = e.target.closest('tr');
           const rateInput = row ? row.querySelector('[data-k="rate"]') : null;
           if (rateInput) rateInput.value = matched.rate;
@@ -665,7 +785,6 @@ function generateAILogoSVG({ name = 'Sri Balamurugan Fly Ash Bricks & Roadwork',
           <stop offset="100%" stop-color="${p.bg1}" />
         </linearGradient>
       </defs>
-      <rect x="6" y="6" width="88" height="88" rx="14" fill="url(#${uid}_ind)" stroke="${p.primary}" stroke-width="2.5" />
       <!-- Top/bottom tech notch accents -->
       <polygon points="6,18 18,6 24,6 6,24" fill="${p.primary}" opacity="0.8"/>
       <polygon points="76,94 94,76 94,82 82,94" fill="${p.primary}" opacity="0.8"/>
@@ -799,18 +918,6 @@ function updateLogo() {
     }
   }
 
-  // 3. Topbar Brand
-  const topBrandMark = $('topBrandMark');
-  if (topBrandMark) {
-    if (mode === 'image' && imgUrl) {
-      topBrandMark.innerHTML = `<img src="${esc(imgUrl)}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" alt="Logo" />`;
-    } else if (useAiLogo) {
-      topBrandMark.innerHTML = `<div style="width:100%;height:100%;">${logoSvgMarkup}</div>`;
-    } else {
-      topBrandMark.textContent = monogram;
-    }
-  }
-
   const topBrandTitle = $('topBrandTitle');
   if (topBrandTitle) {
     const firstWord = compName.split(/\s+/)[0] || 'SBFB';
@@ -818,16 +925,165 @@ function updateLogo() {
   }
 }
 
+/* --- Document Type, Template & Billing Mode Controllers --- */
+function setDocumentType(type, userSwitched = false) {
+  if (!DOC_TYPES[type]) type = 'quotation';
+  const docTypeInput = $('docType');
+  if (docTypeInput) docTypeInput.value = type;
+
+  document.querySelectorAll('.doc-type-btn').forEach(btn => {
+    if (btn.dataset.doctype === type) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  const conf = DOC_TYPES[type];
+
+  // Update editor headings & labels
+  if ($('docEyebrow')) $('docEyebrow').textContent = conf.eyebrow;
+  if ($('docMainHeading')) $('docMainHeading').textContent = conf.heading;
+  if ($('labelDocDate')) $('labelDocDate').textContent = conf.dateLabel;
+  if ($('labelDocNo')) $('labelDocNo').textContent = conf.noLabel;
+  if ($('badgeDocTypeLabel')) $('badgeDocTypeLabel').textContent = conf.dateLabel.toUpperCase();
+  if ($('cardClientTitle')) $('cardClientTitle').textContent = `${conf.name} & Client Details`;
+  if ($('cardClientSub')) $('cardClientSub').textContent = conf.clientSub;
+
+  const invoiceRow = $('invoiceFieldsRow');
+  const validityGroup = $('validityInputGroup');
+  if (type === 'invoice' || type === 'cash_bill') {
+    if (invoiceRow) invoiceRow.classList.remove('hidden');
+    if (validityGroup) validityGroup.classList.add('hidden');
+  } else {
+    if (invoiceRow) invoiceRow.classList.add('hidden');
+    if (validityGroup) validityGroup.classList.remove('hidden');
+  }
+
+  // If user explicitly switched, update default terms/notes & generate a number if blank
+  if (userSwitched) {
+    if ($('paymentTerms')) $('paymentTerms').value = conf.defaultTerms;
+    if ($('notes')) $('notes').value = conf.defaultNotes;
+    if (type === 'invoice' && $('paymentStatusSelect')) $('paymentStatusSelect').value = 'pending';
+    if (type === 'cash_bill' && $('paymentStatusSelect')) $('paymentStatusSelect').value = 'paid';
+    if (type === 'cash_bill' && $('paymentModeSelect')) $('paymentModeSelect').value = 'Cash';
+    autoGenerateNumber();
+  }
+
+  updatePreview();
+}
+
+function setDocumentTemplate(tpl) {
+  if (!TEMPLATES[tpl]) tpl = 'modern';
+  const docTemplateInput = $('docTemplate');
+  if (docTemplateInput) docTemplateInput.value = tpl;
+
+  document.querySelectorAll('.template-pill-btn').forEach(btn => {
+    if (btn.dataset.tpl === tpl) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  const preview = $('quotationPreview');
+  if (preview) {
+    preview.className = `quotation tpl-${tpl}`;
+  }
+
+  const badge = $('activeTemplateBadge');
+  if (badge && TEMPLATES[tpl]) {
+    badge.textContent = TEMPLATES[tpl].name;
+  }
+
+  const prevLbl = $('previewTplLabel');
+  if (prevLbl && TEMPLATES[tpl]) {
+    prevLbl.innerHTML = `A4 Document &bull; ${TEMPLATES[tpl].name}`;
+  }
+
+  saveDraftState();
+}
+
+function setBillingMode(mode) {
+  if (!['sqm_rate', 'qty_rate'].includes(mode)) mode = 'sqm_rate';
+  const bModeInput = $('billingMode');
+  if (bModeInput) bModeInput.value = mode;
+
+  if ($('modeSqmBtn')) {
+    if (mode === 'sqm_rate') $('modeSqmBtn').classList.add('active');
+    else $('modeSqmBtn').classList.remove('active');
+  }
+  if ($('modeQtyBtn')) {
+    if (mode === 'qty_rate') $('modeQtyBtn').classList.add('active');
+    else $('modeQtyBtn').classList.remove('active');
+  }
+
+  const thQty = $('thItemQty');
+  const thUnit = $('thItemUnit');
+  const thRate = $('thItemRate');
+  const thAmount = $('thItemAmount');
+
+  if (mode === 'qty_rate') {
+    if (thQty) thQty.classList.remove('hidden');
+    if (thUnit) thUnit.classList.remove('hidden');
+    if (thAmount) thAmount.classList.remove('hidden');
+    if (thRate) thRate.textContent = 'Unit Rate (₹)';
+  } else {
+    if (thQty) thQty.classList.add('hidden');
+    if (thUnit) thUnit.classList.add('hidden');
+    if (thAmount) thAmount.classList.add('hidden');
+    if (thRate) thRate.textContent = 'Rate (₹ / sq.m)';
+  }
+
+  renderItems();
+  updatePreview();
+}
+
+function autoGenerateNumber() {
+  const docType = val('docType') || 'quotation';
+  const conf = DOC_TYPES[docType] || DOC_TYPES.quotation;
+  const d = new Date();
+  const year = d.getFullYear();
+  const rand = String(Math.floor(Math.random() * 900) + 100);
+  const newNo = `${conf.noPrefix}-${year}-${rand}`;
+  if ($('quoteNo')) $('quoteNo').value = newNo;
+  updatePreview();
+  showToast(`🎲 Generated ${conf.name} No: ${newNo}`);
+}
+
 /* --- Live Preview & Calculations --- */
 function updatePreview() {
+  const docType = val('docType') || 'quotation';
+  const tpl = val('docTemplate') || 'modern';
+  const mode = val('billingMode') || 'sqm_rate';
+  const isQtyMode = mode === 'qty_rate';
+  const conf = DOC_TYPES[docType] || DOC_TYPES.quotation;
+
+  // Apply template class
+  const preview = $('quotationPreview');
+  if (preview) {
+    preview.className = `quotation tpl-${tpl}`;
+  }
+
+  // Dates & Numbers
   const quoteDate = val('quoteDate') || today();
   const qNo = (val('quoteNo') || '').trim();
+  const dueDate = val('dueDate');
+  const poNo = (val('poNumber') || '').trim();
 
   $('quoteDateBadge').textContent = formatDate(quoteDate) || 'Today';
   $('pQuoteDate').textContent = formatDate(quoteDate) || 'Today';
+  if ($('pDateLabel')) $('pDateLabel').textContent = `${conf.dateLabel}:`;
 
+  // Title tag
+  if ($('pDocTitleTag')) $('pDocTitleTag').textContent = conf.tag;
+
+  // Document Number Wrap
   const pQuoteNoWrap = $('pQuoteNoWrap');
   const pQuoteNo = $('pQuoteNo');
+  const pQuoteNoLabel = $('pQuoteNoLabel');
+  if (pQuoteNoLabel) pQuoteNoLabel.textContent = `${conf.noLabel}:`;
+
   if (qNo) {
     if (pQuoteNo) pQuoteNo.textContent = qNo;
     if (pQuoteNoWrap) {
@@ -844,27 +1100,210 @@ function updatePreview() {
     $('quoteDateBadge').textContent = formatDate(quoteDate) || 'Today';
   }
 
+  // Due date wrap
+  const pDueDateWrap = $('pDueDateWrap');
+  const pDueDate = $('pDueDate');
+  if (docType === 'invoice' && dueDate) {
+    if (pDueDate) pDueDate.textContent = formatDate(dueDate);
+    if (pDueDateWrap) {
+      pDueDateWrap.classList.remove('hidden');
+      pDueDateWrap.style.display = '';
+    }
+  } else {
+    if (pDueDateWrap) {
+      pDueDateWrap.classList.add('hidden');
+      pDueDateWrap.style.display = 'none';
+    }
+  }
+
+  // PO / Work Order wrap
+  const pPoWrap = $('pPoWrap');
+  const pPoNo = $('pPoNo');
+  if (poNo && docType !== 'quotation') {
+    if (pPoNo) pPoNo.textContent = poNo;
+    if (pPoWrap) {
+      pPoWrap.classList.remove('hidden');
+      pPoWrap.style.display = '';
+    }
+  } else {
+    if (pPoWrap) {
+      pPoWrap.classList.add('hidden');
+      pPoWrap.style.display = 'none';
+    }
+  }
+
+  // Payment Status Stamp Badge (Optional / Toggleable)
+  const showStatus = $('showPaymentStatusOnDoc') ? $('showPaymentStatusOnDoc').checked : true;
+  const pDocStatusWrap = $('pDocStatusWrap');
+  const pDocStatusStamp = $('pDocStatusStamp');
+  const pStatus = val('paymentStatusSelect') || 'pending';
+  if (pDocStatusStamp && pDocStatusWrap) {
+    if (showStatus && pStatus !== 'none' && (docType === 'invoice' || docType === 'cash_bill')) {
+      pDocStatusWrap.classList.remove('hidden');
+      pDocStatusWrap.style.display = '';
+      if (pStatus === 'paid') {
+        pDocStatusStamp.className = 'doc-status-stamp status-paid';
+        pDocStatusStamp.textContent = '✅ PAID IN FULL';
+      } else if (pStatus === 'partial') {
+        pDocStatusStamp.className = 'doc-status-stamp status-partial';
+        pDocStatusStamp.textContent = '💳 PARTIALLY PAID';
+      } else if (pStatus === 'overdue') {
+        pDocStatusStamp.className = 'doc-status-stamp status-overdue';
+        pDocStatusStamp.textContent = '⚠️ OVERDUE';
+      } else if (pStatus === 'draft') {
+        pDocStatusStamp.className = 'doc-status-stamp status-draft';
+        pDocStatusStamp.textContent = '📝 DRAFT INVOICE';
+      } else {
+        pDocStatusStamp.className = 'doc-status-stamp status-pending';
+        pDocStatusStamp.textContent = '⏳ PAYMENT DUE';
+      }
+    } else {
+      pDocStatusWrap.classList.add('hidden');
+      pDocStatusWrap.style.display = 'none';
+    }
+  }
+
+  // Company details
   const compName = (val('companyName') || 'Sri Balamurugan Fly Ash Bricks & Roadwork').trim();
   updateLogo();
 
   $('pCompanyName').textContent = compName;
   $('pCompanyName2').textContent = compName;
-  $('pCompanyAddress').textContent = val('companyAddress');
-  $('pCompanyPhone').textContent = val('companyPhone');
-  $('pCompanyEmail').textContent = val('companyEmail');
-  $('pCompanyGst').textContent = val('companyGst') ? `GSTIN: ${val('companyGst')}` : '';
+  $('pCompanyAddress').textContent = val('companyAddress') || '';
+  $('pCompanyPhone').textContent = val('companyPhone') || '';
+  $('pCompanyEmail').textContent = val('companyEmail') || '';
 
-  $('pClientName').textContent = val('clientName') || 'Client name';
-  $('pClientContact').textContent = val('clientContact') || 'Contact person';
-  $('pClientPhone').textContent = val('clientPhone') || 'Client phone';
+  const compGst = (val('companyGst') || '').trim();
+  const pCompGst = $('pCompanyGst');
+  if (pCompGst) {
+    if (compGst) {
+      pCompGst.textContent = `GSTIN: ${compGst}`;
+      pCompGst.style.display = '';
+    } else {
+      pCompGst.textContent = '';
+      pCompGst.style.display = 'none';
+    }
+  }
+
+  // Client details (Optional elements gracefully handled)
+  if ($('pClientHeaderTag')) $('pClientHeaderTag').textContent = conf.clientHeader;
+  $('pClientName').textContent = val('clientName') || 'Client Name';
+
+  const cContact = (val('clientContact') || '').trim();
+  const pClientContact = $('pClientContact');
+  if (pClientContact) {
+    if (cContact) {
+      pClientContact.textContent = cContact;
+      pClientContact.style.display = '';
+    } else {
+      pClientContact.textContent = '';
+      pClientContact.style.display = 'none';
+    }
+  }
+
+  const cPhone = (val('clientPhone') || '').trim();
+  const pClientPhone = $('pClientPhone');
+  if (pClientPhone) {
+    if (cPhone) {
+      pClientPhone.textContent = cPhone;
+      pClientPhone.style.display = '';
+    } else {
+      pClientPhone.textContent = '';
+      pClientPhone.style.display = 'none';
+    }
+  }
+
   $('pProjectName').textContent = val('projectName') || 'Project / Site Work';
-  $('pSiteLocation').textContent = val('siteLocation') || 'Site location';
 
-  $('pValidity').textContent = `${val('validity') || 15} days`;
-  $('pValidity2').textContent = `${val('validity') || 15} days`;
-  $('pPaymentTerms').textContent = val('paymentTerms');
-  $('pNotes').textContent = val('notes');
+  const sLocation = (val('siteLocation') || '').trim();
+  const pSiteLocation = $('pSiteLocation');
+  if (pSiteLocation) {
+    if (sLocation) {
+      pSiteLocation.textContent = sLocation;
+      pSiteLocation.style.display = '';
+    } else {
+      pSiteLocation.textContent = '';
+      pSiteLocation.style.display = 'none';
+    }
+  }
 
+  // Third box in client strip
+  if ($('pThirdBoxTag')) $('pThirdBoxTag').textContent = conf.thirdBoxTag;
+  if (docType === 'quotation') {
+    if ($('pThirdBoxValue')) $('pThirdBoxValue').textContent = `${val('validity') || 15} days`;
+    if ($('pThirdBoxSub')) $('pThirdBoxSub').textContent = 'From quotation date';
+  } else if (docType === 'invoice') {
+    if ($('pThirdBoxValue')) $('pThirdBoxValue').textContent = dueDate ? formatDate(dueDate) : 'Due on Receipt';
+    if ($('pThirdBoxSub')) $('pThirdBoxSub').textContent = val('paymentModeSelect') || 'Bank / UPI';
+  } else {
+    if ($('pThirdBoxValue')) $('pThirdBoxValue').textContent = 'PAID (CASH)';
+    if ($('pThirdBoxSub')) $('pThirdBoxSub').textContent = 'Direct Receipt';
+  }
+
+  // Commercial / Payment Terms Box (Optional & Clickable Toggle)
+  const showTerms = $('showPaymentTermsOnDoc') ? $('showPaymentTermsOnDoc').checked : true;
+  const pTermsTextarea = $('paymentTerms');
+  if (pTermsTextarea) pTermsTextarea.classList.toggle('toggle-dimmed', !showTerms);
+
+  const pTerms = showTerms ? (val('paymentTerms') || '').trim() : '';
+  const validityDays = val('validity') || 15;
+  const showValidity = docType === 'quotation' && Number(validityDays) > 0;
+  const pTermsBox = $('pTermsBox');
+  const pTermsHeading = $('pTermsHeading');
+  const pPaymentTerms = $('pPaymentTerms');
+  const validityLine = $('pValidityLine');
+
+  if (pTermsHeading) {
+    pTermsHeading.textContent = docType === 'quotation' ? 'Commercial Terms' : 'Payment Terms';
+  }
+
+  if (pPaymentTerms) {
+    if (pTerms) {
+      pPaymentTerms.textContent = pTerms;
+      pPaymentTerms.style.display = '';
+    } else {
+      pPaymentTerms.textContent = '';
+      pPaymentTerms.style.display = 'none';
+    }
+  }
+
+  if (validityLine) {
+    if (showValidity) {
+      validityLine.style.display = '';
+      if ($('pValidity2')) $('pValidity2').textContent = `${validityDays} days`;
+    } else {
+      validityLine.style.display = 'none';
+    }
+  }
+
+  if (pTermsBox) {
+    if (pTerms || showValidity) {
+      pTermsBox.style.display = '';
+    } else {
+      pTermsBox.style.display = 'none';
+    }
+  }
+
+  // Notes & Declaration Box (Optional & Clickable Toggle)
+  const showNotes = $('showNotesOnDoc') ? $('showNotesOnDoc').checked : true;
+  const pNotesTextarea = $('notes');
+  if (pNotesTextarea) pNotesTextarea.classList.toggle('toggle-dimmed', !showNotes);
+
+  const notesText = showNotes ? (val('notes') || '').trim() : '';
+  const pNotesBox = $('pNotesBox');
+  const pNotes = $('pNotes');
+  if (pNotesBox) {
+    if (notesText) {
+      if (pNotes) pNotes.textContent = notesText;
+      pNotesBox.style.display = '';
+    } else {
+      pNotesBox.style.display = 'none';
+    }
+  }
+
+  if ($('pDocFooter')) $('pDocFooter').textContent = conf.footer;
+
+  // Taxes and subtotal calculation
   const gstMode = val('gstModeSelect') || '18';
   let gstRate = 0;
   if (gstMode === 'custom') {
@@ -876,7 +1315,13 @@ function updatePreview() {
     if ($('gstRate')) $('gstRate').value = gstRate;
   }
 
-  const subtotal = items.reduce((s, x) => s + (Number(x.rate) || 0), 0);
+  let subtotal = 0;
+  if (isQtyMode) {
+    subtotal = items.reduce((s, x) => s + ((Number(x.qty) || 1) * (Number(x.rate) || 0)), 0);
+  } else {
+    subtotal = items.reduce((s, x) => s + (Number(x.rate) || 0), 0);
+  }
+
   const discount = Math.min(Math.max(Number(val('discount')) || 0, 0), subtotal);
   const taxable = Math.max(subtotal - discount, 0);
   const gst = taxable * (gstRate / 100);
@@ -909,24 +1354,96 @@ function updatePreview() {
 
   $('pTotal').textContent = money(total);
 
-  disableWheelOnNumbers();
+  // Bank & UPI Details in Bottom Note Section (Optional)
+  const showBank = $('showBankOnDoc') ? $('showBankOnDoc').checked : true;
+  const bankBox = $('pBankDetailsBox');
+  const bName = (val('bankName') || '').trim();
+  const bAcc = (val('bankAccount') || '').trim();
+  const bIfsc = (val('bankIfsc') || '').trim();
+  const bBranch = (val('bankBranch') || '').trim();
+  const bUpi = (val('bankUpi') || '').trim();
+
+  if (bankBox) {
+    const hasAnyBankData = bName || bAcc || bIfsc || bBranch || bUpi;
+    if (showBank && (hasAnyBankData || docType !== 'quotation')) {
+      bankBox.classList.remove('hidden');
+      bankBox.style.display = 'flex';
+
+      if ($('pBankNameVal')) $('pBankNameVal').textContent = bName || 'State Bank of India';
+      if ($('pBankAccountVal')) $('pBankAccountVal').textContent = bAcc || '123456789012';
+      if ($('pBankIfscVal')) $('pBankIfscVal').textContent = bIfsc || 'SBIN0001234';
+      if ($('pBankBranchVal')) $('pBankBranchVal').textContent = bBranch || 'Main Branch';
+      if ($('pBankUpiVal')) $('pBankUpiVal').textContent = bUpi || 'sbfb@upi';
+
+      // Dynamic UPI QR Code Generator
+      const upiId = bUpi || 'sbfb@upi';
+      const upiPayload = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(compName)}&am=${total > 0 ? total.toFixed(2) : '100.00'}&cu=INR`;
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(upiPayload)}`;
+      const qrHolder = $('pBankQrHolder');
+      if (qrHolder) {
+        qrHolder.innerHTML = `<img src="${qrUrl}" alt="UPI QR" style="width:100%;height:100%;object-fit:contain;" />`;
+      }
+    } else {
+      bankBox.classList.add('hidden');
+      bankBox.style.display = 'none';
+    }
+  }
+
+  // Update preview table headers & columns
+  const pThQty = $('pThQty');
+  const pThUnit = $('pThUnit');
+  const pThRate = $('pThRate');
+  const pThAmount = $('pThAmount');
+
+  if (isQtyMode) {
+    if (pThQty) pThQty.classList.remove('hidden');
+    if (pThUnit) pThUnit.classList.remove('hidden');
+    if (pThAmount) pThAmount.classList.remove('hidden');
+    if (pThRate) pThRate.textContent = 'Rate (₹)';
+  } else {
+    if (pThQty) pThQty.classList.add('hidden');
+    if (pThUnit) pThUnit.classList.add('hidden');
+    if (pThAmount) pThAmount.classList.add('hidden');
+    if (pThRate) pThRate.textContent = 'Rate per Sq. Meter';
+  }
 
   // Render preview table rows
   const previewTbody = $('previewItems');
   if (previewTbody) {
     if (!items.length) {
-      previewTbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#94a3b8;padding:25px">Add work items to build quotation preview.</td></tr>`;
+      const cols = isQtyMode ? 6 : 3;
+      previewTbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center;color:#94a3b8;padding:25px">Add items to build ${conf.name.toLowerCase()} preview.</td></tr>`;
     } else {
-      previewTbody.innerHTML = items.map((x, i) => `
-        <tr>
-          <td>${i + 1}</td>
-          <td><strong>${esc(x.desc || 'Work description')}</strong></td>
-          <td class="right"><strong>${money(x.rate || 0)}</strong> <span style="font-size:8.5px;color:#64748b">/ sq.m</span></td>
-        </tr>
-      `).join('');
+      previewTbody.innerHTML = items.map((x, i) => {
+        const qty = Number(x.qty) || 1;
+        const rate = Number(x.rate) || 0;
+        const amount = qty * rate;
+
+        if (isQtyMode) {
+          return `
+            <tr>
+              <td>${i + 1}</td>
+              <td><strong>${esc(x.desc || 'Work / Material description')}</strong></td>
+              <td class="center"><strong>${qty}</strong></td>
+              <td class="center"><span class="badge-sqm">${esc(x.unit || 'sq.m')}</span></td>
+              <td class="right">${money(rate)}</td>
+              <td class="right"><strong>${money(amount)}</strong></td>
+            </tr>
+          `;
+        } else {
+          return `
+            <tr>
+              <td>${i + 1}</td>
+              <td><strong>${esc(x.desc || 'Work description')}</strong></td>
+              <td class="right"><strong>${money(rate)}</strong> <span style="font-size:8.5px;color:#64748b">/ sq.m</span></td>
+            </tr>
+          `;
+        }
+      }).join('');
     }
   }
 
+  disableWheelOnNumbers();
   saveDraftState();
 }
 
@@ -935,7 +1452,11 @@ function saveDraftState() {
   const data = {
     currentQuoteId,
     fields: Object.fromEntries(fields.map(id => [id, val(id)])),
-    items
+    items,
+    showBankOnDoc: $('showBankOnDoc') ? $('showBankOnDoc').checked : true,
+    showPaymentStatusOnDoc: $('showPaymentStatusOnDoc') ? $('showPaymentStatusOnDoc').checked : true,
+    showPaymentTermsOnDoc: $('showPaymentTermsOnDoc') ? $('showPaymentTermsOnDoc').checked : true,
+    showNotesOnDoc: $('showNotesOnDoc') ? $('showNotesOnDoc').checked : true
   };
   localStorage.setItem(stateKey, JSON.stringify(data));
 }
@@ -951,6 +1472,18 @@ function loadDraftState() {
             $(id).value = data.fields[id];
           }
         });
+      }
+      if (data.showBankOnDoc != null && $('showBankOnDoc')) {
+        $('showBankOnDoc').checked = Boolean(data.showBankOnDoc);
+      }
+      if (data.showPaymentStatusOnDoc != null && $('showPaymentStatusOnDoc')) {
+        $('showPaymentStatusOnDoc').checked = Boolean(data.showPaymentStatusOnDoc);
+      }
+      if (data.showPaymentTermsOnDoc != null && $('showPaymentTermsOnDoc')) {
+        $('showPaymentTermsOnDoc').checked = Boolean(data.showPaymentTermsOnDoc);
+      }
+      if (data.showNotesOnDoc != null && $('showNotesOnDoc')) {
+        $('showNotesOnDoc').checked = Boolean(data.showNotesOnDoc);
       }
       if (Array.isArray(data.items) && data.items.length) {
         items = data.items;
@@ -969,6 +1502,15 @@ function loadDraftState() {
   if ($('companyLogoText') && ($('companyLogoText').value === 'TNP' || $('companyLogoText').value === 'SBFA')) {
     $('companyLogoText').value = '';
   }
+
+  // Restore document type and template
+  const docType = val('docType') || 'quotation';
+  const docTemplate = val('docTemplate') || 'modern';
+  const billingMode = val('billingMode') || 'sqm_rate';
+
+  setDocumentType(docType, false);
+  setDocumentTemplate(docTemplate);
+  setBillingMode(billingMode);
 }
 
 /* --- Cloud Database (Supabase Integration) --- */
@@ -1030,7 +1572,12 @@ async function saveCompanyDefaults() {
     company_phone: val('companyPhone'),
     company_email: val('companyEmail'),
     company_gst: val('companyGst'),
-    company_address: val('companyAddress')
+    company_address: val('companyAddress'),
+    bank_name: val('bankName'),
+    bank_account: val('bankAccount'),
+    bank_ifsc: val('bankIfsc'),
+    bank_branch: val('bankBranch'),
+    bank_upi: val('bankUpi')
   };
 
   // Always save locally
@@ -1045,14 +1592,14 @@ async function saveCompanyDefaults() {
         updated_at: new Date().toISOString()
       });
       if (error) throw error;
-      showToast('✅ Company details & logo saved to Cloud Database as default!');
+      showToast('✅ Company & Bank details saved to Cloud Database as default!');
       return;
     } catch (err) {
       console.warn('Cloud company save fallback:', err);
     }
   }
 
-  showToast('💾 Company details & logo saved as default locally!');
+  showToast('💾 Company & Bank details saved as default locally!');
 }
 
 async function loadCompanyDefaults() {
@@ -1073,6 +1620,11 @@ async function loadCompanyDefaults() {
         if (data.company_email) $('companyEmail').value = data.company_email;
         if (data.company_gst) $('companyGst').value = data.company_gst;
         if (data.company_address) $('companyAddress').value = data.company_address;
+        if (data.bank_name && $('bankName')) $('bankName').value = data.bank_name;
+        if (data.bank_account && $('bankAccount')) $('bankAccount').value = data.bank_account;
+        if (data.bank_ifsc && $('bankIfsc')) $('bankIfsc').value = data.bank_ifsc;
+        if (data.bank_branch && $('bankBranch')) $('bankBranch').value = data.bank_branch;
+        if (data.bank_upi && $('bankUpi')) $('bankUpi').value = data.bank_upi;
         updatePreview();
         return;
       }
@@ -1096,13 +1648,30 @@ async function loadCompanyDefaults() {
       if (local.company_email) $('companyEmail').value = local.company_email;
       if (local.company_gst) $('companyGst').value = local.company_gst;
       if (local.company_address) $('companyAddress').value = local.company_address;
+      if (local.bank_name && $('bankName')) $('bankName').value = local.bank_name;
+      if (local.bank_account && $('bankAccount')) $('bankAccount').value = local.bank_account;
+      if (local.bank_ifsc && $('bankIfsc')) $('bankIfsc').value = local.bank_ifsc;
+      if (local.bank_branch && $('bankBranch')) $('bankBranch').value = local.bank_branch;
+      if (local.bank_upi && $('bankUpi')) $('bankUpi').value = local.bank_upi;
       updatePreview();
     }
   } catch {}
 }
 
 async function saveQuotationToCloud() {
-  const subtotal = items.reduce((s, x) => s + (Number(x.rate) || 0), 0);
+  const mode = val('billingMode') || 'sqm_rate';
+  const isQtyMode = mode === 'qty_rate';
+  const docType = val('docType') || 'quotation';
+  const docTemplate = val('docTemplate') || 'modern';
+  const conf = DOC_TYPES[docType] || DOC_TYPES.quotation;
+
+  let subtotal = 0;
+  if (isQtyMode) {
+    subtotal = items.reduce((s, x) => s + ((Number(x.qty) || 1) * (Number(x.rate) || 0)), 0);
+  } else {
+    subtotal = items.reduce((s, x) => s + (Number(x.rate) || 0), 0);
+  }
+
   const discount = Math.min(Math.max(Number(val('discount')) || 0, 0), subtotal);
   const taxable = subtotal - discount;
   const gst = taxable * (Math.max(Number(val('gstRate')) || 0, 0) / 100);
@@ -1116,8 +1685,15 @@ async function saveQuotationToCloud() {
   });
 
   const quotePayload = {
+    doc_type: docType,
+    template_theme: docTemplate,
+    billing_mode: mode,
     quote_no: (val('quoteNo') || '').trim() || null,
     quote_date: val('quoteDate') || today(),
+    due_date: val('dueDate') || null,
+    payment_status: val('paymentStatusSelect') || 'pending',
+    payment_mode: val('paymentModeSelect') || 'UPI / QR Code',
+    po_number: val('poNumber') || null,
     company_name: val('companyName'),
     logo_mode: val('logoModeSelect') || 'ai',
     ai_logo_style: val('aiLogoStyle') || 'industrial',
@@ -1131,6 +1707,12 @@ async function saveQuotationToCloud() {
     company_email: val('companyEmail'),
     company_gst: val('companyGst'),
     company_address: val('companyAddress'),
+    bank_name: val('bankName'),
+    bank_account: val('bankAccount'),
+    bank_ifsc: val('bankIfsc'),
+    bank_branch: val('bankBranch'),
+    bank_upi: val('bankUpi'),
+    show_bank_on_doc: $('showBankOnDoc') ? $('showBankOnDoc').checked : true,
     client_name: val('clientName') || 'Unnamed Client',
     client_contact: val('clientContact'),
     client_phone: val('clientPhone'),
@@ -1156,12 +1738,12 @@ async function saveQuotationToCloud() {
     try {
       const { error } = await supabaseClient.from('quotations').upsert(quotePayload);
       if (error) throw error;
-      showToast('☁️ Quotation & items saved to Cloud Database successfully!');
+      showToast(`☁️ ${conf.name} & items saved to Cloud Database successfully!`);
       saveDraftState();
       return;
     } catch (err) {
       console.error('Supabase save error:', err);
-      showToast(`Cloud save error: ${err.message || 'Check database permissions'}. Saved locally.`, 'error');
+      showToast(`Cloud save error: ${err.message || 'Check database'}. Saved locally.`, 'error');
     }
   }
 
@@ -1179,13 +1761,13 @@ async function saveQuotationToCloud() {
   }
   localStorage.setItem(localQuotesKey, JSON.stringify(localQuotes));
   saveDraftState();
-  showToast('💾 Quotation & items saved to local cloud cache!');
+  showToast(`💾 ${conf.name} & items saved to local cloud cache!`);
 }
 
 async function fetchSavedQuotations() {
   const listEl = $('savedQuotesList');
   if (!listEl) return;
-  listEl.innerHTML = '<div class="empty-state">Loading quotations...</div>';
+  listEl.innerHTML = '<div class="empty-state">Loading documents...</div>';
 
   let quotes = [];
 
@@ -1210,7 +1792,29 @@ async function fetchSavedQuotations() {
 
   savedQuotesCache = quotes;
   $('savedCount').textContent = quotes.length;
-  renderSavedQuotesList(quotes);
+  applyCloudFilterAndRender();
+}
+
+function applyCloudFilterAndRender() {
+  const q = ($('searchQuoteInput') ? $('searchQuoteInput').value : '').toLowerCase();
+  const filterType = ($('cloudDocFilter') ? $('cloudDocFilter').value : 'all');
+
+  const filtered = savedQuotesCache.filter(item => {
+    // Type filter
+    const docType = item.doc_type || 'quotation';
+    if (filterType !== 'all' && docType !== filterType) {
+      return false;
+    }
+    // Search query filter
+    if (!q) return true;
+    return (item.client_name && item.client_name.toLowerCase().includes(q)) ||
+           (item.project_name && item.project_name.toLowerCase().includes(q)) ||
+           (item.site_location && item.site_location.toLowerCase().includes(q)) ||
+           (item.quote_date && item.quote_date.includes(q)) ||
+           (item.quote_no && item.quote_no.toLowerCase().includes(q));
+  });
+
+  renderSavedQuotesList(filtered);
 }
 
 function renderSavedQuotesList(quotes) {
@@ -1220,14 +1824,19 @@ function renderSavedQuotesList(quotes) {
   if (!quotes.length) {
     listEl.innerHTML = `
       <div class="empty-state">
-        <p>No saved quotations found in the database.</p>
-        <small>Click "Save to Cloud" on any quotation to store it here.</small>
+        <p>No saved documents found in this filter.</p>
+        <small>Click "Save to Cloud" on any quotation or bill to store it here.</small>
       </div>
     `;
     return;
   }
 
   listEl.innerHTML = quotes.map(q => {
+    const docType = q.doc_type || 'quotation';
+    const conf = DOC_TYPES[docType] || DOC_TYPES.quotation;
+    const typeBadge = docType === 'invoice' ? '🧾 Invoice' : (docType === 'cash_bill' ? '💵 Cash Bill' : '📄 Quotation');
+    const badgeColor = docType === 'invoice' ? '#2563eb' : (docType === 'cash_bill' ? '#059669' : '#b45309');
+
     const dateFormatted = formatDate(q.quote_date) || 'No date';
     const quoteNoTag = q.quote_no ? ` &bull; 🏷️ ${esc(q.quote_no)}` : '';
     const itemsCount = Array.isArray(q.items) ? q.items.length : 0;
@@ -1238,13 +1847,16 @@ function renderSavedQuotesList(quotes) {
     return `
       <div class="quote-card">
         <div class="quote-card-main">
-          <strong>${client} — ${project}</strong>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+            <span style="font-size:9.5px;font-weight:800;color:${badgeColor};background:#f8fafc;border:1px solid #e2e8f0;padding:1px 6px;border-radius:4px;">${typeBadge}</span>
+            <strong>${client} — ${project}</strong>
+          </div>
           <p>📅 ${dateFormatted}${quoteNoTag} &bull; 📦 ${itemsCount} items &bull; 📍 ${esc(q.site_location || 'Site not set')}</p>
         </div>
         <div class="quote-card-right">
           <div class="quote-card-amount">${total}</div>
           <button class="btn small primary" data-load-id="${q.id}">📂 Open</button>
-          <button class="btn small ghost-dark" data-delete-id="${q.id}" title="Delete quotation">&times;</button>
+          <button class="btn small ghost-dark" data-delete-id="${q.id}" title="Delete document">&times;</button>
         </div>
       </div>
     `;
@@ -1266,6 +1878,11 @@ function loadQuotationById(id) {
   currentQuoteId = q.id;
   $('quoteNo').value = q.quote_no || q.quoteNo || '';
   $('quoteDate').value = q.quote_date || today();
+  if ($('dueDate')) $('dueDate').value = q.due_date || '';
+  if ($('paymentStatusSelect')) $('paymentStatusSelect').value = q.payment_status || 'pending';
+  if ($('paymentModeSelect')) $('paymentModeSelect').value = q.payment_mode || 'UPI / QR Code';
+  if ($('poNumber')) $('poNumber').value = q.po_number || '';
+
   $('companyName').value = q.company_name || 'Sri Balamurugan Fly Ash Bricks & Roadwork';
   if ($('logoModeSelect')) $('logoModeSelect').value = q.logo_mode || 'ai';
   if ($('aiLogoStyle')) $('aiLogoStyle').value = q.ai_logo_style || 'industrial';
@@ -1279,6 +1896,13 @@ function loadQuotationById(id) {
   $('companyEmail').value = q.company_email || '';
   $('companyGst').value = q.company_gst || '';
   $('companyAddress').value = q.company_address || '';
+
+  if ($('bankName')) $('bankName').value = q.bank_name || '';
+  if ($('bankAccount')) $('bankAccount').value = q.bank_account || '';
+  if ($('bankIfsc')) $('bankIfsc').value = q.bank_ifsc || '';
+  if ($('bankBranch')) $('bankBranch').value = q.bank_branch || '';
+  if ($('bankUpi')) $('bankUpi').value = q.bank_upi || '';
+  if ($('showBankOnDoc')) $('showBankOnDoc').checked = q.show_bank_on_doc != null ? Boolean(q.show_bank_on_doc) : true;
 
   $('clientName').value = q.client_name || '';
   $('clientContact').value = q.client_contact || '';
@@ -1298,19 +1922,23 @@ function loadQuotationById(id) {
   $('discount').value = q.discount ?? 0;
   $('validity').value = q.validity ?? 15;
   $('paymentTerms').value = q.payment_terms || '30% advance with work order. Balance as per measured progress / agreed milestones.';
-  $('notes').value = q.notes || 'Rates are quoted per sq. meter based on the specifications above. Final billing will be based on actual site measurements.';
+  $('notes').value = q.notes || 'Rates are quoted based on specifications above.';
 
   items = Array.isArray(q.items) ? q.items.map(item => ({
     id: item.id || crypto.randomUUID(),
     desc: item.desc || '',
-    rate: Number(item.rate) || 0
+    qty: Number(item.qty) || 1,
+    unit: item.unit || 'sq.m',
+    rate: Number(item.rate) || 0,
+    amount: (Number(item.qty) || 1) * (Number(item.rate) || 0)
   })) : [];
 
-  renderItems();
-  updatePreview();
+  setDocumentType(q.doc_type || 'quotation', false);
+  setDocumentTemplate(q.template_theme || 'modern');
+  setBillingMode(q.billing_mode || 'sqm_rate');
 
   $('cloudModal').classList.add('hidden');
-  showToast(`📂 Loaded quotation for ${q.client_name || 'Client'}!`);
+  showToast(`📂 Loaded ${DOC_TYPES[q.doc_type || 'quotation'].name} for ${q.client_name || 'Client'}!`);
 }
 
 async function deleteQuotationById(id) {
@@ -2090,12 +2718,83 @@ if (setTodayBtn) {
   setTodayBtn.addEventListener('click', () => {
     $('quoteDate').value = today();
     updatePreview();
-    showToast('📅 Quotation date set to Today.');
+    showToast('📅 Date set to Today.');
   });
 }
 
+if ($('autoGenNoBtn')) {
+  $('autoGenNoBtn').addEventListener('click', autoGenerateNumber);
+}
+
+// Document Type Toggle Buttons
+document.querySelectorAll('.doc-type-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    setDocumentType(btn.dataset.doctype, true);
+    showToast(`Switched mode to ${DOC_TYPES[btn.dataset.doctype].name}!`);
+  });
+});
+
+// Template Design Switcher Buttons
+document.querySelectorAll('.template-pill-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    setDocumentTemplate(btn.dataset.tpl);
+    showToast(`🎨 Template set to "${TEMPLATES[btn.dataset.tpl].name}"!`);
+  });
+});
+
+// Billing Mode Switcher (Rate per Sq.M vs Qty x Rate)
+if ($('modeSqmBtn')) {
+  $('modeSqmBtn').addEventListener('click', () => {
+    setBillingMode('sqm_rate');
+    showToast('📐 Switched to Rate per Sq. Meter mode');
+  });
+}
+if ($('modeQtyBtn')) {
+  $('modeQtyBtn').addEventListener('click', () => {
+    setBillingMode('qty_rate');
+    showToast('📦 Switched to Quantity × Rate (Itemized Billing) mode');
+  });
+}
+
+// Input change listeners for instant live preview updates
+[
+  'quoteNo', 'quoteDate', 'dueDate', 'paymentStatusSelect', 'paymentModeSelect', 'poNumber',
+  'companyName', 'companyPhone', 'companyEmail', 'companyGst', 'companyAddress',
+  'clientName', 'clientContact', 'clientPhone', 'projectName', 'siteLocation',
+  'bankName', 'bankAccount', 'bankIfsc', 'bankBranch', 'bankUpi',
+  'gstModeSelect', 'gstRate', 'discount', 'validity', 'paymentTerms', 'notes'
+].forEach(id => {
+  const el = $(id);
+  if (el) {
+    el.addEventListener('input', updatePreview);
+    el.addEventListener('change', updatePreview);
+  }
+});
+
+['showBankOnDoc', 'showPaymentStatusOnDoc', 'showPaymentTermsOnDoc', 'showNotesOnDoc'].forEach(id => {
+  const el = $(id);
+  if (el) {
+    el.addEventListener('change', () => {
+      updatePreview();
+      const labels = {
+        showBankOnDoc: 'Bank & UPI Details',
+        showPaymentStatusOnDoc: 'Payment Status Stamp',
+        showPaymentTermsOnDoc: 'Payment Terms',
+        showNotesOnDoc: 'Notes & Declaration'
+      };
+      const name = labels[id] || 'Section';
+      showToast(el.checked ? `✅ Included ${name} on document` : `🚫 Excluded ${name} from document`);
+    });
+  }
+});
+
 $('addItemBtn').addEventListener('click', () => {
-  addItem('New work item', 450);
+  const mode = val('billingMode') || 'sqm_rate';
+  if (mode === 'qty_rate') {
+    addItem('New item / service', 450, 1, 'sq.m');
+  } else {
+    addItem('New work item', 450);
+  }
 });
 
 $('saveCatalogBtn').addEventListener('click', syncCurrentQuoteToCatalog);
@@ -2117,7 +2816,7 @@ $('saveCompanyDefaultBtn').addEventListener('click', saveCompanyDefaults);
 $('saveCloudBtn').addEventListener('click', saveQuotationToCloud);
 $('printBtn').addEventListener('click', () => window.print());
 
-// New quotation reset: saves previous draft and starts a clean blank quotation
+// New document reset: saves previous draft and starts a clean blank document
 $('resetBtn').addEventListener('click', async () => {
   // Automatically save current work to database if there's content
   if (items.length > 0 || (val('clientName') && val('clientName').trim()) || (val('projectName') && val('projectName').trim())) {
@@ -2128,9 +2827,15 @@ $('resetBtn').addEventListener('click', async () => {
     }
   }
 
+  const docType = val('docType') || 'quotation';
+  const conf = DOC_TYPES[docType] || DOC_TYPES.quotation;
+
   currentQuoteId = crypto.randomUUID();
-  $('quoteNo').value = '';
   $('quoteDate').value = today();
+  if ($('dueDate')) $('dueDate').value = '';
+  if ($('poNumber')) $('poNumber').value = '';
+  if ($('paymentStatusSelect')) $('paymentStatusSelect').value = docType === 'invoice' ? 'pending' : 'paid';
+
   $('clientName').value = '';
   $('clientContact').value = '';
   $('clientPhone').value = '';
@@ -2140,16 +2845,16 @@ $('resetBtn').addEventListener('click', async () => {
   $('gstRate').value = 18;
   $('discount').value = 0;
   $('validity').value = 15;
-  $('paymentTerms').value = '30% advance with work order. Balance as per measured progress / agreed milestones.';
-  $('notes').value = 'Rates are quoted per sq. meter based on the specifications above. Final billing will be based on actual site measurements.';
+  $('paymentTerms').value = conf.defaultTerms;
+  $('notes').value = conf.defaultNotes;
 
-  // Start with clean, empty items (no automatic dummy items generated)
+  autoGenerateNumber();
   items = [];
   loadCompanyDefaults();
   renderItems();
   updatePreview();
   saveDraftState();
-  showToast('✨ Current draft saved & started a fresh blank quotation.');
+  showToast(`✨ Started a fresh new ${conf.name}.`);
 });
 
 // Cloud Modal Controls
@@ -2231,34 +2936,25 @@ $('clearSupabaseConfigBtn').addEventListener('click', () => {
   loadItemCatalog();
 });
 
-$('copySqlBtn').addEventListener('click', () => {
-  const sql = $('sqlSchemaBox').textContent;
-  navigator.clipboard.writeText(sql).then(() => {
-    showToast('📋 SQL Schema copied to clipboard!');
-  }).catch(() => {
-    showToast('Could not copy automatically. Please select and copy the SQL box.', 'error');
+if ($('copySqlBtn')) {
+  $('copySqlBtn').addEventListener('click', () => {
+    const sql = $('sqlSchemaBox').textContent;
+    navigator.clipboard.writeText(sql).then(() => {
+      showToast('📋 SQL Schema copied to clipboard!');
+    }).catch(() => {
+      showToast('Could not copy automatically. Please select and copy the SQL box.', 'error');
+    });
   });
-});
+}
 
-$('searchQuoteInput').addEventListener('input', e => {
-  const q = e.target.value.toLowerCase();
-  const filtered = savedQuotesCache.filter(item =>
-    (item.client_name && item.client_name.toLowerCase().includes(q)) ||
-    (item.project_name && item.project_name.toLowerCase().includes(q)) ||
-    (item.site_location && item.site_location.toLowerCase().includes(q)) ||
-    (item.quote_date && item.quote_date.includes(q)) ||
-    (item.quote_no && item.quote_no.toLowerCase().includes(q))
-  );
-  renderSavedQuotesList(filtered);
-});
-
+$('searchQuoteInput').addEventListener('input', applyCloudFilterAndRender);
+if ($('cloudDocFilter')) $('cloudDocFilter').addEventListener('change', applyCloudFilterAndRender);
 $('refreshCloudListBtn').addEventListener('click', fetchSavedQuotations);
 
 // Initialize on page load
 loadDraftState();
 loadItemCatalog();
 initSupabase();
-
 renderItems();
 updatePreview();
 

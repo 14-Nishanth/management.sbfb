@@ -85,6 +85,89 @@ button { cursor: pointer; }
   align-items: center;
 }
 
+/* Document Type Selector Bar */
+.doc-type-toggle {
+  display: flex;
+  background: #0f172a;
+  padding: 4px;
+  border-radius: 12px;
+  gap: 4px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+  border: 1px solid #334155;
+}
+
+.doc-type-btn {
+  border: 0;
+  background: transparent;
+  padding: 8px 16px;
+  font-weight: 700;
+  font-size: 12.5px;
+  color: #94a3b8;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.doc-type-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.doc-type-btn.active {
+  background: #f59e0b;
+  color: #0f172a;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+/* Template Picker Grid */
+.template-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+  padding: 14px 20px;
+}
+
+.template-pill-btn {
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  border-radius: 9px;
+  padding: 8px 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.template-pill-btn:hover {
+  border-color: #f59e0b;
+  background: #fffbeb;
+  transform: translateY(-1px);
+}
+
+.template-pill-btn.active {
+  border-color: #0f172a;
+  background: #0f172a;
+  color: #fbbf24;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.15);
+}
+
+.template-color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
+}
+
 /* Buttons */
 .btn {
   border: 1px solid #d1d5db;
@@ -335,6 +418,36 @@ label {
   color: #475467;
 }
 
+.inline-checkbox-label {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: #475467 !important;
+  cursor: pointer !important;
+  margin: 0 !important;
+  user-select: none;
+}
+
+.inline-checkbox-label input[type="checkbox"] {
+  width: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+  cursor: pointer !important;
+  accent-color: #2563eb;
+}
+
+.inline-checkbox-label:hover {
+  color: #0f172a !important;
+}
+
+.toggle-dimmed {
+  opacity: 0.5;
+  background-color: #f8fafc !important;
+}
+
 input, textarea, select {
   width: 100%;
   border: 1px solid #d1d5db;
@@ -533,19 +646,19 @@ textarea { resize: vertical; }
 
 .logo-mode-pill-bar {
   display: flex;
-  gap: 6px;
+  gap: 3px;
   background: #e2e8f0;
-  padding: 4px;
-  border-radius: 10px;
+  padding: 3px;
+  border-radius: 8px;
 }
 
 .logo-mode-pill {
   border: 0;
   background: transparent;
   color: #475569;
-  padding: 6px 12px;
-  border-radius: 7px;
-  font-size: 11.5px;
+  padding: 4px 9px;
+  border-radius: 6px;
+  font-size: 10.5px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -559,44 +672,44 @@ textarea { resize: vertical; }
 .logo-mode-pill.active {
   background: #0f172a;
   color: #fbbf24;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
+  box-shadow: 0 2px 5px rgba(15, 23, 42, 0.12);
 }
 
 .ai-logo-panel {
-  margin: 14px 20px 0;
+  margin: 10px 18px 0;
   background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
   border: 1.5px solid #f59e0b;
-  border-radius: 12px;
-  padding: 14px 16px;
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.08);
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 3px 10px rgba(245, 158, 11, 0.06);
 }
 
 .ai-panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
-/* Inline AI Studio Box (Opens near AI controls in card) */
+/* Inline AI Studio Box (Compact space-efficient design) */
 .inline-ai-studio {
-  margin: 14px 20px 0;
+  margin: 10px 18px 14px;
   background: #f8fafc;
   border: 1.5px solid #2563eb;
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.08);
-  animation: inlineSlideDown 0.22s ease;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.07);
+  animation: inlineSlideDown 0.2s ease;
 }
 
 @keyframes inlineSlideDown {
-  from { opacity: 0; transform: translateY(-6px); }
+  from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .inline-studio-head {
-  padding: 10px 14px;
+  padding: 8px 12px;
   background: #eff6ff;
   border-bottom: 1px solid #dbeafe;
   display: flex;
@@ -607,8 +720,8 @@ textarea { resize: vertical; }
 .inline-studio-tabs {
   display: flex;
   background: #e2e8f0;
-  padding: 4px 8px;
-  gap: 4px;
+  padding: 3px 6px;
+  gap: 3px;
   overflow-x: auto;
 }
 
@@ -616,10 +729,10 @@ textarea { resize: vertical; }
   background: transparent;
   border: 0;
   font-weight: 700;
-  font-size: 11px;
+  font-size: 10.5px;
   color: #475569;
-  padding: 5px 11px;
-  border-radius: 6px;
+  padding: 4px 8px;
+  border-radius: 5px;
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
@@ -636,49 +749,49 @@ textarea { resize: vertical; }
 }
 
 .inline-tab-content {
-  padding: 12px 14px;
+  padding: 10px 12px;
 }
 
 .logo-preview-box {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .logo-preview-meta strong {
   display: block;
-  font-size: 13px;
+  font-size: 12px;
   color: #0f172a;
 }
 
 .logo-preview-meta span {
-  font-size: 11px;
+  font-size: 10.5px;
   color: #64748b;
 }
 
 .company-logo {
-  min-width: 48px;
-  height: 48px;
-  padding: 0 8px;
-  border-radius: 10px;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 6px;
+  border-radius: 8px;
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   color: #fbbf24;
   border: 1px solid rgba(251, 191, 36, 0.3);
   display: grid;
   place-items: center;
-  font: 800 15px 'Manrope', sans-serif;
-  letter-spacing: 1px;
+  font: 800 13px 'Manrope', sans-serif;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
   flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 2px 5px rgba(15, 23, 42, 0.1);
   user-select: none;
 }
 
 .company-logo-img {
-  max-width: 85px;
-  max-height: 48px;
+  max-width: 70px;
+  max-height: 40px;
   object-fit: contain;
-  border-radius: 8px;
+  border-radius: 6px;
   display: block;
 }
 
@@ -811,10 +924,22 @@ textarea { resize: vertical; }
   margin-left: 4px;
 }
 
+.opt-tag {
+  font-size: 10px;
+  font-weight: 400;
+  color: #94a3b8;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
 .summary-row {
-  display: grid;
-  grid-template-columns: 1fr 240px;
-  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+.totals {
+  width: 250px;
 }
 
 .totals > div {
@@ -840,10 +965,16 @@ textarea { resize: vertical; }
   color: #0f172a;
 }
 
+.doc-bottom-section {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .terms {
   border-top: 1px solid #e2e8f0;
-  margin-top: 22px;
-  padding-top: 10px;
+  padding-top: 8px;
 }
 
 .terms h4 {
@@ -892,6 +1023,287 @@ textarea { resize: vertical; }
   padding-top: 10px;
   font-size: 8px;
   color: #94a3b8;
+}
+
+/* Status stamp badges */
+.doc-status-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  border-radius: 6px;
+  border: 1.5px solid;
+  margin-top: 4px;
+}
+.doc-status-stamp.status-paid {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #10b981;
+}
+.doc-status-stamp.status-pending {
+  background: #fffbeb;
+  color: #b45309;
+  border-color: #f59e0b;
+}
+.doc-status-stamp.status-overdue {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #ef4444;
+}
+.doc-status-stamp.status-partial {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #3b82f6;
+}
+.doc-status-stamp.status-draft {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #94a3b8;
+}
+
+/* Bank & UPI Details in Bottom Note Area */
+.preview-bank-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 2px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.preview-bank-details {
+  font-size: 8.5px;
+  color: #475569;
+  line-height: 1.5;
+  flex: 1;
+}
+.preview-bank-details h5 {
+  margin: 0 0 3px;
+  font: 800 9px 'Manrope', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #0f172a;
+}
+.preview-bank-qr {
+  text-align: center;
+  font-size: 7.5px;
+  color: #64748b;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.preview-bank-qr-box {
+  width: 60px;
+  height: 60px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2px;
+}
+.preview-bank-qr-box svg, .preview-bank-qr-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ========================================================
+   6 PRO TEMPLATE DESIGNS FOR QUOTATIONS & BILLS
+======================================================== */
+
+/* 1. Modern Executive (tpl-modern) */
+.quotation.tpl-modern {
+  border-top: 6px solid #f59e0b;
+}
+
+/* 2. Classic Corporate / Formal Tax Invoice (tpl-classic) */
+.quotation.tpl-classic {
+  border: 2px solid #0f172a;
+  border-radius: 0;
+  padding: 36px 40px;
+}
+.quotation.tpl-classic .quote-header {
+  border-bottom: 2px solid #0f172a;
+  padding-bottom: 16px;
+  margin-bottom: 12px;
+}
+.quotation.tpl-classic .accent-line {
+  display: none;
+}
+.quotation.tpl-classic .client-strip {
+  border: 1.5px solid #0f172a;
+  border-radius: 0;
+  background: #fff;
+  margin-bottom: 16px;
+}
+.quotation.tpl-classic .preview-table {
+  border: 1.5px solid #0f172a;
+}
+.quotation.tpl-classic .preview-table th {
+  background: #f1f5f9;
+  border-bottom: 1.5px solid #0f172a;
+  border-right: 1px solid #cbd5e1;
+  color: #0f172a;
+  font-weight: 800;
+}
+.quotation.tpl-classic .preview-table td {
+  border-bottom: 1px solid #cbd5e1;
+  border-right: 1px solid #cbd5e1;
+}
+.quotation.tpl-classic .preview-table th:last-child,
+.quotation.tpl-classic .preview-table td:last-child {
+  border-right: none;
+}
+.quotation.tpl-classic .summary-row {
+  border-top: 1.5px solid #0f172a;
+  margin-top: 0;
+  padding-top: 10px;
+}
+.quotation.tpl-classic .preview-bank-box {
+  border: 1.5px solid #0f172a;
+  border-radius: 0;
+  background: #fff;
+}
+.quotation.tpl-classic .signature > div {
+  border: 1px solid #cbd5e1;
+  padding: 10px 14px;
+  background: #f8fafc;
+}
+
+/* 3. Industrial Amber (tpl-industrial) */
+.quotation.tpl-industrial {
+  border-left: 8px solid #f59e0b;
+}
+.quotation.tpl-industrial .quote-header {
+  background: #0f172a;
+  color: #fff;
+  padding: 18px 22px;
+  border-radius: 10px;
+}
+.quotation.tpl-industrial .quote-header h2 {
+  color: #fbbf24;
+}
+.quotation.tpl-industrial .quote-header p {
+  color: #cbd5e1;
+}
+.quotation.tpl-industrial .title-tag {
+  color: #fbbf24;
+}
+.quotation.tpl-industrial .title-quote-no,
+.quotation.tpl-industrial .title-date-wrap {
+  color: #94a3b8;
+}
+.quotation.tpl-industrial .title-quote-no strong,
+.quotation.tpl-industrial .title-date-wrap strong {
+  color: #fff;
+}
+.quotation.tpl-industrial .accent-line {
+  height: 4px;
+  background: #f59e0b;
+  margin: 16px 0;
+}
+.quotation.tpl-industrial .preview-table th {
+  background: #0f172a;
+  color: #fbbf24;
+  border-bottom: 2px solid #f59e0b;
+}
+.quotation.tpl-industrial .client-strip {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+.quotation.tpl-industrial .client-strip span {
+  color: #b45309;
+}
+
+/* 4. Sapphire Clean (tpl-sapphire) */
+.quotation.tpl-sapphire {
+  border-top: 6px solid #2563eb;
+}
+.quotation.tpl-sapphire .accent-line {
+  background: #2563eb;
+}
+.quotation.tpl-sapphire .title-tag {
+  color: #1e40af;
+}
+.quotation.tpl-sapphire .client-strip {
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+}
+.quotation.tpl-sapphire .client-strip span {
+  color: #1d4ed8;
+}
+.quotation.tpl-sapphire .preview-table th {
+  background: #eff6ff;
+  color: #1e40af;
+  border-bottom: 2px solid #3b82f6;
+}
+.quotation.tpl-sapphire .totals .grand strong {
+  color: #1e40af;
+}
+
+/* 5. Emerald Green (tpl-emerald) */
+.quotation.tpl-emerald {
+  border-top: 6px solid #059669;
+}
+.quotation.tpl-emerald .accent-line {
+  background: #059669;
+}
+.quotation.tpl-emerald .title-tag {
+  color: #065f46;
+}
+.quotation.tpl-emerald .client-strip {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+}
+.quotation.tpl-emerald .client-strip span {
+  color: #047857;
+}
+.quotation.tpl-emerald .preview-table th {
+  background: #ecfdf5;
+  color: #065f46;
+  border-bottom: 2px solid #10b981;
+}
+.quotation.tpl-emerald .totals .grand strong {
+  color: #065f46;
+}
+
+/* 6. Monochrome Sleek (tpl-monochrome) */
+.quotation.tpl-monochrome {
+  border: 1.5px solid #000;
+  border-radius: 0;
+}
+.quotation.tpl-monochrome .accent-line {
+  background: #000;
+  height: 2px;
+}
+.quotation.tpl-monochrome .title-tag {
+  color: #000;
+}
+.quotation.tpl-monochrome .client-strip {
+  background: #f4f4f5;
+  border: 1px solid #000;
+  border-radius: 0;
+}
+.quotation.tpl-monochrome .preview-table th {
+  background: #f4f4f5;
+  color: #000;
+  border-top: 1.5px solid #000;
+  border-bottom: 1.5px solid #000;
+  font-weight: 800;
+}
+.quotation.tpl-monochrome .preview-table td {
+  border-bottom: 1px solid #e4e4e7;
+}
+.quotation.tpl-monochrome .totals .grand {
+  border-top: 2px solid #000;
 }
 
 /* Modal & Cloud Drawer */
@@ -1102,53 +1514,53 @@ textarea { resize: vertical; }
   border: 1px solid #334155;
 }
 
-/* AI Logo Studio & AI Logo Variations (Compact space) */
+/* AI Logo Studio & AI Logo Variations (Compact & Small Appearance) */
 .ai-variation-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 8px;
-  margin-top: 8px;
-  max-height: 360px;
+  grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+  gap: 6px;
+  margin-top: 6px;
+  max-height: 240px;
   overflow-y: auto;
   padding: 2px;
 }
 
 .ai-card {
   background: #fff;
-  border: 1.5px solid var(--line);
-  border-radius: 10px;
-  padding: 8px 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 5px 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  transition: all 0.18s ease;
+  transition: all 0.15s ease;
   position: relative;
 }
 
 .ai-card:hover {
   border-color: #2563eb;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.1);
-  transform: translateY(-1.5px);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+  transform: translateY(-1px);
 }
 
 .ai-card.active {
   border-color: #2563eb;
   background: #eff6ff;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 0 0 1.5px rgba(37, 99, 235, 0.25);
 }
 
 .ai-card-preview {
-  width: 54px;
-  height: 54px;
+  width: 42px;
+  height: 42px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 5px;
-  border-radius: 8px;
+  margin-bottom: 3px;
+  border-radius: 6px;
   background: #0f172a;
-  padding: 4px;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+  padding: 2px;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1);
   cursor: pointer;
 }
 
@@ -1159,9 +1571,9 @@ textarea { resize: vertical; }
 }
 
 .ai-card-title {
-  font: 700 11px 'Manrope', sans-serif;
+  font: 700 10px 'Manrope', sans-serif;
   color: #0f172a;
-  margin: 0 0 2px;
+  margin: 0 0 1px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1169,15 +1581,15 @@ textarea { resize: vertical; }
 }
 
 .ai-card-badge {
-  font-size: 8.5px;
+  font-size: 8px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.3px;
   color: #b45309;
   background: #fef3c7;
-  padding: 1px 5px;
+  padding: 1px 4px;
   border-radius: 99px;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1186,15 +1598,15 @@ textarea { resize: vertical; }
 
 .ai-card-actions {
   display: flex;
-  gap: 4px;
+  gap: 3px;
   width: 100%;
   margin-top: auto;
 }
 
 .ai-card-actions .btn {
   flex: 1;
-  padding: 3px 4px;
-  font-size: 9.5px;
+  padding: 2px 3px;
+  font-size: 8.5px;
   font-weight: 700;
 }
 
@@ -1222,7 +1634,7 @@ textarea { resize: vertical; }
   to { transform: rotate(360deg); }
 }
 
-.company-logo svg, #topBrandMark svg {
+.company-logo svg {
   width: 100%;
   height: 100%;
   border-radius: 8px;

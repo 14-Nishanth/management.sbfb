@@ -15,7 +15,6 @@
   <div class="app-shell">
     <header class="topbar no-print">
       <div class="brand">
-        <div class="brand-mark" id="topBrandMark">TNP</div>
         <div><strong id="topBrandTitle">TNP Management</strong><span>Quotation & Cloud Studio</span></div>
       </div>
       <div class="top-actions">
@@ -32,24 +31,95 @@
 
     <main class="workspace">
       <section class="editor no-print">
+        <!-- Document Type Selector & Page Heading -->
         <div class="page-heading">
           <div>
-            <p class="eyebrow">QUOTATION STUDIO & CLOUD DATABASE</p>
-            <h1>Create & manage quotations</h1>
-            <p>Set company details, rate per sq. meter or approximate building costs, and save everything to your cloud database.</p>
+            <div class="doc-type-toggle" style="margin-bottom:12px;display:inline-flex;">
+              <button type="button" class="doc-type-btn active" data-doctype="quotation" id="docTypeQuotationBtn">
+                📄 Quotation / Estimate
+              </button>
+              <button type="button" class="doc-type-btn" data-doctype="invoice" id="docTypeInvoiceBtn">
+                🧾 Tax Invoice / Bill
+              </button>
+              <button type="button" class="doc-type-btn" data-doctype="cash_bill" id="docTypeCashBillBtn">
+                💵 Cash Bill
+              </button>
+            </div>
+            <p class="eyebrow" id="docEyebrow">QUOTATION STUDIO & CLOUD DATABASE</p>
+            <h1 id="docMainHeading">Create & manage quotations</h1>
+            <p id="docSubheading">Set company details, rate per sq. meter or itemized building costs, and save everything to your cloud database.</p>
           </div>
           <div class="quote-badge">
-            <span>QUOTATION DATE</span>
+            <span id="badgeDocTypeLabel">DOCUMENT DATE</span>
             <strong id="quoteDateBadge">Today</strong>
           </div>
         </div>
 
-        <!-- Company details card -->
+        <input type="hidden" id="docType" value="quotation" />
+        <input type="hidden" id="docTemplate" value="modern" />
+        <input type="hidden" id="billingMode" value="sqm_rate" />
+
+        <!-- 🎨 Template Designs Card -->
         <div class="card">
           <div class="card-head">
             <div>
-              <h2>Company Details & Logo</h2>
-              <p>Configure company details and logo. AI automatically generates a custom logo if no file is provided.</p>
+              <h2>🎨 Template Designs (Bill & Quotation)</h2>
+              <p>Pick a professional layout style for your client document & printout.</p>
+            </div>
+            <span id="activeTemplateBadge" style="font-size:11px;font-weight:800;color:#2563eb;background:#eff6ff;padding:3px 8px;border-radius:99px;border:1px solid #bfdbfe;">🌟 Modern Executive</span>
+          </div>
+          <div class="template-picker-grid">
+            <button type="button" class="template-pill-btn active" data-tpl="modern" id="tplModernBtn">
+              <span class="template-color-dot" style="background:#f59e0b;"></span>
+              <div>
+                <strong>🌟 Modern Executive</strong>
+                <span style="font-size:9.5px;color:#64748b;display:block;">Sleek Slate & Amber</span>
+              </div>
+            </button>
+            <button type="button" class="template-pill-btn" data-tpl="classic" id="tplClassicBtn">
+              <span class="template-color-dot" style="background:#0f172a;"></span>
+              <div>
+                <strong>🏛️ Classic Corporate</strong>
+                <span style="font-size:9.5px;color:#64748b;display:block;">Formal Tax Grid</span>
+              </div>
+            </button>
+            <button type="button" class="template-pill-btn" data-tpl="industrial" id="tplIndustrialBtn">
+              <span class="template-color-dot" style="background:#f59e0b;"></span>
+              <div>
+                <strong>🧱 Industrial Amber</strong>
+                <span style="font-size:9.5px;color:#64748b;display:block;">SBFB Construction</span>
+              </div>
+            </button>
+            <button type="button" class="template-pill-btn" data-tpl="sapphire" id="tplSapphireBtn">
+              <span class="template-color-dot" style="background:#2563eb;"></span>
+              <div>
+                <strong>💎 Sapphire Clean</strong>
+                <span style="font-size:9.5px;color:#64748b;display:block;">Minimalist Blue</span>
+              </div>
+            </button>
+            <button type="button" class="template-pill-btn" data-tpl="emerald" id="tplEmeraldBtn">
+              <span class="template-color-dot" style="background:#059669;"></span>
+              <div>
+                <strong>🌿 Emerald Green</strong>
+                <span style="font-size:9.5px;color:#64748b;display:block;">Eco Infrastructure</span>
+              </div>
+            </button>
+            <button type="button" class="template-pill-btn" data-tpl="monochrome" id="tplMonochromeBtn">
+              <span class="template-color-dot" style="background:#000;"></span>
+              <div>
+                <strong>🖤 Monochrome Sleek</strong>
+                <span style="font-size:9.5px;color:#64748b;display:block;">High-Contrast B&W</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Company details card (Clean top section) -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h2>Company Details</h2>
+              <p>Configure company name, phone, email, GSTIN, and registered address.</p>
             </div>
             <div style="display:flex;gap:8px;align-items:center;">
               <button type="button" class="btn small outline" id="saveCompanyDefaultBtn" title="Save company details to cloud as default">
@@ -58,256 +128,79 @@
             </div>
           </div>
 
-          <!-- Company Details Inputs (At the top of the card) -->
-          <div class="grid two" style="padding:16px 20px 0;">
+          <!-- Company Details Inputs -->
+          <div class="grid two" style="padding:16px 20px;">
             <label>Company name<input id="companyName" value="Sri Balamurugan Fly Ash Bricks & Roadwork" /></label>
-            <label>Phone<input id="companyPhone" value="+91 98765 43210" /></label>
-            <label>Email<input id="companyEmail" value="info@sbfb.com" /></label>
-            <label>GSTIN / Tax ID<input id="companyGst" placeholder="e.g. 33AAAAA0000A1Z5" /></label>
-            <label class="wide">Company Address<textarea id="companyAddress" rows="2">Tamil Nadu, India</textarea></label>
-          </div>
-
-          <!-- Compact Logo Bar (Occupies small space beneath details) -->
-          <div class="company-logo-config-bar compact-logo-bar" style="margin-top:12px;">
-            <div class="logo-preview-box">
-              <div id="settingsLogoWrap">
-                <div class="company-logo" id="settingsLogoPreview"></div>
-              </div>
-              <div class="logo-preview-meta">
-                <div style="display:flex;align-items:center;gap:6px;">
-                  <strong style="font-size:12.5px;color:#0f172a;">Company Logo</strong>
-                  <span id="logoStatusBadge" style="background:#fef3c7;color:#b45309;font-size:9.5px;padding:2px 7px;border-radius:99px;font-weight:800;border:1px solid #fde68a;">🤖 AI ACTIVE</span>
-                </div>
-                <span style="font-size:11px;color:#64748b;">Updates live on quotation and printout</span>
-              </div>
-            </div>
-
-            <!-- Segmented Mode Pills & AI Studio button -->
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-              <div class="logo-mode-pill-bar">
-                <button type="button" class="logo-mode-pill active" data-mode="ai" id="pillModeAi">
-                  🤖 AI Logo
-                </button>
-                <button type="button" class="logo-mode-pill" data-mode="image" id="pillModeImage">
-                  📁 Upload
-                </button>
-                <button type="button" class="logo-mode-pill" data-mode="text" id="pillModeText">
-                  🔤 Text
-                </button>
-                <select id="logoModeSelect" style="display:none;">
-                  <option value="ai" selected>🤖 AI Smart Logo</option>
-                  <option value="image">🖼️ Image / File Upload</option>
-                  <option value="text">🔤 Monogram / Text</option>
-                </select>
-              </div>
-              <button type="button" class="btn small primary" id="openAiStudioBtn" style="font-size:11px;font-weight:800;padding:6px 11px;">
-                ✨ AI Studio
-              </button>
-              <button type="button" class="btn small outline" id="aiRegenBtn" title="Generate another AI Variation" style="font-size:11px;padding:6px 9px;">
-                🎲
-              </button>
-            </div>
-          </div>
-
-          <input type="hidden" id="aiLogoStyle" value="industrial" />
-          <input type="hidden" id="aiLogoColor" value="amber_slate" />
-          <input type="hidden" id="aiLogoSymbol" value="auto" />
-          <input type="hidden" id="aiLogoSeed" value="1" />
-          <input type="hidden" id="aiCustomSvgData" value="" />
-
-          <!-- Embedded AI Logo Design Studio (Expands in this compact space) -->
-          <div id="inlineAiStudioBox" class="inline-ai-studio hidden">
-            <div class="inline-studio-head">
-              <div style="display:flex;align-items:center;gap:8px;">
-                <span style="font-size:15px;">✨</span>
-                <div>
-                  <strong style="font-size:12.5px;color:#0f172a;">AI Logo Design Studio</strong>
-                  <p style="margin:0;font-size:10.5px;color:#64748b;">Instant variations, ChatGPT AI generator & prompt designer</p>
-                </div>
-              </div>
-              <button type="button" class="btn small outline" id="closeInlineStudioBtn" style="padding:3px 8px;font-size:11px;">✕ Close</button>
-            </div>
-
-            <div class="inline-studio-tabs">
-              <button type="button" class="inline-tab-btn active" id="inlineTabPresetsBtn">🎲 6 Instant Variations</button>
-              <button type="button" class="inline-tab-btn" id="inlineTabChatGptBtn">🤖 ChatGPT Logo Creator</button>
-              <button type="button" class="inline-tab-btn" id="inlineTabCustomBtn">🎨 Prompt & Diffusion</button>
-            </div>
-
-            <!-- Tab 1: 6 Live Variations -->
-            <div id="inlineTabPresetsContent" class="inline-tab-content">
-              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-                <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                  <button type="button" class="catalog-pill ai-industry-pill" data-industry="bricks">🧱 Fly Ash & Road</button>
-                  <button type="button" class="catalog-pill ai-industry-pill" data-industry="civil">🏗️ Civil Works</button>
-                  <button type="button" class="catalog-pill ai-industry-pill" data-industry="architecture">🏛️ Architecture</button>
-                  <button type="button" class="catalog-pill ai-industry-pill" data-industry="eco">🌿 Eco Infra</button>
-                </div>
-                <button type="button" class="btn small primary" id="inlineRerollBtn" style="font-size:11px;padding:4px 9px;">
-                  🎲 Re-roll 6 Designs
-                </button>
-              </div>
-              <div class="ai-variation-grid" id="inlineVariationsGrid"></div>
-            </div>
-
-            <!-- Tab 2: ChatGPT Creator -->
-            <div id="inlineTabChatGptContent" class="inline-tab-content hidden">
-              <div class="catalog-add-box" style="background:#f0fdf4;border-color:#bbf7d0;padding:12px 14px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
-                  <div>
-                    <strong style="color:#166534;font-size:12.5px;">🤖 ChatGPT Logo Generator (Free & Instant)</strong>
-                    <p class="helper-text" style="color:#15803d;margin:0;font-size:11px;">Powered by GPT-4o vector generator. Works free out-of-the-box, or connect your API key.</p>
-                  </div>
-                  <span class="badge-approx" style="background:#dcfce7;color:#166534;font-size:9.5px;padding:2px 6px;border-radius:4px;font-weight:700;">GPT-4o Engine</span>
-                </div>
-
-                <div class="grid two" style="margin-top:10px;gap:8px;">
-                  <label style="font-size:11px;">Generation Engine:
-                    <select id="chatGptEngineSelect" style="padding:6px 8px;font-size:11px;">
-                      <option value="free-gpt-4o" selected>⚡ Free GPT-4o Vector SVG (Instant / No Key)</option>
-                      <option value="free-diffusion">🎨 Free AI Diffusion Graphic (No Key)</option>
-                      <option value="openai-api">🔑 My OpenAI Account (API Key)</option>
-                    </select>
-                  </label>
-                  <label style="font-size:11px;">Design Tone:
-                    <select id="chatGptToneSelect" style="padding:6px 8px;font-size:11px;">
-                      <option value="modern_construction">🏗️ Modern Civil & Construction Emblem</option>
-                      <option value="luxury_geometric">👑 Luxury Geometric Crest & Gold Monogram</option>
-                      <option value="minimalist_tech">📐 Minimalist Swiss Architectural Mark</option>
-                      <option value="eco_infrastructure">🌿 Eco-Friendly Green Infrastructure</option>
-                      <option value="bold_industrial">⚙️ Heavy Industrial & Roadwork Badge</option>
-                    </select>
-                  </label>
-                </div>
-
-                <!-- Optional API Key row -->
-                <div id="openAiKeyRow" class="hidden" style="margin-top:8px;background:#fff;padding:8px 10px;border-radius:8px;border:1px solid #d1fae5;">
-                  <label style="font-size:10.5px;margin:0 0 4px;font-weight:700;">OpenAI API Key:
-                    <div style="display:flex;gap:6px;">
-                      <input type="password" id="openAiApiKey" placeholder="sk-proj-... (Paste OpenAI key)" style="flex:1;font-size:11px;padding:5px 8px;font-family:monospace;" />
-                      <button type="button" class="btn small outline" id="saveApiKeyBtn" style="padding:4px 8px;font-size:10px;">💾 Save</button>
-                    </div>
-                  </label>
-                </div>
-
-                <label style="margin-top:8px;font-size:11px;">Custom Instructions for ChatGPT (Optional):
-                  <input id="chatGptCustomPrompt" placeholder="e.g. bold interlocking bricks, asphalt road curve, golden monogram..." style="padding:6px 8px;font-size:11px;" />
-                </label>
-
-                <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;">
-                  <button type="button" class="btn primary small" id="generateWithChatGptBtn" style="font-weight:700;">
-                    🤖 Generate Logo with ChatGPT
-                  </button>
-                  <button type="button" class="btn outline small" id="copyChatGptPromptBtn" title="Copy ready prompt for ChatGPT.com" style="font-size:10.5px;">
-                    📋 Copy Prompt for ChatGPT.com
-                  </button>
-                </div>
-              </div>
-
-              <!-- ChatGPT Loading State -->
-              <div id="chatGptLoadingBox" class="hidden" style="text-align:center;padding:16px;background:#fff;border-radius:10px;margin-top:10px;border:1px solid #e2e8f0;">
-                <div class="ai-spinner" style="width:20px;height:20px;margin-bottom:6px;"></div>
-                <div id="chatGptLoadingText" style="font-weight:700;color:#0f172a;font-size:12px;">ChatGPT is designing your company logo...</div>
-                <div style="font-size:10.5px;color:#64748b;margin-top:2px;">Connecting to GPT-4o engine and generating vector geometry.</div>
-              </div>
-
-              <!-- ChatGPT Result Box -->
-              <div id="chatGptResultBox" style="margin-top:12px;text-align:center;background:#fff;padding:16px;border:1.5px dashed #10b981;border-radius:10px;" class="hidden">
-                <div id="chatGptPreviewHolder" style="display:inline-block;margin-bottom:8px;"></div>
-                <div id="chatGptStatusMsg" style="font-size:11.5px;color:#0f172a;font-weight:600;margin-bottom:8px;"></div>
-                <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
-                  <button type="button" class="btn primary small" id="applyChatGptLogoBtn">
-                    ✅ Apply this ChatGPT Logo
-                  </button>
-                  <button type="button" class="btn outline small" id="copyChatGptSvgBtn">
-                    📋 Copy SVG Code
-                  </button>
-                </div>
-              </div>
-
-              <!-- Paste Box -->
-              <div style="margin-top:10px;background:#fff;padding:10px 12px;border-radius:8px;border:1px solid #e2e8f0;">
-                <strong style="font-size:11px;color:#0f172a;display:block;margin-bottom:2px;">📥 Or Paste Output from ChatGPT.com:</strong>
-                <div style="display:flex;gap:6px;">
-                  <textarea id="pasteChatGptInput" rows="1" placeholder="Paste <svg...> or https://... image URL from ChatGPT here" style="flex:1;font-size:10.5px;font-family:monospace;padding:5px 8px;"></textarea>
-                  <button type="button" class="btn small primary" id="applyPastedChatGptBtn" style="white-space:nowrap;padding:0 10px;font-size:11px;">Apply</button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Tab 3: Custom Prompt & Diffusion -->
-            <div id="inlineTabCustomContent" class="inline-tab-content hidden">
-              <div class="catalog-add-box" style="padding:12px 14px;">
-                <strong style="font-size:12px;color:#0f172a;display:block;">🎨 Custom Style Prompt</strong>
-                <label style="margin-top:6px;font-size:11px;">Prompt Description:
-                  <input id="customAiPromptInput" placeholder="e.g. Modern minimalist hexagon logo with roadwork and golden monogram..." style="padding:6px 8px;font-size:11px;" />
-                </label>
-                <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
-                  <button type="button" class="btn primary small" id="generateCustomVectorBtn" style="font-size:11px;">
-                    ⚡ Procedural Vector Mark
-                  </button>
-                  <button type="button" class="btn accent-btn small" id="generateAiDiffusionBtn" style="font-size:11px;">
-                    🤖 AI Diffusion Image
-                  </button>
-                </div>
-              </div>
-
-              <div id="customAiResultBox" style="margin-top:10px;text-align:center;background:#fff;padding:16px;border:1px dashed #cbd5e1;border-radius:10px;" class="hidden">
-                <div id="customAiPreviewHolder" style="display:inline-block;margin-bottom:8px;"></div>
-                <div id="customAiStatusMsg" style="font-size:11.5px;color:#64748b;margin-bottom:8px;"></div>
-                <button type="button" class="btn primary small" id="applyCustomAiBtn" style="font-size:11px;">
-                  ✅ Apply this AI Logo
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Monogram / Text Logo Group -->
-          <div id="textLogoGroup" class="hidden" style="margin:12px 20px 0;background:#f8fafc;padding:12px 16px;border-radius:10px;border:1px solid #e2e8f0;">
-            <label>Logo Letters (Monogram) <span style="font-size:10px;color:#94a3b8;font-weight:400">(Auto-generated from company name, or type custom letters e.g. SBFB)</span>
-              <input id="companyLogoText" value="" placeholder="Auto from name (e.g. SBFB)" maxlength="8" style="text-transform:uppercase;font-weight:700;" />
-            </label>
-          </div>
-
-          <!-- Image / File Upload Logo Group -->
-          <div id="imageLogoGroup" class="hidden" style="margin:12px 20px 0;background:#f8fafc;padding:12px 16px;border-radius:10px;border:1px solid #e2e8f0;">
-            <label>Logo Image URL / Upload
-              <div style="display:flex;gap:6px;align-items:center;">
-                <input id="companyLogoImgUrl" placeholder="Image URL or choose file..." style="flex:1;" />
-                <label class="btn small" style="cursor:pointer;white-space:nowrap;margin:0;padding:8px 12px;font-size:12px;">
-                  📁 Browse File
-                  <input type="file" id="logoFileInput" accept="image/*" style="display:none;" />
-                </label>
-              </div>
-            </label>
-            <div class="ai-fallback-hint" id="imageAiFallbackNotice" style="margin-top:8px;font-size:12px;color:#b45309;background:#fef3c7;padding:8px 12px;border-radius:8px;display:flex;align-items:center;justify-content:space-between;border:1px solid #fde68a;">
-              <span>✨ <strong>No file uploaded:</strong> AI Smart Logo is automatically active!</span>
-              <button type="button" id="switchBackToAiBtn" class="btn small primary" style="padding:4px 9px;font-size:11px;margin:0;">Open AI Studio</button>
-            </div>
+            <label>Phone <span class="opt-tag">(Optional)</span><input id="companyPhone" value="+91 98765 43210" /></label>
+            <label>Email <span class="opt-tag">(Optional)</span><input id="companyEmail" value="info@sbfb.com" /></label>
+            <label>GSTIN / Tax ID <span class="opt-tag">(Optional)</span><input id="companyGst" placeholder="e.g. 33AAAAA0000A1Z5" /></label>
+            <label class="wide">Company Address <span class="opt-tag">(Optional)</span><textarea id="companyAddress" rows="2">Tamil Nadu, India</textarea></label>
           </div>
         </div>
 
-        <!-- Quotation & client details card -->
+        <!-- Document & client details card -->
         <div class="card">
           <div class="card-head">
             <div>
-              <h2>Quotation & Client details</h2>
-              <p>Date, optional quotation number, client contact, and project site location.</p>
+              <h2 id="cardClientTitle">Quotation & Client details</h2>
+              <p id="cardClientSub">Date, document number, payment status, client contact, and site location.</p>
             </div>
           </div>
           <div class="grid two">
-            <label>Quotation date
+            <label><span id="labelDocDate">Quotation date</span>
               <div style="display:flex;gap:6px;align-items:center;">
                 <input id="quoteDate" type="date" style="flex:1;" />
                 <button type="button" class="btn small" id="setTodayBtn" title="Reset date to today" style="padding:7px 10px;font-size:11px;white-space:nowrap;">📅 Today</button>
               </div>
             </label>
-            <label>Quotation No. <span style="font-size:10px;color:#94a3b8;font-weight:400">(Optional — leave blank to omit from print & PDF)</span><input id="quoteNo" placeholder="Leave blank if not needed (e.g. SBFB-001)" /></label>
-            <label>Client / company name<input id="clientName" placeholder="e.g. ABC Developers / Client Name" /></label>
-            <label>Contact person<input id="clientContact" placeholder="Contact person name" /></label>
-            <label>Client phone<input id="clientPhone" placeholder="+91..." /></label>
-            <label>Project / building / road name<input id="projectName" placeholder="e.g. Commercial Complex / Roadwork" /></label>
-            <label class="wide">Site location<input id="siteLocation" placeholder="Project / site location" /></label>
+            <label><span id="labelDocNo">Quotation No.</span> <span class="opt-tag">(Optional — leave blank to omit from print)</span>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <input id="quoteNo" placeholder="e.g. SBFB-001 or QTN-2026-001" style="flex:1;" />
+                <button type="button" class="btn small" id="autoGenNoBtn" title="Generate auto number" style="padding:7px 9px;font-size:11px;white-space:nowrap;">🎲 Auto</button>
+              </div>
+            </label>
+
+            <!-- Bill / Invoice Specific Fields -->
+            <div id="invoiceFieldsRow" class="hidden grid two wide" style="padding:0;gap:14px;">
+              <label>Payment Due Date <span class="opt-tag">(Optional)</span>
+                <input id="dueDate" type="date" />
+              </label>
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <label for="paymentStatusSelect" style="margin:0;">Payment Status <span class="opt-tag">(Optional)</span></label>
+                  <label class="inline-checkbox-label">
+                    <input type="checkbox" id="showPaymentStatusOnDoc" checked />
+                    <span>Show Stamp</span>
+                  </label>
+                </div>
+                <select id="paymentStatusSelect">
+                  <option value="pending" selected>⏳ Pending / Due</option>
+                  <option value="paid">✅ Paid in Full</option>
+                  <option value="partial">💳 Partially Paid</option>
+                  <option value="overdue">⚠️ Overdue</option>
+                  <option value="draft">📝 Draft</option>
+                  <option value="none">🚫 None / Hide Stamp</option>
+                </select>
+              </div>
+              <label>Payment Method <span class="opt-tag">(Optional)</span>
+                <select id="paymentModeSelect">
+                  <option value="UPI / QR Code" selected>📱 UPI / QR Code / GPay</option>
+                  <option value="Bank Transfer (NEFT/RTGS/IMPS)">🏦 Bank Transfer (NEFT / RTGS)</option>
+                  <option value="Cash">💵 Cash</option>
+                  <option value="Cheque">📜 Cheque</option>
+                  <option value="Credit / Debit Card">💳 Credit / Debit Card</option>
+                </select>
+              </label>
+              <label>PO / Work Order Ref No. <span class="opt-tag">(Optional)</span>
+                <input id="poNumber" placeholder="e.g. PO-8842 / WO-2026" />
+              </label>
+            </div>
+
+            <label><span id="labelClientName">Client / Buyer company name</span><input id="clientName" placeholder="e.g. ABC Developers / Client Name" /></label>
+            <label>Contact person <span class="opt-tag">(Optional)</span><input id="clientContact" placeholder="Contact person name" /></label>
+            <label>Client phone <span class="opt-tag">(Optional)</span><input id="clientPhone" placeholder="+91..." /></label>
+            <label>Project / building / road name <span class="opt-tag">(Optional)</span><input id="projectName" placeholder="e.g. Commercial Complex / Roadwork" /></label>
+            <label class="wide">Site / Delivery location <span class="opt-tag">(Optional)</span><input id="siteLocation" placeholder="Project / site location" /></label>
           </div>
         </div>
 
@@ -316,10 +209,14 @@
           <div class="card-head">
             <div>
               <h2>Work & Building Items</h2>
-              <p>Enter work item description and quoted <strong>Rate per sq. meter (₹/sq.m)</strong>. Items are saved in your library for reuse.</p>
+              <p>Add quoted items with <strong>Rate per sq.m</strong> or <strong>Quantity × Unit Rate</strong>.</p>
             </div>
-            <div style="display:flex;gap:8px;">
-              <button type="button" class="btn small outline" id="saveCatalogBtn" title="Save items to reusable library">💾 Save to Library</button>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+              <div class="logo-mode-pill-bar">
+                <button type="button" class="logo-mode-pill active" id="modeSqmBtn" data-bmode="sqm_rate">📐 Rate / sq.m</button>
+                <button type="button" class="logo-mode-pill" id="modeQtyBtn" data-bmode="qty_rate">📦 Qty × Rate</button>
+              </div>
+              <button type="button" class="btn small outline" id="saveCatalogBtn" title="Save items to reusable library">💾 Save Library</button>
               <button class="btn small primary" id="addItemBtn">+ Add item</button>
             </div>
           </div>
@@ -327,10 +224,13 @@
             <datalist id="catalogDatalist"></datalist>
             <table class="items-table">
               <thead>
-                <tr>
-                  <th style="width: 60px;">Sl. No.</th>
+                <tr id="itemsHeaderRow">
+                  <th style="width: 45px;">Sl.</th>
                   <th>Work / Item Description</th>
-                  <th style="width: 200px;">Rate per Sq. Meter (₹/sq.m)</th>
+                  <th id="thItemQty" class="hidden" style="width: 75px;">Qty</th>
+                  <th id="thItemUnit" class="hidden" style="width: 85px;">Unit</th>
+                  <th id="thItemRate" style="width: 150px;">Rate (₹)</th>
+                  <th id="thItemAmount" class="hidden" style="width: 110px;">Amount (₹)</th>
                   <th style="width: 35px;"></th>
                 </tr>
               </thead>
@@ -343,12 +243,12 @@
           </div>
         </div>
 
-        <!-- Commercial terms card -->
+        <!-- Commercial terms & notes card -->
         <div class="card">
           <div class="card-head">
             <div>
-              <h2>Commercial Terms & Taxes</h2>
-              <p>GST options, discounts, validity period, and payment terms.</p>
+              <h2>Commercial Terms, Taxes & Notes</h2>
+              <p>GST options, discounts, validity period, and bottom notes.</p>
             </div>
           </div>
           <div class="grid three">
@@ -367,10 +267,269 @@
                 <input id="gstRate" type="number" min="0" max="100" step="0.01" value="18" placeholder="Enter GST %" />
               </label>
             </div>
-            <label>Discount (₹)<input id="discount" type="number" min="0" step="0.01" value="0" placeholder="0.00" /></label>
-            <label>Validity (days)<input id="validity" type="number" min="1" value="15" placeholder="15" /></label>
-            <label class="wide">Payment terms<textarea id="paymentTerms" rows="2">30% advance with work order. Balance as per measured progress / agreed milestones.</textarea></label>
-            <label class="wide">Notes<textarea id="notes" rows="3">Rates are quoted per sq. meter based on the specifications above. Final billing will be based on actual site measurements.</textarea></label>
+            <label>Discount (₹) <span class="opt-tag">(Optional)</span><input id="discount" type="number" min="0" step="0.01" value="0" placeholder="0.00" /></label>
+            <label id="validityInputGroup">Validity (days) <span class="opt-tag">(Optional)</span><input id="validity" type="number" min="1" value="15" placeholder="15" /></label>
+            
+            <div class="wide" style="display:flex;flex-direction:column;gap:6px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <label for="paymentTerms" style="margin:0;">Payment terms <span class="opt-tag">(Optional)</span></label>
+                <label class="inline-checkbox-label">
+                  <input type="checkbox" id="showPaymentTermsOnDoc" checked />
+                  <span>Include on Document</span>
+                </label>
+              </div>
+              <textarea id="paymentTerms" rows="2">30% advance with work order. Balance as per measured progress / agreed milestones.</textarea>
+            </div>
+
+            <div class="wide" style="display:flex;flex-direction:column;gap:6px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <label for="notes" style="margin:0;">Notes & Declaration <span class="opt-tag">(Optional)</span></label>
+                <label class="inline-checkbox-label">
+                  <input type="checkbox" id="showNotesOnDoc" checked />
+                  <span>Include on Document</span>
+                </label>
+              </div>
+              <textarea id="notes" rows="3">Rates are quoted per sq. meter based on the specifications above. Final billing will be based on actual site measurements.</textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bank & Payment Account Details Card (Moved to bottom note section) -->
+        <div class="card" id="bankDetailsCard">
+          <div class="card-head">
+            <div>
+              <h2>🏦 Bank & UPI Payment Details <span class="opt-tag" style="font-size:11px;font-weight:600;">(Optional)</span></h2>
+              <p>Payment account & UPI QR details displayed in the bottom notes for client payment.</p>
+            </div>
+            <label style="flex-direction:row;align-items:center;gap:6px;font-size:12px;cursor:pointer;margin:0;">
+              <input type="checkbox" id="showBankOnDoc" checked style="width:auto;cursor:pointer;" />
+              <span>Show on Document</span>
+            </label>
+          </div>
+          <div class="grid two" style="padding:16px 20px;">
+            <label>Bank Name <span class="opt-tag">(Optional)</span><input id="bankName" placeholder="e.g. State Bank of India / HDFC Bank" /></label>
+            <label>Account Number <span class="opt-tag">(Optional)</span><input id="bankAccount" placeholder="e.g. 123456789012" /></label>
+            <label>IFSC Code <span class="opt-tag">(Optional)</span><input id="bankIfsc" placeholder="e.g. SBIN0001234" style="text-transform:uppercase;" /></label>
+            <label>Branch Name <span class="opt-tag">(Optional)</span><input id="bankBranch" placeholder="e.g. Main Branch, Chennai" /></label>
+            <label class="wide">UPI ID / VPA (GPay / PhonePe / Paytm) <span class="opt-tag">(Optional)</span><input id="bankUpi" placeholder="e.g. sbfb@upi or 9876543210@okaxis" /></label>
+          </div>
+        </div>
+
+        <!-- Company Logo & AI Studio Card (Compact & placed at bottom of editor) -->
+        <div class="card compact-branding-card">
+          <div class="card-head" style="padding:10px 18px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div id="settingsLogoWrap">
+                <div class="company-logo" id="settingsLogoPreview"></div>
+              </div>
+              <div>
+                <h2 style="font-size:13.5px;margin:0 0 2px;">Company Logo & AI Studio</h2>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span id="logoStatusBadge" style="background:#fef3c7;color:#b45309;font-size:9px;padding:1px 6px;border-radius:99px;font-weight:800;border:1px solid #fde68a;">🤖 AI ACTIVE</span>
+                  <span style="font-size:10.5px;color:#64748b;">Applied live on quotation header</span>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+              <div class="logo-mode-pill-bar">
+                <button type="button" class="logo-mode-pill active" data-mode="ai" id="pillModeAi">
+                  🤖 AI
+                </button>
+                <button type="button" class="logo-mode-pill" data-mode="image" id="pillModeImage">
+                  📁 Upload
+                </button>
+                <button type="button" class="logo-mode-pill" data-mode="text" id="pillModeText">
+                  🔤 Text
+                </button>
+                <select id="logoModeSelect" style="display:none;">
+                  <option value="ai" selected>🤖 AI Smart Logo</option>
+                  <option value="image">🖼️ Image / File Upload</option>
+                  <option value="text">🔤 Monogram / Text</option>
+                </select>
+              </div>
+              <button type="button" class="btn small primary" id="openAiStudioBtn" style="font-size:10.5px;font-weight:800;padding:5px 9px;">
+                ✨ AI Studio
+              </button>
+              <button type="button" class="btn small outline" id="aiRegenBtn" title="Generate another AI Variation" style="font-size:10.5px;padding:5px 7px;">
+                🎲
+              </button>
+            </div>
+          </div>
+
+          <input type="hidden" id="aiLogoStyle" value="industrial" />
+          <input type="hidden" id="aiLogoColor" value="amber_slate" />
+          <input type="hidden" id="aiLogoSymbol" value="auto" />
+          <input type="hidden" id="aiLogoSeed" value="1" />
+          <input type="hidden" id="aiCustomSvgData" value="" />
+
+          <!-- Monogram / Text Logo Group -->
+          <div id="textLogoGroup" class="hidden" style="margin:10px 18px 14px;background:#f8fafc;padding:10px 14px;border-radius:8px;border:1px solid #e2e8f0;">
+            <label style="font-size:11px;">Logo Letters (Monogram) <span style="font-size:9.5px;color:#94a3b8;font-weight:400">(Auto-generated or custom e.g. SBFB)</span>
+              <input id="companyLogoText" value="" placeholder="Auto from name (e.g. SBFB)" maxlength="8" style="text-transform:uppercase;font-weight:700;font-size:11px;padding:5px 8px;" />
+            </label>
+          </div>
+
+          <!-- Image / File Upload Logo Group -->
+          <div id="imageLogoGroup" class="hidden" style="margin:10px 18px 14px;background:#f8fafc;padding:10px 14px;border-radius:8px;border:1px solid #e2e8f0;">
+            <label style="font-size:11px;">Logo Image URL / Upload
+              <div style="display:flex;gap:6px;align-items:center;margin-top:4px;">
+                <input id="companyLogoImgUrl" placeholder="Image URL or choose file..." style="flex:1;font-size:11px;padding:5px 8px;" />
+                <label class="btn small" style="cursor:pointer;white-space:nowrap;margin:0;padding:5px 9px;font-size:11px;">
+                  📁 Browse
+                  <input type="file" id="logoFileInput" accept="image/*" style="display:none;" />
+                </label>
+              </div>
+            </label>
+            <div class="ai-fallback-hint" id="imageAiFallbackNotice" style="margin-top:6px;font-size:11px;color:#b45309;background:#fef3c7;padding:6px 10px;border-radius:6px;display:flex;align-items:center;justify-content:space-between;border:1px solid #fde68a;">
+              <span>✨ <strong>No file uploaded:</strong> AI Smart Logo is automatically active!</span>
+              <button type="button" id="switchBackToAiBtn" class="btn small primary" style="padding:3px 7px;font-size:10px;margin:0;">Open AI Studio</button>
+            </div>
+          </div>
+
+          <!-- Embedded AI Logo Design Studio (Small, compact design) -->
+          <div id="inlineAiStudioBox" class="inline-ai-studio hidden" style="margin:10px 18px 14px;">
+            <div class="inline-studio-head" style="padding:7px 12px;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span style="font-size:13px;">✨</span>
+                <div>
+                  <strong style="font-size:11.5px;color:#0f172a;">AI Logo Design Studio</strong>
+                  <p style="margin:0;font-size:9.5px;color:#64748b;">Instant vector variations, ChatGPT AI generator & prompt designer</p>
+                </div>
+              </div>
+              <button type="button" class="btn small outline" id="closeInlineStudioBtn" style="padding:2px 6px;font-size:10px;">✕ Close</button>
+            </div>
+
+            <div class="inline-studio-tabs" style="padding:3px 6px;gap:3px;">
+              <button type="button" class="inline-tab-btn active" id="inlineTabPresetsBtn" style="font-size:10px;padding:4px 8px;">🎲 6 Variations</button>
+              <button type="button" class="inline-tab-btn" id="inlineTabChatGptBtn" style="font-size:10px;padding:4px 8px;">🤖 ChatGPT Logo</button>
+              <button type="button" class="inline-tab-btn" id="inlineTabCustomBtn" style="font-size:10px;padding:4px 8px;">🎨 Prompt & Diffusion</button>
+            </div>
+
+            <!-- Tab 1: 6 Live Variations -->
+            <div id="inlineTabPresetsContent" class="inline-tab-content" style="padding:8px 10px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px;">
+                <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                  <button type="button" class="catalog-pill ai-industry-pill" data-industry="bricks" style="font-size:9.5px;padding:2px 6px;">🧱 Bricks & Road</button>
+                  <button type="button" class="catalog-pill ai-industry-pill" data-industry="civil" style="font-size:9.5px;padding:2px 6px;">🏗️ Civil</button>
+                  <button type="button" class="catalog-pill ai-industry-pill" data-industry="architecture" style="font-size:9.5px;padding:2px 6px;">🏛️ Architecture</button>
+                  <button type="button" class="catalog-pill ai-industry-pill" data-industry="eco" style="font-size:9.5px;padding:2px 6px;">🌿 Eco</button>
+                </div>
+                <button type="button" class="btn small primary" id="inlineRerollBtn" style="font-size:10px;padding:3px 7px;">
+                  🎲 Re-roll
+                </button>
+              </div>
+              <div class="ai-variation-grid" id="inlineVariationsGrid"></div>
+            </div>
+
+            <!-- Tab 2: ChatGPT Creator -->
+            <div id="inlineTabChatGptContent" class="inline-tab-content hidden" style="padding:8px 10px;">
+              <div class="catalog-add-box" style="background:#f0fdf4;border-color:#bbf7d0;padding:8px 10px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;">
+                  <div>
+                    <strong style="color:#166534;font-size:11.5px;">🤖 ChatGPT Logo Generator (Free & Instant)</strong>
+                    <p class="helper-text" style="color:#15803d;margin:0;font-size:10px;">Powered by GPT-4o vector generator. Works free out-of-the-box, or connect your API key.</p>
+                  </div>
+                  <span class="badge-approx" style="background:#dcfce7;color:#166534;font-size:8.5px;padding:1px 5px;border-radius:4px;font-weight:700;">GPT-4o</span>
+                </div>
+
+                <div class="grid two" style="margin-top:6px;gap:6px;">
+                  <label style="font-size:10px;margin:0;">Generation Engine:
+                    <select id="chatGptEngineSelect" style="padding:4px 6px;font-size:10px;">
+                      <option value="free-gpt-4o" selected>⚡ Free GPT-4o Vector SVG (Instant / No Key)</option>
+                      <option value="free-diffusion">🎨 Free AI Diffusion Graphic (No Key)</option>
+                      <option value="openai-api">🔑 My OpenAI Account (API Key)</option>
+                    </select>
+                  </label>
+                  <label style="font-size:10px;margin:0;">Design Tone:
+                    <select id="chatGptToneSelect" style="padding:4px 6px;font-size:10px;">
+                      <option value="modern_construction">🏗️ Modern Civil & Construction Emblem</option>
+                      <option value="luxury_geometric">👑 Luxury Geometric Crest & Gold Monogram</option>
+                      <option value="minimalist_tech">📐 Minimalist Swiss Architectural Mark</option>
+                      <option value="eco_infrastructure">🌿 Eco-Friendly Green Infrastructure</option>
+                      <option value="bold_industrial">⚙️ Heavy Industrial & Roadwork Badge</option>
+                    </select>
+                  </label>
+                </div>
+
+                <!-- Optional API Key row -->
+                <div id="openAiKeyRow" class="hidden" style="margin-top:6px;background:#fff;padding:6px 8px;border-radius:6px;border:1px solid #d1fae5;">
+                  <label style="font-size:10px;margin:0 0 2px;font-weight:700;">OpenAI API Key:
+                    <div style="display:flex;gap:4px;">
+                      <input type="password" id="openAiApiKey" placeholder="sk-proj-... (Paste OpenAI key)" style="flex:1;font-size:10px;padding:4px 6px;font-family:monospace;" />
+                      <button type="button" class="btn small outline" id="saveApiKeyBtn" style="padding:3px 6px;font-size:9.5px;">💾 Save</button>
+                    </div>
+                  </label>
+                </div>
+
+                <label style="margin-top:6px;font-size:10px;display:block;">Custom Instructions (Optional):
+                  <input id="chatGptCustomPrompt" placeholder="e.g. bold interlocking bricks, asphalt road curve..." style="padding:4px 6px;font-size:10px;margin-top:2px;" />
+                </label>
+
+                <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;align-items:center;">
+                  <button type="button" class="btn primary small" id="generateWithChatGptBtn" style="font-weight:700;font-size:10.5px;padding:4px 8px;">
+                    🤖 Generate Logo with ChatGPT
+                  </button>
+                  <button type="button" class="btn outline small" id="copyChatGptPromptBtn" title="Copy ready prompt for ChatGPT.com" style="font-size:10px;padding:4px 7px;">
+                    📋 Copy Prompt
+                  </button>
+                </div>
+              </div>
+
+              <!-- ChatGPT Loading State -->
+              <div id="chatGptLoadingBox" class="hidden" style="text-align:center;padding:10px;background:#fff;border-radius:8px;margin-top:6px;border:1px solid #e2e8f0;">
+                <div class="ai-spinner" style="width:16px;height:16px;margin-bottom:4px;border-width:2px;"></div>
+                <div id="chatGptLoadingText" style="font-weight:700;color:#0f172a;font-size:11px;">ChatGPT is designing your logo...</div>
+              </div>
+
+              <!-- ChatGPT Result Box -->
+              <div id="chatGptResultBox" style="margin-top:8px;text-align:center;background:#fff;padding:10px;border:1.5px dashed #10b981;border-radius:8px;" class="hidden">
+                <div id="chatGptPreviewHolder" style="display:inline-block;margin-bottom:6px;"></div>
+                <div id="chatGptStatusMsg" style="font-size:10.5px;color:#0f172a;font-weight:600;margin-bottom:6px;"></div>
+                <div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;">
+                  <button type="button" class="btn primary small" id="applyChatGptLogoBtn" style="font-size:10px;padding:3px 7px;">
+                    ✅ Apply Logo
+                  </button>
+                  <button type="button" class="btn outline small" id="copyChatGptSvgBtn" style="font-size:10px;padding:3px 7px;">
+                    📋 Copy SVG
+                  </button>
+                </div>
+              </div>
+
+              <!-- Paste Box -->
+              <div style="margin-top:6px;background:#fff;padding:6px 8px;border-radius:6px;border:1px solid #e2e8f0;">
+                <strong style="font-size:10px;color:#0f172a;display:block;margin-bottom:2px;">📥 Or Paste SVG Code:</strong>
+                <div style="display:flex;gap:4px;">
+                  <textarea id="pasteChatGptInput" rows="1" placeholder="Paste <svg...> or image URL here" style="flex:1;font-size:10px;font-family:monospace;padding:4px 6px;"></textarea>
+                  <button type="button" class="btn small primary" id="applyPastedChatGptBtn" style="white-space:nowrap;padding:0 8px;font-size:10px;">Apply</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab 3: Custom Prompt & Diffusion -->
+            <div id="inlineTabCustomContent" class="inline-tab-content hidden" style="padding:8px 10px;">
+              <div class="catalog-add-box" style="padding:8px 10px;">
+                <strong style="font-size:11px;color:#0f172a;display:block;">🎨 Custom Style Prompt</strong>
+                <label style="margin-top:4px;font-size:10px;display:block;">Prompt Description:
+                  <input id="customAiPromptInput" placeholder="e.g. Modern minimalist hexagon logo..." style="padding:4px 6px;font-size:10px;margin-top:2px;" />
+                </label>
+                <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
+                  <button type="button" class="btn primary small" id="generateCustomVectorBtn" style="font-size:10px;padding:3px 7px;">
+                    ⚡ Vector Mark
+                  </button>
+                  <button type="button" class="btn accent-btn small" id="generateAiDiffusionBtn" style="font-size:10px;padding:3px 7px;">
+                    🤖 AI Graphic
+                  </button>
+                </div>
+              </div>
+
+              <div id="customAiResultBox" style="margin-top:6px;text-align:center;background:#fff;padding:10px;border:1px dashed #cbd5e1;border-radius:8px;" class="hidden">
+                <div id="customAiPreviewHolder" style="display:inline-block;margin-bottom:6px;"></div>
+                <div id="customAiStatusMsg" style="font-size:10.5px;color:#64748b;margin-bottom:6px;"></div>
+                <button type="button" class="btn primary small" id="applyCustomAiBtn" style="font-size:10px;padding:3px 7px;">
+                  ✅ Apply this AI Logo
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -379,9 +538,9 @@
       <aside class="preview-pane">
         <div class="preview-toolbar no-print">
           <span>LIVE PREVIEW</span>
-          <span>A4 Document</span>
+          <span id="previewTplLabel">A4 Document &bull; Modern Executive</span>
         </div>
-        <article class="quotation" id="quotationPreview">
+        <article class="quotation tpl-modern" id="quotationPreview">
           <div class="quote-header">
             <div>
               <div id="pCompanyLogoWrap">
@@ -395,14 +554,25 @@
               </div>
             </div>
             <div class="quote-title">
-              <div class="title-tag">QUOTATION</div>
+              <div class="title-tag" id="pDocTitleTag">QUOTATION</div>
+              <div id="pDocStatusWrap" class="hidden" style="margin-top:2px;">
+                <span id="pDocStatusStamp" class="doc-status-stamp status-pending">PENDING</span>
+              </div>
               <div id="pQuoteNoWrap" class="title-quote-no hidden" style="display:none;">
-                <span>Quote No:</span>
+                <span id="pQuoteNoLabel">Quote No:</span>
                 <strong id="pQuoteNo"></strong>
               </div>
               <div class="title-date-wrap">
-                <span>Date:</span>
+                <span id="pDateLabel">Date:</span>
                 <strong id="pQuoteDate">25 Aug 2026</strong>
+              </div>
+              <div id="pDueDateWrap" class="title-date-wrap hidden" style="display:none;">
+                <span>Due Date:</span>
+                <strong id="pDueDate"></strong>
+              </div>
+              <div id="pPoWrap" class="title-date-wrap hidden" style="display:none;">
+                <span>PO Ref:</span>
+                <strong id="pPoNo"></strong>
               </div>
             </div>
           </div>
@@ -411,29 +581,32 @@
 
           <div class="client-strip">
             <div>
-              <span>BILL TO / CLIENT</span>
+              <span id="pClientHeaderTag">BILL TO / CLIENT</span>
               <strong id="pClientName">Client name</strong>
               <p id="pClientContact">Contact person</p>
               <p id="pClientPhone">Client phone</p>
             </div>
             <div>
-              <span>PROJECT / SITE</span>
+              <span>PROJECT / SITE / DELIVERY</span>
               <strong id="pProjectName">Project name</strong>
               <p id="pSiteLocation">Site location</p>
             </div>
             <div>
-              <span>VALIDITY</span>
-              <strong id="pValidity">15 days</strong>
-              <p>From quotation date</p>
+              <span id="pThirdBoxTag">VALIDITY</span>
+              <strong id="pThirdBoxValue">15 days</strong>
+              <p id="pThirdBoxSub">From quotation date</p>
             </div>
           </div>
 
           <table class="preview-table">
-            <thead>
+            <thead id="previewThead">
               <tr>
-                <th style="width: 55px;">Sl. No.</th>
+                <th style="width: 35px;">Sl.</th>
                 <th>Work / Item Description</th>
-                <th class="right" style="width: 170px;">Rate per Sq. Meter</th>
+                <th id="pThQty" class="center hidden" style="width: 50px;">Qty</th>
+                <th id="pThUnit" class="center hidden" style="width: 55px;">Unit</th>
+                <th id="pThRate" class="right" style="width: 140px;">Rate (₹)</th>
+                <th id="pThAmount" class="right hidden" style="width: 110px;">Amount (₹)</th>
               </tr>
             </thead>
             <tbody id="previewItems"></tbody>
@@ -443,21 +616,40 @@
             <div></div>
             <div class="totals">
               <div><span>Subtotal</span><strong id="pSubtotal">₹0.00</strong></div>
-              <div id="pDiscountRow"><span>Discount</span><strong id="pDiscount">₹0.00</strong></div>
+              <div id="pDiscountRow" style="display:none;"><span>Discount</span><strong id="pDiscount">₹0.00</strong></div>
               <div id="pGstRow"><span>GST (<span id="pGstPercent">18%</span>)</span><strong id="pGst">₹0.00</strong></div>
-              <div class="grand"><span>Grand total</span><strong id="pTotal">₹0.00</strong></div>
+              <div class="grand"><span id="pTotalLabel">Grand total</span><strong id="pTotal">₹0.00</strong></div>
             </div>
           </div>
 
-          <div class="terms">
-            <h4>Commercial terms</h4>
-            <p id="pPaymentTerms">30% advance with work order. Balance as per measured progress / agreed milestones.</p>
-            <p>Quotation valid for <strong id="pValidity2">15 days</strong> from the date shown above.</p>
-          </div>
+          <!-- Document Bottom Notes & Payment Section -->
+          <div class="doc-bottom-section">
+            <!-- Bank & UPI Payment Details Box (Bottom Note & Payment) -->
+            <div id="pBankDetailsBox" class="preview-bank-box hidden" style="display:none;">
+              <div class="preview-bank-details">
+                <h5>🏦 Bank &amp; UPI Payment Details</h5>
+                <p id="pBankLine1"><strong>Bank:</strong> <span id="pBankNameVal">-</span> &bull; <strong>A/c:</strong> <span id="pBankAccountVal">-</span></p>
+                <p id="pBankLine2"><strong>IFSC:</strong> <span id="pBankIfscVal">-</span> &bull; <strong>Branch:</strong> <span id="pBankBranchVal">-</span></p>
+                <p id="pBankLine3" style="margin-top:2px;"><strong>UPI ID:</strong> <span id="pBankUpiVal">-</span> <span style="color:#059669;font-weight:700;">(GPay / PhonePe / Paytm)</span></p>
+              </div>
+              <div class="preview-bank-qr" id="pBankQrWrap">
+                <div class="preview-bank-qr-box" id="pBankQrHolder"></div>
+                <span>Scan to Pay</span>
+              </div>
+            </div>
 
-          <div class="terms">
-            <h4>Notes</h4>
-            <p id="pNotes">Rates are based on the specifications and site conditions mentioned above.</p>
+            <!-- Commercial / Payment Terms (Optional) -->
+            <div class="terms" id="pTermsBox">
+              <h4 id="pTermsHeading">Commercial Terms</h4>
+              <p id="pPaymentTerms">30% advance with work order. Balance as per measured progress / agreed milestones.</p>
+              <p id="pValidityLine">Quotation valid for <strong id="pValidity2">15 days</strong> from the date shown above.</p>
+            </div>
+
+            <!-- Notes & Declaration (Optional) -->
+            <div class="terms" id="pNotesBox">
+              <h4 id="pNotesHeading">Notes &amp; Declaration</h4>
+              <p id="pNotes">Rates are based on the specifications and site conditions mentioned above.</p>
+            </div>
           </div>
 
           <div class="signature">
@@ -468,7 +660,7 @@
             </div>
           </div>
 
-          <footer>Thank you for your valued business.</footer>
+          <footer id="pDocFooter">Thank you for your valued business.</footer>
         </article>
       </aside>
     </main>
@@ -478,26 +670,32 @@
       <div class="modal-card">
         <div class="modal-head">
           <div class="modal-title-group">
-            <h3>☁️ Cloud Database & Saved Quotations</h3>
-            <p>Access your cloud quotations from any device & configure database sync.</p>
+            <h3>☁️ Cloud Database & Saved Quotations / Bills</h3>
+            <p>Access your cloud quotations and bills from any device & configure database sync.</p>
           </div>
           <button type="button" class="btn-close" id="closeCloudModalBtn">&times;</button>
         </div>
 
         <div class="modal-tabs">
-          <button class="tab-btn active" id="tabSavedBtn">📁 Saved Cloud Quotations (<span id="savedCount">0</span>)</button>
+          <button class="tab-btn active" id="tabSavedBtn">📁 Saved Documents (<span id="savedCount">0</span>)</button>
           <button class="tab-btn" id="tabCatalogBtn">📚 Stored Item Library (<span id="catalogCount">0</span>)</button>
           <button class="tab-btn" id="tabConfigBtn">⚙️ Cloud Database Settings (Supabase)</button>
         </div>
 
-        <!-- Tab 1: Saved Quotations List -->
+        <!-- Tab 1: Saved Documents List -->
         <div id="tabSavedContent" class="tab-content">
-          <div class="tab-toolbar">
-            <input id="searchQuoteInput" placeholder="🔍 Search quotations by client, project, or date..." />
+          <div class="tab-toolbar" style="flex-wrap:wrap;">
+            <input id="searchQuoteInput" placeholder="🔍 Search by client, project, number, or date..." style="flex:1;min-width:200px;" />
+            <select id="cloudDocFilter" style="width:auto;font-size:12px;padding:6px 10px;">
+              <option value="all">📂 All Documents</option>
+              <option value="quotation">📄 Quotations Only</option>
+              <option value="invoice">🧾 Tax Invoices / Bills</option>
+              <option value="cash_bill">💵 Cash Bills</option>
+            </select>
             <button class="btn small" id="refreshCloudListBtn">🔄 Refresh</button>
           </div>
           <div class="saved-list" id="savedQuotesList">
-            <div class="empty-state">Loading quotations from database...</div>
+            <div class="empty-state">Loading documents from database...</div>
           </div>
         </div>
 
