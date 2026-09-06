@@ -5,7 +5,7 @@ const fields = [
   'docType', 'docTemplate', 'billingMode', 'quoteNo', 'companyName',
   'logoModeSelect', 'aiLogoStyle', 'aiLogoColor', 'aiLogoSeed', 'aiLogoSymbol', 'aiCustomSvgData',
   'companyLogoText', 'companyLogoImgUrl', 'companyPhone', 'companyEmail', 'companyGst', 'companyAddress',
-  'clientName', 'clientContact', 'clientPhone', 'quoteDate', 'dueDate', 'paymentStatusSelect', 'paymentModeSelect', 'poNumber',
+  'clientName', 'clientGst', 'clientContact', 'clientPhone', 'quoteDate', 'dueDate', 'paymentStatusSelect', 'paymentModeSelect', 'poNumber',
   'projectName', 'siteLocation',
   'bankName', 'bankAccount', 'bankIfsc', 'bankBranch', 'bankUpi',
   'gstModeSelect', 'gstRate', 'discount', 'validity', 'paymentTerms', 'notes'
@@ -74,6 +74,105 @@ const localQuotesKey = 'sbfbLocalCloudQuotes';
 const supabaseConfigKey = 'sbfbSupabaseConfig';
 const catalogStorageKey = 'sbfbItemCatalog';
 const openAiKeyStorage = 'sbfbOpenAiKey';
+const gstRegistryStorageKey = 'sbfbGstRegistry';
+const gstApiConfigKey = 'sbfbGstApiConfig';
+
+/* Indian GST States & UTs (All 37 Official GST Codes) */
+const GST_STATES = {
+  '01': 'Jammu & Kashmir',
+  '02': 'Himachal Pradesh',
+  '03': 'Punjab',
+  '04': 'Chandigarh',
+  '05': 'Uttarakhand',
+  '06': 'Haryana',
+  '07': 'Delhi',
+  '08': 'Rajasthan',
+  '09': 'Uttar Pradesh',
+  '10': 'Bihar',
+  '11': 'Sikkim',
+  '12': 'Arunachal Pradesh',
+  '13': 'Nagaland',
+  '14': 'Manipur',
+  '15': 'Mizoram',
+  '16': 'Tripura',
+  '17': 'Meghalaya',
+  '18': 'Assam',
+  '19': 'West Bengal',
+  '20': 'Jharkhand',
+  '21': 'Odisha',
+  '22': 'Chhattisgarh',
+  '23': 'Madhya Pradesh',
+  '24': 'Gujarat',
+  '26': 'Dadra & Nagar Haveli and Daman & Diu',
+  '27': 'Maharashtra',
+  '29': 'Karnataka',
+  '30': 'Goa',
+  '31': 'Lakshadweep',
+  '32': 'Kerala',
+  '33': 'Tamil Nadu',
+  '34': 'Puducherry',
+  '35': 'Andaman & Nicobar Islands',
+  '36': 'Telangana',
+  '37': 'Andhra Pradesh',
+  '38': 'Ladakh',
+  '97': 'Other Territory',
+  '99': 'Centre Jurisdiction'
+};
+
+/* PAN 4th Character Taxpayer Entity Decoder */
+const PAN_ENTITY_TYPES = {
+  'C': 'Company (Pvt Ltd / Ltd)',
+  'P': 'Individual / Sole Proprietor',
+  'F': 'Partnership Firm / LLP',
+  'A': 'Association of Persons (AOP)',
+  'T': 'Trust',
+  'H': 'Hindu Undivided Family (HUF)',
+  'B': 'Body of Individuals (BOI)',
+  'G': 'Government Agency / PSU',
+  'J': 'Artificial Juridical Person',
+  'L': 'Local Authority'
+};
+
+const defaultGstDirectory = [
+  {
+    gstin: '33AABCS1429B1Z1',
+    legalName: 'Sri Balamurugan Fly Ash Bricks & Roadwork',
+    tradeName: 'SBFB Civil Works',
+    stateCode: '33',
+    stateName: 'Tamil Nadu',
+    contact: '+91 98765 43210 (info@sbfb.com)',
+    address: 'Survey No. 42, Industrial Bypass Road, Madurai, Tamil Nadu - 625001'
+  },
+  {
+    gstin: '33AAACT2727Q1Z3',
+    legalName: 'TNP Construction & Infrastructure Private Limited',
+    tradeName: 'TNP Infra Group',
+    stateCode: '33',
+    stateName: 'Tamil Nadu',
+    contact: 'Senthil Nathan (+91 94432 10987)',
+    address: 'No. 88, Mount Poonamallee Road, Guindy, Chennai, Tamil Nadu - 600032'
+  },
+  {
+    gstin: '29AABCL1234M1ZF',
+    legalName: 'Apex Civil Developers & Contractors Private Limited',
+    tradeName: 'Apex Infra Projects',
+    stateCode: '29',
+    stateName: 'Karnataka',
+    contact: 'K. Rajesh (+91 98860 12345)',
+    address: 'Plot 104, Outer Ring Road, Whitefield, Bengaluru, Karnataka - 560066'
+  },
+  {
+    gstin: '27AABCC5678K1Z8',
+    legalName: 'Metro Roadways & Asphalt Infra Limited',
+    tradeName: 'Metro Highroads',
+    stateCode: '27',
+    stateName: 'Maharashtra',
+    contact: 'V. Deshmukh (+91 98200 54321)',
+    address: 'Level 4, Express Towers, Nariman Point, Mumbai, Maharashtra - 400021'
+  }
+];
+
+let gstRegistry = [];
 
 const defaultCatalog = [
   { id: 'cat-1', desc: 'Building construction & structural civil work', rate: 1850 },
@@ -337,6 +436,575 @@ function syncCurrentQuoteToCatalog() {
     showToast(`💾 Stored ${savedCount} item(s) to Library! Available for all future quotations.`);
   } else {
     showToast('Add some work items with descriptions first to store them.', 'error');
+  }
+}
+
+/* --- Indian GST Register, Checksum Engine & Taxpayer Matcher --- */
+function validateGstFormat(gstin) {
+  if (!gstin) return false;
+  const regex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+  return regex.test(String(gstin).trim().toUpperCase());
+}
+
+function validateGstChecksum(gstin) {
+  if (!gstin) return false;
+  const clean = String(gstin).trim().toUpperCase();
+  if (clean.length !== 15) return false;
+  const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let factor = 1;
+  let sum = 0;
+  for (let i = 0; i < 14; i++) {
+    const codePoint = chars.indexOf(clean[i]);
+    if (codePoint === -1) return false;
+    let digit = codePoint * factor;
+    factor = factor === 1 ? 2 : 1;
+    digit = Math.floor(digit / 36) + (digit % 36);
+    sum += digit;
+  }
+  const remainder = sum % 36;
+  const checkCode = (36 - remainder) % 36;
+  return chars[checkCode] === clean[14];
+}
+
+function parseGstInfo(gstin) {
+  const clean = String(gstin || '').trim().toUpperCase();
+  const stateCode = clean.slice(0, 2);
+  const stateName = GST_STATES[stateCode] || (stateCode.length === 2 ? `State Code ${stateCode}` : '');
+  const pan = clean.length >= 12 ? clean.slice(2, 12) : (clean.length > 2 ? clean.slice(2) : '');
+  const entityChar = clean.length >= 6 ? clean[5] : '';
+  const entityType = PAN_ENTITY_TYPES[entityChar] || (entityChar ? 'Business Taxpayer' : '');
+  const isValidFormat = validateGstFormat(clean);
+  const isValidChecksum = isValidFormat && validateGstChecksum(clean);
+  const matchedParty = matchGstFromRegistry(clean);
+
+  return {
+    gstin: clean,
+    stateCode,
+    stateName,
+    pan,
+    entityChar,
+    entityType,
+    isValidFormat,
+    isValidChecksum,
+    matchedParty
+  };
+}
+
+async function loadGstRegistry() {
+  try {
+    const local = JSON.parse(localStorage.getItem(gstRegistryStorageKey) || 'null');
+    if (Array.isArray(local) && local.length) {
+      gstRegistry = local;
+    } else {
+      gstRegistry = [...defaultGstDirectory];
+      localStorage.setItem(gstRegistryStorageKey, JSON.stringify(gstRegistry));
+    }
+  } catch {
+    gstRegistry = [...defaultGstDirectory];
+  }
+
+  if (supabaseClient) {
+    try {
+      const { data, error } = await supabaseClient.from('gst_registry').select('*').order('legal_name');
+      if (!error && Array.isArray(data) && data.length) {
+        data.forEach(cloudParty => {
+          const idx = gstRegistry.findIndex(x => x.gstin.toUpperCase() === (cloudParty.gstin || '').toUpperCase());
+          const normalized = {
+            gstin: (cloudParty.gstin || '').toUpperCase(),
+            legalName: cloudParty.legal_name || cloudParty.legalName || 'Registered Taxpayer',
+            tradeName: cloudParty.trade_name || cloudParty.tradeName || '',
+            stateCode: cloudParty.state_code || cloudParty.stateCode || (cloudParty.gstin ? cloudParty.gstin.slice(0, 2) : ''),
+            stateName: cloudParty.state_name || cloudParty.stateName || (cloudParty.gstin ? GST_STATES[cloudParty.gstin.slice(0, 2)] : '') || '',
+            contact: cloudParty.contact || '',
+            address: cloudParty.address || ''
+          };
+          if (idx >= 0) {
+            gstRegistry[idx] = { ...gstRegistry[idx], ...normalized };
+          } else {
+            gstRegistry.push(normalized);
+          }
+        });
+        localStorage.setItem(gstRegistryStorageKey, JSON.stringify(gstRegistry));
+      }
+    } catch (err) {
+      console.warn('GST registry cloud fetch error:', err);
+    }
+  }
+
+  renderGstDatalists();
+  populateGstStateFilter();
+  renderGstDirectoryManager();
+}
+
+async function saveGstPartyToRegistry(party, notify = true) {
+  const gstinClean = String(party.gstin || '').trim().toUpperCase();
+  const legalNameClean = String(party.legalName || party.legal_name || '').trim();
+  if (!gstinClean || !legalNameClean) {
+    showToast('GSTIN and Legal Name are required.', 'error');
+    return false;
+  }
+
+  const stateCode = party.stateCode || gstinClean.slice(0, 2);
+  const stateName = party.stateName || GST_STATES[stateCode] || `State Code ${stateCode}`;
+  const normalized = {
+    gstin: gstinClean,
+    legalName: legalNameClean,
+    tradeName: (party.tradeName || party.trade_name || legalNameClean).trim(),
+    stateCode: stateCode,
+    stateName: stateName,
+    contact: (party.contact || '').trim(),
+    address: (party.address || '').trim(),
+    updated_at: new Date().toISOString()
+  };
+
+  const existingIdx = gstRegistry.findIndex(x => x.gstin.toUpperCase() === gstinClean);
+  if (existingIdx >= 0) {
+    gstRegistry[existingIdx] = normalized;
+  } else {
+    gstRegistry.unshift(normalized);
+  }
+
+  localStorage.setItem(gstRegistryStorageKey, JSON.stringify(gstRegistry));
+
+  if (supabaseClient) {
+    try {
+      await supabaseClient.from('gst_registry').upsert({
+        gstin: normalized.gstin,
+        legal_name: normalized.legalName,
+        trade_name: normalized.tradeName,
+        state_code: normalized.stateCode,
+        state_name: normalized.stateName,
+        contact: normalized.contact,
+        address: normalized.address,
+        updated_at: normalized.updated_at
+      }, { onConflict: 'gstin' });
+    } catch (err) {
+      console.warn('Supabase gst_registry save error:', err);
+    }
+  }
+
+  renderGstDatalists();
+  populateGstStateFilter();
+  renderGstDirectoryManager();
+
+  if (notify) {
+    showToast(`🏢 Saved "${normalized.legalName}" (${normalized.gstin}) to GST Master!`);
+  }
+  return true;
+}
+
+async function deleteGstPartyFromRegistry(gstin) {
+  const cleanGst = String(gstin || '').trim().toUpperCase();
+  const party = gstRegistry.find(x => x.gstin.toUpperCase() === cleanGst);
+  const partyName = party ? party.legalName : cleanGst;
+
+  if (!confirm(`Remove "${partyName}" (${cleanGst}) from your GST Directory?`)) return;
+
+  gstRegistry = gstRegistry.filter(x => x.gstin.toUpperCase() !== cleanGst);
+  localStorage.setItem(gstRegistryStorageKey, JSON.stringify(gstRegistry));
+
+  if (supabaseClient) {
+    try {
+      await supabaseClient.from('gst_registry').delete().eq('gstin', cleanGst);
+    } catch (err) {
+      console.warn('Supabase gst delete error:', err);
+    }
+  }
+
+  renderGstDatalists();
+  populateGstStateFilter();
+  renderGstDirectoryManager();
+  showToast(`🗑️ Removed ${cleanGst} from GST Directory.`);
+}
+
+function matchGstFromRegistry(query) {
+  if (!query) return null;
+  const q = String(query).trim().toUpperCase();
+  // Exact GSTIN match
+  let found = gstRegistry.find(x => x.gstin.toUpperCase() === q);
+  if (found) return found;
+
+  // Partial match by name if query length >= 3
+  if (q.length >= 3) {
+    const qLower = q.toLowerCase();
+    found = gstRegistry.find(x =>
+      (x.legalName && x.legalName.toLowerCase().includes(qLower)) ||
+      (x.tradeName && x.tradeName.toLowerCase().includes(qLower))
+    );
+    if (found) return found;
+  }
+  return null;
+}
+
+function renderGstDatalists() {
+  const gstDl = $('gstRegistryDatalist');
+  const clientDl = $('clientNameDatalist');
+  const savedCountEl = $('gstSavedCount');
+
+  if (savedCountEl) savedCountEl.textContent = gstRegistry.length;
+
+  if (gstDl) {
+    gstDl.innerHTML = gstRegistry.map(p =>
+      `<option value="${p.gstin}">${esc(p.legalName)} (${esc(p.stateName)})</option>`
+    ).join('');
+  }
+
+  if (clientDl) {
+    clientDl.innerHTML = gstRegistry.map(p =>
+      `<option value="${esc(p.legalName)}">${p.gstin} · ${esc(p.stateName)}</option>`
+    ).join('');
+  }
+}
+
+function populateGstStateFilter() {
+  const filterSelect = $('filterGstStateSelect');
+  if (!filterSelect) return;
+
+  const currentVal = filterSelect.value || 'all';
+  const statesPresent = new Set();
+  gstRegistry.forEach(p => {
+    if (p.stateCode && GST_STATES[p.stateCode]) {
+      statesPresent.add(p.stateCode);
+    }
+  });
+
+  const sortedCodes = Array.from(statesPresent).sort();
+
+  let html = `<option value="all">🇮🇳 All States (${gstRegistry.length})</option>`;
+  sortedCodes.forEach(code => {
+    const name = GST_STATES[code] || `Code ${code}`;
+    const count = gstRegistry.filter(p => p.stateCode === code).length;
+    html += `<option value="${code}">${name} (${count})</option>`;
+  });
+
+  filterSelect.innerHTML = html;
+  filterSelect.value = currentVal;
+}
+
+function renderGstDirectoryManager() {
+  const listEl = $('gstDirectoryList');
+  if (!listEl) return;
+
+  const search = ($('searchGstDirInput') ? $('searchGstDirInput').value : '').toLowerCase().trim();
+  const stateFilter = $('filterGstStateSelect') ? $('filterGstStateSelect').value : 'all';
+
+  const filtered = gstRegistry.filter(party => {
+    if (stateFilter !== 'all' && party.stateCode !== stateFilter) return false;
+    if (!search) return true;
+    return (
+      (party.gstin && party.gstin.toLowerCase().includes(search)) ||
+      (party.legalName && party.legalName.toLowerCase().includes(search)) ||
+      (party.tradeName && party.tradeName.toLowerCase().includes(search)) ||
+      (party.stateName && party.stateName.toLowerCase().includes(search)) ||
+      (party.address && party.address.toLowerCase().includes(search))
+    );
+  });
+
+  if (!filtered.length) {
+    listEl.innerHTML = `
+      <div class="empty-state">
+        <p>No parties found matching your search.</p>
+        <small>Add new parties in the "Add Party" tab or search by a different keyword.</small>
+      </div>
+    `;
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(p => `
+    <div class="gst-party-card">
+      <div class="gst-badge-state" style="width:34px;height:34px;font-size:14px;line-height:34px;">${esc(p.stateCode || p.gstin.slice(0, 2))}</div>
+      <div class="gst-party-main">
+        <strong>${esc(p.legalName)}</strong>
+        <div class="gst-party-meta">
+          <span class="gstin-pill">${esc(p.gstin)}</span>
+          <span>📍 ${esc(p.stateName || 'India')}</span>
+          ${p.contact ? `<span>📞 ${esc(p.contact)}</span>` : ''}
+        </div>
+        ${p.address ? `<div style="font-size:11px;color:#64748b;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">🏠 ${esc(p.address)}</div>` : ''}
+      </div>
+      <div class="gst-party-actions">
+        <button type="button" class="btn small primary" data-apply-client-gst="${esc(p.gstin)}" title="Set as Buyer / Client on document">👤 Set Client</button>
+        <button type="button" class="btn small outline" data-apply-comp-gst="${esc(p.gstin)}" title="Set as Company Details">🏢 Set Company</button>
+        <button type="button" class="btn small outline" data-verify-gst="${esc(p.gstin)}" title="Open Live Checksum Decoder">🔍 Verify</button>
+        <button type="button" class="btn small ghost-dark" data-delete-gst="${esc(p.gstin)}" title="Remove from Directory">&times;</button>
+      </div>
+    </div>
+  `).join('');
+
+  listEl.querySelectorAll('[data-apply-client-gst]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = gstRegistry.find(x => x.gstin === btn.dataset.applyClientGst);
+      if (p) {
+        applyPartyToTarget(p, 'client');
+        $('gstModal').classList.add('hidden');
+      }
+    });
+  });
+
+  listEl.querySelectorAll('[data-apply-comp-gst]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = gstRegistry.find(x => x.gstin === btn.dataset.applyCompGst);
+      if (p) {
+        applyPartyToTarget(p, 'company');
+        $('gstModal').classList.add('hidden');
+      }
+    });
+  });
+
+  listEl.querySelectorAll('[data-verify-gst]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      switchGstTab('lookup');
+      if ($('gstModalSearchInput')) $('gstModalSearchInput').value = btn.dataset.verifyGst;
+      verifyAndMatchGst(btn.dataset.verifyGst);
+    });
+  });
+
+  listEl.querySelectorAll('[data-delete-gst]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      deleteGstPartyFromRegistry(btn.dataset.deleteGst);
+    });
+  });
+}
+
+function applyPartyToTarget(party, targetType = 'client') {
+  if (!party) return;
+
+  if (targetType === 'company') {
+    if ($('companyGst')) $('companyGst').value = party.gstin;
+    if ($('companyName')) $('companyName').value = party.legalName;
+    if (party.address && $('companyAddress')) $('companyAddress').value = party.address;
+    if (party.contact) {
+      const phoneMatch = party.contact.match(/(\+?\d[\d\s-]{8,})/);
+      if (phoneMatch && $('companyPhone')) $('companyPhone').value = phoneMatch[0].trim();
+    }
+    updatePreview();
+    showToast(`🏢 Applied "${party.legalName}" to Company Details!`);
+  } else {
+    if ($('clientGst')) $('clientGst').value = party.gstin;
+    if ($('clientName')) $('clientName').value = party.legalName;
+    if (party.address && $('siteLocation')) $('siteLocation').value = party.address;
+    if (party.contact && $('clientContact')) $('clientContact').value = party.contact;
+    if (party.contact) {
+      const phoneMatch = party.contact.match(/(\+?\d[\d\s-]{8,})/);
+      if (phoneMatch && $('clientPhone')) $('clientPhone').value = phoneMatch[0].trim();
+    }
+    updatePreview();
+    showToast(`👤 Auto-filled "${party.legalName}" as Client / Buyer!`);
+  }
+}
+
+function handleGstInputLive(inputEl, chipEl, targetType = 'client') {
+  if (!inputEl || !chipEl) return;
+  const raw = inputEl.value;
+  const clean = raw.trim().toUpperCase();
+  if (inputEl.value !== clean) {
+    const selStart = inputEl.selectionStart;
+    inputEl.value = clean;
+    inputEl.setSelectionRange(selStart, selStart);
+  }
+
+  if (!clean) {
+    chipEl.classList.add('hidden');
+    chipEl.innerHTML = '';
+    return;
+  }
+
+  const info = parseGstInfo(clean);
+
+  if (clean.length >= 2 && clean.length < 15) {
+    chipEl.classList.remove('hidden', 'invalid', 'matched');
+    chipEl.innerHTML = `<span>📍 <strong>State:</strong> ${info.stateName || 'State Code ' + info.stateCode} (${info.stateCode}) ${info.entityType ? `• <em>${info.entityType}</em>` : ''}</span>`;
+  } else if (clean.length === 15) {
+    chipEl.classList.remove('hidden');
+    if (info.matchedParty) {
+      chipEl.className = 'gst-match-info-chip matched';
+      chipEl.innerHTML = `
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          ✨ <strong>Matched:</strong> ${esc(info.matchedParty.legalName)} (${esc(info.stateName)})
+        </span>
+        <button type="button" class="btn small primary" id="btnLiveFill_${targetType}" style="padding:2px 7px;font-size:10px;white-space:nowrap;">⚡ Fill</button>
+      `;
+      const btn = $('btnLiveFill_' + targetType);
+      if (btn) {
+        btn.onclick = (e) => {
+          e.preventDefault();
+          applyPartyToTarget(info.matchedParty, targetType);
+        };
+      }
+    } else if (info.isValidChecksum) {
+      chipEl.className = 'gst-match-info-chip';
+      chipEl.innerHTML = `
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          ✅ <strong>Valid GSTIN:</strong> ${esc(info.stateName)} • ${esc(info.entityType)}
+        </span>
+        <button type="button" class="btn small outline" id="btnLiveSave_${targetType}" style="padding:2px 7px;font-size:10px;white-space:nowrap;">+ Master</button>
+      `;
+      const btn = $('btnLiveSave_' + targetType);
+      if (btn) {
+        btn.onclick = (e) => {
+          e.preventDefault();
+          openGstModal('add', clean, targetType);
+        };
+      }
+    } else if (info.isValidFormat && !info.isValidChecksum) {
+      chipEl.className = 'gst-match-info-chip invalid';
+      chipEl.innerHTML = `<span>⚠️ <strong>Checksum mismatch:</strong> Check 15th checksum character (${clean[14]})</span>`;
+    } else {
+      chipEl.className = 'gst-match-info-chip invalid';
+      chipEl.innerHTML = `<span>⚠️ Invalid GSTIN format (15 alphanumeric characters required)</span>`;
+    }
+  } else {
+    chipEl.classList.add('hidden');
+    chipEl.innerHTML = '';
+  }
+}
+
+let currentGstModalTarget = 'client';
+
+function switchGstTab(activeTab) {
+  const tabs = [
+    { id: 'lookup', btn: $('tabGstLookupBtn'), content: $('tabGstLookupContent') },
+    { id: 'directory', btn: $('tabGstDirectoryBtn'), content: $('tabGstDirectoryContent') },
+    { id: 'add', btn: $('tabGstAddBtn'), content: $('tabGstAddContent') },
+    { id: 'settings', btn: $('tabGstSettingsBtn'), content: $('tabGstSettingsContent') }
+  ];
+
+  tabs.forEach(t => {
+    if (t.btn && t.content) {
+      if (t.id === activeTab) {
+        t.btn.classList.add('active');
+        t.content.classList.remove('hidden');
+      } else {
+        t.btn.classList.remove('active');
+        t.content.classList.add('hidden');
+      }
+    }
+  });
+
+  if (activeTab === 'directory') {
+    renderGstDirectoryManager();
+  }
+}
+
+function openGstModal(initialTab = 'lookup', presetGstin = '', target = 'client') {
+  currentGstModalTarget = target;
+  switchGstTab(initialTab);
+
+  if (initialTab === 'lookup') {
+    const searchInp = $('gstModalSearchInput');
+    if (searchInp) {
+      if (presetGstin) {
+        searchInp.value = presetGstin.trim().toUpperCase();
+        verifyAndMatchGst(presetGstin);
+      } else if (!searchInp.value) {
+        searchInp.value = gstRegistry[0] ? gstRegistry[0].gstin : '33AABCS1429B1ZB';
+        verifyAndMatchGst(searchInp.value);
+      }
+    }
+  } else if (initialTab === 'add' && presetGstin) {
+    if ($('addGstNumber')) $('addGstNumber').value = presetGstin.trim().toUpperCase();
+  }
+
+  $('gstModal').classList.remove('hidden');
+}
+
+function verifyAndMatchGst(gstinInput) {
+  const raw = (gstinInput || '').trim().toUpperCase();
+  if (!raw) {
+    showToast('Please enter a 15-digit GSTIN.', 'error');
+    return;
+  }
+
+  const info = parseGstInfo(raw);
+  const card = $('gstResultCard');
+  if (!card) return;
+
+  card.classList.remove('hidden');
+
+  if ($('resGstStateCode')) $('resGstStateCode').textContent = info.stateCode || '00';
+  if ($('resGstNumber')) $('resGstNumber').textContent = info.gstin;
+  if ($('resGstStateName')) $('resGstStateName').textContent = `${info.stateName || 'Unknown State'} (Code ${info.stateCode})`;
+  if ($('resGstPanType')) $('resGstPanType').textContent = `${info.pan || 'N/A'} • ${info.entityType || 'Business Entity'}`;
+
+  const party = info.matchedParty;
+  if (party) {
+    if ($('resGstLegalName')) $('resGstLegalName').textContent = party.legalName;
+    if ($('resGstTradeName')) $('resGstTradeName').textContent = party.tradeName ? `Trade: ${party.tradeName}` : 'Principal Place of Business';
+    if ($('resGstAddress')) $('resGstAddress').textContent = party.address || `${party.stateName}, India`;
+    if ($('resGstMatchStatus')) {
+      $('resGstMatchStatus').textContent = `📚 Matched in Master Directory (${party.legalName})`;
+      $('resGstMatchStatus').style.color = '#059669';
+    }
+    if ($('saveGstToDirectoryBtn')) $('saveGstToDirectoryBtn').textContent = '💾 Update in Directory';
+  } else {
+    const defaultName = `Taxpayer ${info.pan} (${info.entityType || 'Registered Business'})`;
+    if ($('resGstLegalName')) $('resGstLegalName').textContent = defaultName;
+    if ($('resGstTradeName')) $('resGstTradeName').textContent = `Jurisdiction: ${info.stateName || 'India'}`;
+    if ($('resGstAddress')) $('resGstAddress').textContent = `${info.stateName || 'India'}`;
+    if ($('resGstMatchStatus')) {
+      $('resGstMatchStatus').textContent = info.isValidChecksum ? '⚡ Verified via Indian GST Checksum Engine' : '⚠️ Unverified Format / Checksum Mismatch';
+      $('resGstMatchStatus').style.color = info.isValidChecksum ? '#2563eb' : '#dc2626';
+    }
+    if ($('saveGstToDirectoryBtn')) $('saveGstToDirectoryBtn').textContent = '💾 Save to Master Directory';
+  }
+
+  const badge = $('resGstStatusBadge');
+  if (badge) {
+    if (info.isValidChecksum) {
+      badge.className = 'gst-status-badge valid';
+      badge.textContent = '✅ ACTIVE / VALID CHECKSUM';
+    } else if (info.isValidFormat) {
+      badge.className = 'gst-status-badge invalid';
+      badge.textContent = '⚠️ CHECKSUM MISMATCH';
+    } else {
+      badge.className = 'gst-status-badge invalid';
+      badge.textContent = '❌ INVALID FORMAT';
+    }
+  }
+
+  const govLink = $('resGstGovLink');
+  if (govLink) {
+    govLink.href = `https://services.gst.gov.in/services/searchtp`;
+  }
+
+  if ($('applyGstToCompanyBtn')) {
+    $('applyGstToCompanyBtn').onclick = () => {
+      const p = party || {
+        gstin: info.gstin,
+        legalName: $('resGstLegalName').textContent,
+        address: $('resGstAddress').textContent,
+        contact: ''
+      };
+      applyPartyToTarget(p, 'company');
+      $('gstModal').classList.add('hidden');
+    };
+  }
+
+  if ($('applyGstToClientBtn')) {
+    $('applyGstToClientBtn').onclick = () => {
+      const p = party || {
+        gstin: info.gstin,
+        legalName: $('resGstLegalName').textContent,
+        address: $('resGstAddress').textContent,
+        contact: ''
+      };
+      applyPartyToTarget(p, 'client');
+      $('gstModal').classList.add('hidden');
+    };
+  }
+
+  if ($('saveGstToDirectoryBtn')) {
+    $('saveGstToDirectoryBtn').onclick = () => {
+      const p = party || {
+        gstin: info.gstin,
+        legalName: $('resGstLegalName').textContent,
+        tradeName: $('resGstTradeName').textContent.replace('Trade: ', '').replace('Jurisdiction: ', ''),
+        stateCode: info.stateCode,
+        stateName: info.stateName,
+        address: $('resGstAddress').textContent
+      };
+      saveGstPartyToRegistry(p, true);
+    };
   }
 }
 
@@ -1213,6 +1881,18 @@ function updatePreview() {
     }
   }
 
+  const cGst = (val('clientGst') || '').trim();
+  const pClientGst = $('pClientGst');
+  if (pClientGst) {
+    if (cGst) {
+      pClientGst.textContent = `GSTIN: ${cGst}`;
+      pClientGst.style.display = '';
+    } else {
+      pClientGst.textContent = '';
+      pClientGst.style.display = 'none';
+    }
+  }
+
   $('pProjectName').textContent = val('projectName') || 'Project / Site Work';
 
   const sLocation = (val('siteLocation') || '').trim();
@@ -1535,6 +2215,7 @@ function initSupabase() {
           }
           loadCompanyDefaults();
           loadItemCatalog();
+          loadGstRegistry();
         } else {
           console.warn('Supabase connect check:', error.message);
           if (badge) {
@@ -1715,6 +2396,7 @@ async function saveQuotationToCloud() {
     bank_upi: val('bankUpi'),
     show_bank_on_doc: $('showBankOnDoc') ? $('showBankOnDoc').checked : true,
     client_name: val('clientName') || 'Unnamed Client',
+    client_gst: val('clientGst'),
     client_contact: val('clientContact'),
     client_phone: val('clientPhone'),
     project_name: val('projectName') || 'Unspecified Project',
@@ -1906,6 +2588,7 @@ function loadQuotationById(id) {
   if ($('showBankOnDoc')) $('showBankOnDoc').checked = q.show_bank_on_doc != null ? Boolean(q.show_bank_on_doc) : true;
 
   $('clientName').value = q.client_name || '';
+  if ($('clientGst')) $('clientGst').value = q.client_gst || '';
   $('clientContact').value = q.client_contact || '';
   $('clientPhone').value = q.client_phone || '';
   $('projectName').value = q.project_name || '';
@@ -3002,6 +3685,260 @@ if ($('mobBarCloudBtn')) {
   });
 }
 
+// GST Register & Taxpayer Matcher Event Listeners
+if ($('gstModalBtn')) {
+  $('gstModalBtn').addEventListener('click', () => {
+    openGstModal('lookup', '', 'client');
+  });
+}
+
+// Company GST Match Listeners
+if ($('companyGst')) {
+  $('companyGst').addEventListener('input', () => {
+    handleGstInputLive($('companyGst'), $('companyGstMatchInfo'), 'company');
+  });
+}
+
+if ($('matchCompanyGstBtn')) {
+  $('matchCompanyGstBtn').addEventListener('click', () => {
+    openGstModal('lookup', val('companyGst'), 'company');
+  });
+}
+
+if ($('lookupCompanyGstBtn')) {
+  $('lookupCompanyGstBtn').addEventListener('click', () => {
+    const raw = (val('companyGst') || '').trim();
+    if (!raw) {
+      openGstModal('lookup', '', 'company');
+      return;
+    }
+    const match = matchGstFromRegistry(raw);
+    if (match) {
+      applyPartyToTarget(match, 'company');
+    } else {
+      openGstModal('lookup', raw, 'company');
+    }
+  });
+}
+
+// Client GST Match Listeners
+if ($('clientGst')) {
+  $('clientGst').addEventListener('input', () => {
+    handleGstInputLive($('clientGst'), $('clientGstMatchInfo'), 'client');
+  });
+}
+
+if ($('matchClientGstBtn')) {
+  $('matchClientGstBtn').addEventListener('click', () => {
+    openGstModal('lookup', val('clientGst'), 'client');
+  });
+}
+
+if ($('lookupClientGstBtn')) {
+  $('lookupClientGstBtn').addEventListener('click', () => {
+    const raw = (val('clientGst') || '').trim();
+    if (!raw) {
+      openGstModal('lookup', '', 'client');
+      return;
+    }
+    const match = matchGstFromRegistry(raw);
+    if (match) {
+      applyPartyToTarget(match, 'client');
+    } else {
+      openGstModal('lookup', raw, 'client');
+    }
+  });
+}
+
+if ($('openClientGstDirBtn')) {
+  $('openClientGstDirBtn').addEventListener('click', () => {
+    openGstModal('directory', '', 'client');
+  });
+}
+
+if ($('clientName')) {
+  $('clientName').addEventListener('change', () => {
+    const nameVal = val('clientName').trim();
+    if (!nameVal || val('clientGst')) return;
+    const match = matchGstFromRegistry(nameVal);
+    if (match) {
+      applyPartyToTarget(match, 'client');
+    }
+  });
+}
+
+// GST Modal Close & Backdrop
+if ($('closeGstModalBtn')) {
+  $('closeGstModalBtn').addEventListener('click', () => {
+    $('gstModal').classList.add('hidden');
+  });
+}
+
+if ($('gstModal')) {
+  $('gstModal').addEventListener('click', e => {
+    if (e.target === $('gstModal')) {
+      $('gstModal').classList.add('hidden');
+    }
+  });
+}
+
+// GST Modal Tabs
+if ($('tabGstLookupBtn')) $('tabGstLookupBtn').addEventListener('click', () => switchGstTab('lookup'));
+if ($('tabGstDirectoryBtn')) $('tabGstDirectoryBtn').addEventListener('click', () => switchGstTab('directory'));
+if ($('tabGstAddBtn')) $('tabGstAddBtn').addEventListener('click', () => switchGstTab('add'));
+if ($('tabGstSettingsBtn')) $('tabGstSettingsBtn').addEventListener('click', () => switchGstTab('settings'));
+
+// Tab 1: Match & Verify Search Controls
+if ($('gstModalSearchBtn')) {
+  $('gstModalSearchBtn').addEventListener('click', () => {
+    const query = $('gstModalSearchInput') ? $('gstModalSearchInput').value : '';
+    verifyAndMatchGst(query);
+  });
+}
+
+if ($('gstModalSearchInput')) {
+  $('gstModalSearchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      verifyAndMatchGst($('gstModalSearchInput').value);
+    }
+  });
+  $('gstModalSearchInput').addEventListener('input', () => {
+    const raw = $('gstModalSearchInput').value;
+    const clean = raw.trim().toUpperCase();
+    if ($('gstModalSearchInput').value !== clean) {
+      $('gstModalSearchInput').value = clean;
+    }
+    if (clean.length === 15) {
+      verifyAndMatchGst(clean);
+    }
+  });
+}
+
+if ($('gstSampleBtn')) {
+  $('gstSampleBtn').addEventListener('click', () => {
+    if (!gstRegistry.length) return;
+    const rand = gstRegistry[Math.floor(Math.random() * gstRegistry.length)];
+    if ($('gstModalSearchInput')) $('gstModalSearchInput').value = rand.gstin;
+    verifyAndMatchGst(rand.gstin);
+    showToast(`🎲 Loaded sample GSTIN: ${rand.legalName}`);
+  });
+}
+
+document.querySelectorAll('.gst-preset-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    const gst = pill.dataset.gst;
+    if (gst && $('gstModalSearchInput')) {
+      $('gstModalSearchInput').value = gst;
+      verifyAndMatchGst(gst);
+      showToast(`⚡ Matched preset: ${pill.dataset.name || gst}`);
+    }
+  });
+});
+
+// Tab 2: Saved Directory Search & Filters
+if ($('searchGstDirInput')) $('searchGstDirInput').addEventListener('input', renderGstDirectoryManager);
+if ($('filterGstStateSelect')) $('filterGstStateSelect').addEventListener('change', renderGstDirectoryManager);
+if ($('refreshGstDirBtn')) {
+  $('refreshGstDirBtn').addEventListener('click', () => {
+    loadGstRegistry();
+    showToast('🔄 GST Directory refreshed.');
+  });
+}
+
+// Tab 3: Add Party Form
+if ($('addGstNumber')) {
+  $('addGstNumber').addEventListener('input', () => {
+    const raw = $('addGstNumber').value.trim().toUpperCase();
+    $('addGstNumber').value = raw;
+    if (raw.length >= 2 && !$('addGstAddress').value) {
+      const state = GST_STATES[raw.slice(0, 2)];
+      if (state) {
+        $('addGstAddress').placeholder = `e.g. Industrial Area, ${state} - 600001`;
+      }
+    }
+  });
+}
+
+if ($('saveNewGstPartyBtn')) {
+  $('saveNewGstPartyBtn').addEventListener('click', async () => {
+    const gstin = ($('addGstNumber') ? $('addGstNumber').value : '').trim().toUpperCase();
+    const legalName = ($('addGstName') ? $('addGstName').value : '').trim();
+    const tradeName = ($('addGstTrade') ? $('addGstTrade').value : '').trim();
+    const contact = ($('addGstContact') ? $('addGstContact').value : '').trim();
+    const address = ($('addGstAddress') ? $('addGstAddress').value : '').trim();
+
+    if (!gstin || !legalName) {
+      showToast('Please enter both 15-digit GSTIN and Business Legal Name.', 'error');
+      return;
+    }
+
+    if (!validateGstFormat(gstin)) {
+      if (!confirm('The GSTIN format appears irregular. Do you still want to save this taxpayer to your directory?')) {
+        return;
+      }
+    }
+
+    const party = {
+      gstin,
+      legalName,
+      tradeName,
+      contact,
+      address
+    };
+
+    const saved = await saveGstPartyToRegistry(party, true);
+    if (saved) {
+      if ($('addGstNumber')) $('addGstNumber').value = '';
+      if ($('addGstName')) $('addGstName').value = '';
+      if ($('addGstTrade')) $('addGstTrade').value = '';
+      if ($('addGstContact')) $('addGstContact').value = '';
+      if ($('addGstAddress')) $('addGstAddress').value = '';
+      switchGstTab('directory');
+    }
+  });
+}
+
+if ($('clearNewGstFormBtn')) {
+  $('clearNewGstFormBtn').addEventListener('click', () => {
+    if ($('addGstNumber')) $('addGstNumber').value = '';
+    if ($('addGstName')) $('addGstName').value = '';
+    if ($('addGstTrade')) $('addGstTrade').value = '';
+    if ($('addGstContact')) $('addGstContact').value = '';
+    if ($('addGstAddress')) $('addGstAddress').value = '';
+    showToast('Add Party form cleared.');
+  });
+}
+
+// Tab 4: GST API Settings
+if ($('gstApiProviderSelect')) {
+  $('gstApiProviderSelect').addEventListener('change', () => {
+    const provider = $('gstApiProviderSelect').value;
+    const customRow = $('customGstApiRow');
+    if (customRow) {
+      if (provider === 'custom_api') {
+        customRow.classList.remove('hidden');
+      } else {
+        customRow.classList.add('hidden');
+      }
+    }
+  });
+}
+
+if ($('saveGstApiSettingsBtn')) {
+  $('saveGstApiSettingsBtn').addEventListener('click', () => {
+    const provider = $('gstApiProviderSelect') ? $('gstApiProviderSelect').value : 'builtin';
+    const customUrl = $('customGstApiUrl') ? $('customGstApiUrl').value.trim() : '';
+    const customKey = $('customGstApiKey') ? $('customGstApiKey').value.trim() : '';
+
+    localStorage.setItem(gstApiConfigKey, JSON.stringify({
+      provider,
+      customUrl,
+      customKey
+    }));
+    showToast('⚙️ GST verification settings saved successfully!');
+  });
+}
+
 // Service Worker for Offline PWA Support on Mobile & Desktop
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -3018,6 +3955,7 @@ if ($('refreshCloudListBtn')) $('refreshCloudListBtn').addEventListener('click',
 // Initialize on page load
 loadDraftState();
 loadItemCatalog();
+loadGstRegistry();
 initSupabase();
 renderItems();
 updatePreview();

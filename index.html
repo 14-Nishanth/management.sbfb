@@ -31,6 +31,9 @@
         </div>
       </div>
       <div class="top-actions">
+        <button class="btn cloud-btn" id="gstModalBtn" title="Search, verify & match businesses by GST Number">
+          <span>🏢</span> <span class="btn-text">GST Register</span>
+        </button>
         <button class="btn cloud-btn" id="cloudModalBtn" title="Open Cloud Database & Saved Quotes">
           <span>☁️</span> <span class="btn-text">Cloud Database</span> <span class="cloud-status-pill" id="cloudStatusBadge">Connecting...</span>
         </button>
@@ -162,7 +165,17 @@
             <label>Company name<input id="companyName" value="Sri Balamurugan Fly Ash Bricks & Roadwork" /></label>
             <label>Phone <span class="opt-tag">(Optional)</span><input id="companyPhone" value="+91 98765 43210" /></label>
             <label>Email <span class="opt-tag">(Optional)</span><input id="companyEmail" value="info@sbfb.com" /></label>
-            <label>GSTIN / Tax ID <span class="opt-tag">(Optional)</span><input id="companyGst" placeholder="e.g. 33AAAAA0000A1Z5" /></label>
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <label for="companyGst" style="margin:0;">GSTIN / Tax ID <span class="opt-tag">(Optional)</span></label>
+                <button type="button" class="btn-text-link" id="matchCompanyGstBtn" title="Match & Verify GST Number">🔍 Match GST</button>
+              </div>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <input id="companyGst" placeholder="e.g. 33AAAAA0000A1Z5" maxlength="15" style="text-transform:uppercase;font-family:monospace;font-weight:700;flex:1;" list="gstRegistryDatalist" />
+                <button type="button" class="btn small outline" id="lookupCompanyGstBtn" title="Lookup & Match in GST Register" style="padding:7px 10px;font-size:11px;white-space:nowrap;">🔍 Match</button>
+              </div>
+              <div id="companyGstMatchInfo" class="gst-match-info-chip hidden"></div>
+            </div>
             <label class="wide">Company Address <span class="opt-tag">(Optional)</span><textarea id="companyAddress" rows="2">Tamil Nadu, India</textarea></label>
           </div>
         </div>
@@ -174,6 +187,9 @@
               <h2 id="cardClientTitle">Quotation & Client details</h2>
               <p id="cardClientSub">Date, document number, payment status, client contact, and site location.</p>
             </div>
+            <button type="button" class="btn small outline" id="openClientGstDirBtn" title="Pick registered client from GST Directory">
+              🏢 GST Directory
+            </button>
           </div>
           <div class="grid two">
             <label><span id="labelDocDate">Quotation date</span>
@@ -225,7 +241,24 @@
               </label>
             </div>
 
-            <label><span id="labelClientName">Client / Buyer company name</span><input id="clientName" placeholder="e.g. ABC Developers / Client Name" /></label>
+            <!-- Client GSTIN Input with Instant Match Engine -->
+            <div class="wide" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:0;">
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <label for="clientGst" style="margin:0;">Client / Buyer GSTIN <span class="opt-tag">(Optional)</span></label>
+                  <button type="button" class="btn-text-link" id="matchClientGstBtn" title="Match Client in GST Register">🔍 Match GST</button>
+                </div>
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <input id="clientGst" placeholder="e.g. 33ABCDE1234F1Z5" maxlength="15" style="text-transform:uppercase;font-family:monospace;font-weight:700;flex:1;" list="gstRegistryDatalist" />
+                  <button type="button" class="btn small primary" id="lookupClientGstBtn" title="Match GST & Auto-fill Client Details" style="padding:7px 10px;font-size:11px;white-space:nowrap;">⚡ Match</button>
+                </div>
+                <div id="clientGstMatchInfo" class="gst-match-info-chip hidden"></div>
+              </div>
+              <label><span id="labelClientName">Client / Buyer company name</span>
+                <input id="clientName" placeholder="e.g. ABC Developers / Client Name" list="clientNameDatalist" />
+              </label>
+            </div>
+
             <label>Contact person <span class="opt-tag">(Optional)</span><input id="clientContact" placeholder="Contact person name" /></label>
             <label>Client phone <span class="opt-tag">(Optional)</span><input id="clientPhone" placeholder="+91..." /></label>
             <label>Project / building / road name <span class="opt-tag">(Optional)</span><input id="projectName" placeholder="e.g. Commercial Complex / Roadwork" /></label>
@@ -251,6 +284,8 @@
           </div>
           <div class="table-wrap">
             <datalist id="catalogDatalist"></datalist>
+            <datalist id="gstRegistryDatalist"></datalist>
+            <datalist id="clientNameDatalist"></datalist>
             <table class="items-table">
               <thead>
                 <tr id="itemsHeaderRow">
@@ -614,6 +649,7 @@
               <strong id="pClientName">Client name</strong>
               <p id="pClientContact">Contact person</p>
               <p id="pClientPhone">Client phone</p>
+              <p id="pClientGst" class="muted" style="display:none;font-weight:700;color:#0f172a;margin-top:2px;font-size:8.5px;"></p>
             </div>
             <div>
               <span>PROJECT / SITE / DELIVERY</span>
@@ -798,6 +834,7 @@ CREATE TABLE IF NOT EXISTS public.quotations (
   company_gst TEXT,
   company_address TEXT,
   client_name TEXT,
+  client_gst TEXT,
   client_contact TEXT,
   client_phone TEXT,
   project_name TEXT,
@@ -829,6 +866,11 @@ CREATE TABLE IF NOT EXISTS public.company_settings (
   company_email TEXT,
   company_gst TEXT,
   company_address TEXT,
+  bank_name TEXT,
+  bank_account TEXT,
+  bank_ifsc TEXT,
+  bank_branch TEXT,
+  bank_upi TEXT,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -840,7 +882,21 @@ CREATE TABLE IF NOT EXISTS public.item_catalog (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 4. Ensure extra columns exist on existing databases (safe migrations)
+-- 4. Create master gst_registry table (Clients & Companies Master)
+CREATE TABLE IF NOT EXISTS public.gst_registry (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  gstin TEXT NOT NULL UNIQUE,
+  legal_name TEXT NOT NULL,
+  trade_name TEXT,
+  state_code TEXT,
+  state_name TEXT,
+  contact TEXT,
+  address TEXT,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 5. Ensure extra columns exist on existing databases (safe migrations)
+ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS client_gst TEXT;
 ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS logo_mode TEXT DEFAULT 'ai';
 ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS ai_logo_style TEXT DEFAULT 'industrial';
 ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS ai_logo_color TEXT DEFAULT 'amber_slate';
@@ -850,22 +906,16 @@ ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS ai_custom_svg TEXT;
 ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS company_logo_img TEXT;
 ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS gst_mode TEXT DEFAULT '18';
 
-ALTER TABLE public.company_settings ADD COLUMN IF NOT EXISTS logo_mode TEXT DEFAULT 'ai';
-ALTER TABLE public.company_settings ADD COLUMN IF NOT EXISTS ai_logo_style TEXT DEFAULT 'industrial';
-ALTER TABLE public.company_settings ADD COLUMN IF NOT EXISTS ai_logo_color TEXT DEFAULT 'amber_slate';
-ALTER TABLE public.company_settings ADD COLUMN IF NOT EXISTS ai_logo_symbol TEXT DEFAULT 'auto';
-ALTER TABLE public.company_settings ADD COLUMN IF NOT EXISTS ai_logo_seed NUMERIC DEFAULT 1;
-ALTER TABLE public.company_settings ADD COLUMN IF NOT EXISTS ai_custom_svg TEXT;
-ALTER TABLE public.company_settings ADD COLUMN IF NOT EXISTS company_logo_img TEXT;
-
--- 5. Enable Row Level Security & grant access
+-- 6. Enable Row Level Security & grant access
 ALTER TABLE public.quotations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.company_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.item_catalog ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.gst_registry ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Allow public access to quotations" ON public.quotations FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow public access to company_settings" ON public.company_settings FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public access to item_catalog" ON public.item_catalog FOR ALL USING (true) WITH CHECK (true);</pre>
+CREATE POLICY "Allow public access to item_catalog" ON public.item_catalog FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public access to gst_registry" ON public.gst_registry FOR ALL USING (true) WITH CHECK (true);</pre>
                 <button type="button" class="btn small btn-copy" id="copySqlBtn">📋 Copy SQL</button>
               </div>
             </div>
@@ -1055,6 +1105,173 @@ CREATE POLICY "Allow public access to item_catalog" ON public.item_catalog FOR A
               <button type="button" class="btn accent-btn small" id="generateAiDiffusionBtn">
                 🤖 Generate with AI Diffusion Image
               </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GST Register & Taxpayer Matcher Modal -->
+    <div id="gstModal" class="modal-backdrop hidden">
+      <div class="modal-card" style="max-width: 820px;">
+        <div class="modal-head">
+          <div class="modal-title-group">
+            <h3>🏢 Indian GST Register &amp; Taxpayer Matcher</h3>
+            <p>Match, verify, decode and auto-fill business details based on 15-digit GST Number (GSTIN).</p>
+          </div>
+          <button type="button" class="btn-close" id="closeGstModalBtn">&times;</button>
+        </div>
+
+        <div class="modal-tabs">
+          <button class="tab-btn active" id="tabGstLookupBtn">🔍 Match &amp; Verify GST</button>
+          <button class="tab-btn" id="tabGstDirectoryBtn">📚 Saved GST Directory (<span id="gstSavedCount">0</span>)</button>
+          <button class="tab-btn" id="tabGstAddBtn">➕ Add Party to Directory</button>
+          <button class="tab-btn" id="tabGstSettingsBtn">⚙️ Lookup Settings</button>
+        </div>
+
+        <!-- Tab 1: Live Match & Verify GST -->
+        <div id="tabGstLookupContent" class="tab-content">
+          <div class="catalog-add-box" style="background:#f0fdf4;border-color:#bbf7d0;padding:14px 16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+              <div>
+                <strong style="color:#166534;font-size:13px;">🔍 Real-Time GSTIN Decoder &amp; Verification Matcher</strong>
+                <p class="helper-text" style="color:#15803d;margin:2px 0 0;">Enter any 15-character Indian GST Number to verify checksum, decode State, PAN, entity type, and match details.</p>
+              </div>
+              <span class="badge-approx" style="background:#dcfce7;color:#166534;font-size:9.5px;padding:3px 8px;border-radius:6px;font-weight:700;">GSTIN Luhn/Mod-36</span>
+            </div>
+
+            <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+              <input id="gstModalSearchInput" placeholder="Enter 15-digit GSTIN (e.g. 33AAAAA0000A1Z5)" maxlength="15" style="flex:1;min-width:240px;font-family:monospace;font-size:14px;font-weight:800;text-transform:uppercase;padding:9px 12px;" />
+              <button type="button" class="btn primary" id="gstModalSearchBtn" style="white-space:nowrap;font-weight:700;">⚡ Verify &amp; Match</button>
+              <button type="button" class="btn outline" id="gstSampleBtn" style="white-space:nowrap;">🎲 Sample</button>
+            </div>
+
+            <!-- Quick Preset GST Chips -->
+            <div class="quick-items" style="padding:8px 0 0;background:transparent;border:none;">
+              <span style="font-size:10.5px;">Quick Match Presets:</span>
+              <button type="button" class="catalog-pill gst-preset-pill" data-gst="33AABCS1429B1Z1" data-name="Sri Balamurugan Fly Ash Bricks & Roadwork">🧱 SBFB Tamil Nadu</button>
+              <button type="button" class="catalog-pill gst-preset-pill" data-gst="33AAACT2727Q1Z3" data-name="TNP Construction & Infrastructure">🏗️ TNP Infra</button>
+              <button type="button" class="catalog-pill gst-preset-pill" data-gst="29AABCL1234M1ZF" data-name="Apex Civil Developers Pvt Ltd">🏢 Apex Bangalore</button>
+              <button type="button" class="catalog-pill gst-preset-pill" data-gst="27AABCC5678K1Z8" data-name="Metro Roadways & Infra Ltd">🛣️ Metro Mumbai</button>
+            </div>
+          </div>
+
+          <!-- GST Verification Result Card -->
+          <div id="gstResultCard" class="gst-result-card hidden" style="margin-top:16px;">
+            <div class="gst-result-head">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div class="gst-badge-state" id="resGstStateCode">33</div>
+                <div>
+                  <h4 id="resGstLegalName" style="margin:0 0 2px;font-size:15px;color:#fff;">Legal Business Name</h4>
+                  <p id="resGstTradeName" style="margin:0;font-size:12px;color:#cbd5e1;">Trade Name</p>
+                </div>
+              </div>
+              <div id="resGstStatusBadge" class="gst-status-badge valid">✅ ACTIVE / VALID</div>
+            </div>
+
+            <div class="grid two" style="padding:14px 16px;gap:12px;background:#fff;">
+              <div class="gst-meta-item">
+                <span class="meta-label">GSTIN / UIN</span>
+                <strong id="resGstNumber" style="font-family:monospace;font-size:13.5px;color:#0f172a;">33AAAAA0000A1Z5</strong>
+              </div>
+              <div class="gst-meta-item">
+                <span class="meta-label">State / Jurisdiction</span>
+                <strong id="resGstStateName">Tamil Nadu (Code 33)</strong>
+              </div>
+              <div class="gst-meta-item">
+                <span class="meta-label">PAN Number &amp; Taxpayer Entity Type</span>
+                <strong id="resGstPanType">AAAAA0000A &bull; Company (Pvt Ltd / Ltd)</strong>
+              </div>
+              <div class="gst-meta-item">
+                <span class="meta-label">Registry Match Status</span>
+                <strong id="resGstMatchStatus" style="color:#059669;">📚 Matched in Local Master Directory</strong>
+              </div>
+              <div class="gst-meta-item wide">
+                <span class="meta-label">Registered Principal Business Address</span>
+                <strong id="resGstAddress">Tamil Nadu, India</strong>
+              </div>
+            </div>
+
+            <div class="gst-result-actions" style="padding:12px 16px;background:#f8fafc;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;">
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button type="button" class="btn primary small" id="applyGstToCompanyBtn">🏢 Set as Company</button>
+                <button type="button" class="btn accent-btn small" id="applyGstToClientBtn">👤 Set as Client / Buyer</button>
+                <button type="button" class="btn outline small" id="saveGstToDirectoryBtn">💾 Save to Master Directory</button>
+              </div>
+              <a id="resGstGovLink" href="https://services.gst.gov.in/services/searchtp" target="_blank" class="btn-text-link" style="font-size:11.5px;color:#2563eb;font-weight:700;">
+                🌐 Verify on gst.gov.in &nearr;
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Saved GST Directory -->
+        <div id="tabGstDirectoryContent" class="tab-content hidden">
+          <div class="tab-toolbar" style="flex-wrap:wrap;">
+            <input id="searchGstDirInput" placeholder="🔍 Search saved parties by GSTIN, name, or state..." style="flex:1;min-width:200px;" />
+            <select id="filterGstStateSelect" style="width:auto;font-size:12px;padding:6px 10px;">
+              <option value="all">🇮🇳 All States</option>
+            </select>
+            <button class="btn small" id="refreshGstDirBtn">🔄 Refresh</button>
+          </div>
+          <div class="saved-list" id="gstDirectoryList">
+            <div class="empty-state">Loading GST directory...</div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Add Party to GST Master -->
+        <div id="tabGstAddContent" class="tab-content hidden">
+          <div class="catalog-add-box">
+            <h4>Add New Business / Client to GST Master Directory</h4>
+            <p class="helper-text">Add your frequent clients, contractors, or suppliers by GST number for instant 1-click autocomplete in quotations and invoices.</p>
+            <div class="grid two" style="margin-top:10px;gap:12px;">
+              <label>15-Digit GSTIN *
+                <input id="addGstNumber" placeholder="e.g. 33AABCS1429B1ZB" maxlength="15" style="text-transform:uppercase;font-family:monospace;font-weight:700;" />
+              </label>
+              <label>Business / Client Legal Name *
+                <input id="addGstName" placeholder="e.g. Sri Balamurugan Fly Ash Bricks & Roadwork" />
+              </label>
+              <label>Trade Name / Alias (Optional)
+                <input id="addGstTrade" placeholder="e.g. SBFB Construction" />
+              </label>
+              <label>Contact Person &amp; Phone (Optional)
+                <input id="addGstContact" placeholder="e.g. Ramesh (+91 98765 43210)" />
+              </label>
+              <label class="wide">Registered Address / Delivery Location (Optional)
+                <textarea id="addGstAddress" rows="2" placeholder="e.g. Plot No. 12, Industrial Area, Chennai, Tamil Nadu - 600001"></textarea>
+              </label>
+            </div>
+            <div style="margin-top:12px;display:flex;gap:8px;">
+              <button type="button" class="btn primary small" id="saveNewGstPartyBtn">💾 Save to GST Directory</button>
+              <button type="button" class="btn outline small" id="clearNewGstFormBtn">Clear Form</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Settings & API Config -->
+        <div id="tabGstSettingsContent" class="tab-content hidden">
+          <div class="config-grid">
+            <div class="config-section">
+              <h4>Live GST Verification API Settings</h4>
+              <p class="helper-text">The GST Studio features a built-in offline Indian GST algorithm (State lookup, PAN entity decoder, Luhn checksum validation). You can also configure a live GST API provider (e.g. Sandbox.co.in / Razorpay / Masters India / Sheet.gstin).</p>
+              <label>GST Lookup Provider
+                <select id="gstApiProviderSelect">
+                  <option value="builtin" selected>⚡ Built-in Smart Parser &amp; Checksum Engine (Instant &amp; Offline)</option>
+                  <option value="sheet_gstin">🌐 Public GST Lookup Service (Open API)</option>
+                  <option value="custom_api">🔑 Custom GST Suvidha / Sandbox API Key</option>
+                </select>
+              </label>
+              <div id="customGstApiRow" class="hidden" style="margin-top:10px;">
+                <label>Custom API Endpoint URL
+                  <input id="customGstApiUrl" placeholder="https://api.sandbox.co.in/gst/taxpayer/search" />
+                </label>
+                <label style="margin-top:8px;">API Key / Authorization Token
+                  <input type="password" id="customGstApiKey" placeholder="Enter your GST API Key" />
+                </label>
+              </div>
+              <div class="config-actions">
+                <button type="button" class="btn primary small" id="saveGstApiSettingsBtn">Save Settings</button>
+              </div>
             </div>
           </div>
         </div>
