@@ -2195,6 +2195,147 @@ function loadDraftState() {
 }
 
 /* --- Cloud Database (Supabase Integration) --- */
+async function testSupabaseConnectionDetailed(interactive = false) {
+  const url = ($('supabaseUrl') ? $('supabaseUrl').value : '').trim();
+  const key = ($('supabaseKey') ? $('supabaseKey').value : '').trim();
+  const card = $('supabaseDiagCard');
+  const badge = $('diagStatusBadge');
+  const overall = $('diagOverallStatus');
+  const msg = $('diagMsg');
+  const mainBadge = $('cloudStatusBadge');
+
+  if (!url || !key) {
+    if (card) {
+      card.classList.remove('hidden');
+      if (badge) {
+        badge.textContent = 'Disconnected';
+        badge.style.background = '#fef2f2';
+        badge.style.color = '#b91c1c';
+      }
+      if (overall) overall.textContent = '⚠️ No Credentials Entered';
+      if (msg) msg.innerHTML = 'Enter your <strong>Supabase Project URL</strong> and <strong>Anon Public Key</strong> from your Supabase Dashboard &rarr; Project Settings &rarr; API.';
+      if ($('diagTabQuotations')) $('diagTabQuotations').innerHTML = '❌ Not configured';
+      if ($('diagTabCompany')) $('diagTabCompany').innerHTML = '❌ Not configured';
+      if ($('diagTabCatalog')) $('diagTabCatalog').innerHTML = '❌ Not configured';
+      if ($('diagTabGst')) $('diagTabGst').innerHTML = '❌ Not configured';
+    }
+    if (mainBadge) {
+      mainBadge.textContent = '● Local Database';
+      mainBadge.className = 'cloud-status-pill local';
+    }
+    if (interactive) showToast('Please enter both Project URL and Anon Key.', 'error');
+    return false;
+  }
+
+  if (card) {
+    card.classList.remove('hidden');
+    if (badge) {
+      badge.textContent = 'Testing...';
+      badge.style.background = '#e0f2fe';
+      badge.style.color = '#0369a1';
+    }
+    if (overall) overall.textContent = '🔄 Testing Connection & Tables...';
+    if (msg) msg.textContent = 'Connecting to Supabase API endpoints...';
+    if ($('diagTabQuotations')) $('diagTabQuotations').innerHTML = '⏳ Testing...';
+    if ($('diagTabCompany')) $('diagTabCompany').innerHTML = '⏳ Testing...';
+    if ($('diagTabCatalog')) $('diagTabCatalog').innerHTML = '⏳ Testing...';
+    if ($('diagTabGst')) $('diagTabGst').innerHTML = '⏳ Testing...';
+  }
+
+  if (!window.supabase) {
+    if (card && msg) msg.innerHTML = '❌ Supabase JS client library not loaded. Check internet connection.';
+    if (interactive) showToast('Supabase JS library not loaded.', 'error');
+    return false;
+  }
+
+  try {
+    const client = window.supabase.createClient(url, key);
+    supabaseClient = client;
+
+    // Test each of the 4 tables concurrently
+    const [qRes, cRes, catRes, gstRes] = await Promise.allSettled([
+      client.from('quotations').select('id').limit(1),
+      client.from('company_settings').select('id').limit(1),
+      client.from('item_catalog').select('id').limit(1),
+      client.from('gst_registry').select('id').limit(1)
+    ]);
+
+    const qOk = qRes.status === 'fulfilled' && !qRes.value.error;
+    const cOk = cRes.status === 'fulfilled' && !cRes.value.error;
+    const catOk = catRes.status === 'fulfilled' && !catRes.value.error;
+    const gstOk = gstRes.status === 'fulfilled' && !gstRes.value.error;
+
+    if ($('diagTabQuotations')) $('diagTabQuotations').innerHTML = qOk ? '<strong style="color:#16a34a">✅ Active</strong>' : `<span style="color:#dc2626">❌ Missing</span>`;
+    if ($('diagTabCompany')) $('diagTabCompany').innerHTML = cOk ? '<strong style="color:#16a34a">✅ Active</strong>' : `<span style="color:#dc2626">❌ Missing</span>`;
+    if ($('diagTabCatalog')) $('diagTabCatalog').innerHTML = catOk ? '<strong style="color:#16a34a">✅ Active</strong>' : `<span style="color:#dc2626">❌ Missing</span>`;
+    if ($('diagTabGst')) $('diagTabGst').innerHTML = gstOk ? '<strong style="color:#16a34a">✅ Active</strong>' : `<span style="color:#dc2626">❌ Missing</span>`;
+
+    const allOk = qOk && cOk && catOk && gstOk;
+    const partialOk = qOk || cOk || catOk || gstOk;
+
+    if (allOk) {
+      if (badge) {
+        badge.textContent = '● Cloud Online';
+        badge.style.background = '#dcfce7';
+        badge.style.color = '#15803d';
+      }
+      if (mainBadge) {
+        mainBadge.textContent = '● Cloud Online';
+        mainBadge.className = 'cloud-status-pill online';
+      }
+      if (overall) overall.textContent = '🎉 All 4 Database Tables Verified & Online!';
+      if (msg) msg.innerHTML = '✨ Real-time cloud sync is active. Quotations, Item Library, Company Defaults, and GST Register are syncing properly.';
+      
+      localStorage.setItem(supabaseConfigKey, JSON.stringify({ url, key }));
+      loadCompanyDefaults();
+      loadItemCatalog();
+      loadGstRegistry();
+      fetchSavedQuotations();
+
+      if (interactive) showToast('🎉 Connected to Supabase Cloud Database! All tables verified.');
+      return true;
+    } else if (partialOk) {
+      if (badge) {
+        badge.textContent = '● Setup Needed';
+        badge.style.background = '#fffbeb';
+        badge.style.color = '#b45309';
+      }
+      if (mainBadge) {
+        mainBadge.textContent = '● Setup Needed';
+        mainBadge.className = 'cloud-status-pill local';
+      }
+      if (overall) overall.textContent = '⚠️ Connected, but Some Tables are Missing';
+      if (msg) msg.innerHTML = 'Supabase credentials are valid, but some tables have not been created yet. Copy and run the SQL script below in your Supabase SQL Editor.';
+      if (interactive) showToast('Connected, but some tables are missing. Please run the SQL schema.', 'error');
+      return false;
+    } else {
+      const errDetail = qRes.value?.error?.message || cRes.value?.error?.message || 'Connection failed';
+      if (badge) {
+        badge.textContent = '● Connect Failed';
+        badge.style.background = '#fef2f2';
+        badge.style.color = '#b91c1c';
+      }
+      if (mainBadge) {
+        mainBadge.textContent = '● Connect Failed';
+        mainBadge.className = 'cloud-status-pill local';
+      }
+      if (overall) overall.textContent = '❌ Could not connect to Supabase';
+      if (msg) msg.innerHTML = `<strong>Error:</strong> ${errDetail}. Check your Project URL and Anon API key, and ensure your project is active.`;
+      if (interactive) showToast(`Connection error: ${errDetail}`, 'error');
+      return false;
+    }
+  } catch (err) {
+    if (card && msg) msg.innerHTML = `<strong>Exception:</strong> ${err.message || err}`;
+    if (badge) {
+      badge.textContent = '● Error';
+      badge.style.background = '#fef2f2';
+      badge.style.color = '#b91c1c';
+    }
+    if (interactive) showToast(`Connection test failed: ${err.message}`, 'error');
+    return false;
+  }
+}
+
 function initSupabase() {
   try {
     const savedConfig = JSON.parse(localStorage.getItem(supabaseConfigKey) || 'null');
@@ -2205,30 +2346,7 @@ function initSupabase() {
       $('supabaseKey').value = savedConfig.key;
 
       supabaseClient = window.supabase.createClient(savedConfig.url, savedConfig.key);
-
-      // Verify connection
-      supabaseClient.from('quotations').select('id').limit(1).then(({ error }) => {
-        if (!error) {
-          if (badge) {
-            badge.textContent = '● Cloud Online';
-            badge.className = 'cloud-status-pill online';
-          }
-          loadCompanyDefaults();
-          loadItemCatalog();
-          loadGstRegistry();
-        } else {
-          console.warn('Supabase connect check:', error.message);
-          if (badge) {
-            badge.textContent = '● Setup Needed';
-            badge.className = 'cloud-status-pill local';
-          }
-        }
-      }).catch(() => {
-        if (badge) {
-          badge.textContent = '● Local Mode';
-          badge.className = 'cloud-status-pill local';
-        }
-      });
+      testSupabaseConnectionDetailed(false);
     } else {
       if (badge) {
         badge.textContent = '● Local Database';
@@ -3587,23 +3705,24 @@ $('tabConfigBtn').addEventListener('click', () => {
   $('tabCatalogContent').classList.add('hidden');
 });
 
-$('saveSupabaseConfigBtn').addEventListener('click', () => {
+$('saveSupabaseConfigBtn').addEventListener('click', async () => {
   const url = $('supabaseUrl').value.trim();
   const key = $('supabaseKey').value.trim();
 
   if (!url || !key) {
     showToast('Please enter both Supabase Project URL and Anon Key.', 'error');
+    testSupabaseConnectionDetailed(false);
     return;
   }
 
-  localStorage.setItem(supabaseConfigKey, JSON.stringify({ url, key }));
-  initSupabase();
-  showToast('✅ Supabase configuration saved! Testing connection...');
-  setTimeout(() => {
-    fetchSavedQuotations();
-    loadItemCatalog();
-  }, 1000);
+  await testSupabaseConnectionDetailed(true);
 });
+
+if ($('testSupabaseNowBtn')) {
+  $('testSupabaseNowBtn').addEventListener('click', async () => {
+    await testSupabaseConnectionDetailed(true);
+  });
+}
 
 $('clearSupabaseConfigBtn').addEventListener('click', () => {
   localStorage.removeItem(supabaseConfigKey);
@@ -3615,9 +3734,12 @@ $('clearSupabaseConfigBtn').addEventListener('click', () => {
     badge.textContent = '● Local Database';
     badge.className = 'cloud-status-pill local';
   }
+  const diagCard = $('supabaseDiagCard');
+  if (diagCard) diagCard.classList.add('hidden');
   showToast('Disconnected from Supabase. Running in local database mode.');
   fetchSavedQuotations();
   loadItemCatalog();
+  loadGstRegistry();
 });
 
 if ($('copySqlBtn')) {
