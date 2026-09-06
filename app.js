@@ -1353,6 +1353,7 @@ function updatePreview() {
   }
 
   $('pTotal').textContent = money(total);
+  if ($('mobileTotalBadge')) $('mobileTotalBadge').textContent = money(total);
 
   // Bank & UPI Details in Bottom Note Section (Optional)
   const showBank = $('showBankOnDoc') ? $('showBankOnDoc').checked : true;
@@ -2947,9 +2948,72 @@ if ($('copySqlBtn')) {
   });
 }
 
-$('searchQuoteInput').addEventListener('input', applyCloudFilterAndRender);
+// Mobile & Tablet View Switching Logic (Form vs Live Preview)
+function setDeviceView(mode) {
+  const isPreview = mode === 'preview';
+  const editorSec = $('editorSection');
+  const previewP = $('previewPane');
+  const tabEdit = $('mobileTabEditorBtn');
+  const tabPrev = $('mobileTabPreviewBtn');
+  const barEdit = $('mobBarEditBtn');
+  const barPrev = $('mobBarPreviewBtn');
+
+  if (editorSec) editorSec.classList.toggle('mobile-hidden', isPreview);
+  if (previewP) previewP.classList.toggle('mobile-hidden', !isPreview);
+
+  if (tabEdit) tabEdit.classList.toggle('active', !isPreview);
+  if (tabPrev) tabPrev.classList.toggle('active', isPreview);
+  if (barEdit) barEdit.classList.toggle('active', !isPreview);
+  if (barPrev) barPrev.classList.toggle('active', isPreview);
+
+  if (isPreview) {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+if ($('mobileTabEditorBtn')) {
+  $('mobileTabEditorBtn').addEventListener('click', () => setDeviceView('editor'));
+}
+if ($('mobileTabPreviewBtn')) {
+  $('mobileTabPreviewBtn').addEventListener('click', () => setDeviceView('preview'));
+}
+
+// Mobile Bottom Floating Bar Actions
+if ($('mobBarEditBtn')) {
+  $('mobBarEditBtn').addEventListener('click', () => setDeviceView('editor'));
+}
+if ($('mobBarPreviewBtn')) {
+  $('mobBarPreviewBtn').addEventListener('click', () => setDeviceView('preview'));
+}
+if ($('mobBarSaveBtn')) {
+  $('mobBarSaveBtn').addEventListener('click', saveQuotationToCloud);
+}
+if ($('mobBarPrintBtn')) {
+  $('mobBarPrintBtn').addEventListener('click', () => {
+    setDeviceView('preview');
+    setTimeout(() => window.print(), 150);
+  });
+}
+if ($('mobBarCloudBtn')) {
+  $('mobBarCloudBtn').addEventListener('click', () => {
+    $('cloudModal').classList.remove('hidden');
+    fetchSavedQuotations();
+    renderCatalogManager();
+  });
+}
+
+// Service Worker for Offline PWA Support on Mobile & Desktop
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => {
+      console.warn('PWA Service Worker registration non-fatal:', err);
+    });
+  });
+}
+
+if ($('searchQuoteInput')) $('searchQuoteInput').addEventListener('input', applyCloudFilterAndRender);
 if ($('cloudDocFilter')) $('cloudDocFilter').addEventListener('change', applyCloudFilterAndRender);
-$('refreshCloudListBtn').addEventListener('click', fetchSavedQuotations);
+if ($('refreshCloudListBtn')) $('refreshCloudListBtn').addEventListener('click', fetchSavedQuotations);
 
 // Initialize on page load
 loadDraftState();
@@ -2957,6 +3021,7 @@ loadItemCatalog();
 initSupabase();
 renderItems();
 updatePreview();
+
 
 
 

@@ -2,9 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#101828" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="SBFB Studio" />
+  <meta name="application-name" content="SBFB Studio" />
+  <meta name="description" content="SBFB Quotation Studio & Cloud Management - Professional quotation, tax invoice, and cash bill studio for mobile, tablet, and PC." />
   <title>SBFB Quotation Studio & Cloud Management</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="apple-touch-icon" href="icon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
@@ -15,22 +24,42 @@
   <div class="app-shell">
     <header class="topbar no-print">
       <div class="brand">
-        <div><strong id="topBrandTitle">TNP Management</strong><span>Quotation & Cloud Studio</span></div>
+        <div class="brand-badge-icon">🧱</div>
+        <div>
+          <strong id="topBrandTitle">TNP Management</strong>
+          <span>Quotation &amp; Cloud Studio</span>
+        </div>
       </div>
       <div class="top-actions">
-        <button class="btn cloud-btn" id="cloudModalBtn">
-          <span>☁️</span> Cloud Database <span class="cloud-status-pill" id="cloudStatusBadge">Connecting...</span>
+        <button class="btn cloud-btn" id="cloudModalBtn" title="Open Cloud Database & Saved Quotes">
+          <span>☁️</span> <span class="btn-text">Cloud Database</span> <span class="cloud-status-pill" id="cloudStatusBadge">Connecting...</span>
         </button>
-        <button class="btn accent-btn" id="saveCloudBtn">💾 Save to Cloud</button>
-        <button class="btn ghost" id="resetBtn">New quotation</button>
-        <button class="btn primary" id="printBtn">Print / Save PDF</button>
+        <button class="btn accent-btn" id="saveCloudBtn" title="Save document to Cloud Database">
+          <span>💾</span> <span class="btn-text">Save</span>
+        </button>
+        <button class="btn ghost" id="resetBtn" title="Start a fresh blank document">
+          <span>➕</span> <span class="btn-text">New</span>
+        </button>
+        <button class="btn primary" id="printBtn" title="Print document or save as PDF">
+          <span>🖨️</span> <span class="btn-text">Print / PDF</span>
+        </button>
       </div>
     </header>
 
     <div id="toastNotification" class="toast hidden"></div>
 
+    <!-- Mobile & Tablet View Switcher -->
+    <nav class="mobile-view-switcher no-print" id="mobileViewSwitcher" aria-label="Device View Switcher">
+      <button type="button" class="mobile-nav-btn active" id="mobileTabEditorBtn">
+        <span>✏️</span> Edit Form
+      </button>
+      <button type="button" class="mobile-nav-btn" id="mobileTabPreviewBtn">
+        <span>👁️</span> Document Preview <span class="preview-badge-total" id="mobileTotalBadge">₹0.00</span>
+      </button>
+    </nav>
+
     <main class="workspace">
-      <section class="editor no-print">
+      <section class="editor no-print" id="editorSection">
         <!-- Document Type Selector & Page Heading -->
         <div class="page-heading">
           <div>
@@ -535,7 +564,7 @@
       </section>
 
       <!-- Live Printable Preview -->
-      <aside class="preview-pane">
+      <aside class="preview-pane" id="previewPane">
         <div class="preview-toolbar no-print">
           <span>LIVE PREVIEW</span>
           <span id="previewTplLabel">A4 Document &bull; Modern Executive</span>
@@ -843,6 +872,8 @@ CREATE POLICY "Allow public access to item_catalog" ON public.item_catalog FOR A
           </div>
         </div>
       </div>
+    </div>
+
     <!-- AI Logo Studio Modal -->
     <div id="aiLogoModal" class="modal-backdrop hidden">
       <div class="modal-card" style="max-width: 860px;">
@@ -1026,6 +1057,9 @@ CREATE POLICY "Allow public access to item_catalog" ON public.item_catalog FOR A
               </button>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Dedicated Full Logo Preview & Inspection Modal -->
     <div id="logoPreviewModal" class="modal-backdrop hidden">
@@ -1070,6 +1104,30 @@ CREATE POLICY "Allow public access to item_catalog" ON public.item_catalog FOR A
         </div>
       </div>
     </div>
+
+    <!-- Mobile Bottom Quick Actions Bar (Visible only on mobile screens) -->
+    <nav class="mobile-bottom-bar no-print" id="mobileBottomBar" aria-label="Quick Mobile Actions">
+      <button type="button" class="mobile-bar-btn active" id="mobBarEditBtn">
+        <span class="bar-icon">✏️</span>
+        <span class="bar-label">Edit</span>
+      </button>
+      <button type="button" class="mobile-bar-btn" id="mobBarPreviewBtn">
+        <span class="bar-icon">👁️</span>
+        <span class="bar-label">Preview</span>
+      </button>
+      <button type="button" class="mobile-bar-btn" id="mobBarSaveBtn">
+        <span class="bar-icon">💾</span>
+        <span class="bar-label">Save</span>
+      </button>
+      <button type="button" class="mobile-bar-btn primary-action" id="mobBarPrintBtn">
+        <span class="bar-icon">🖨️</span>
+        <span class="bar-label">PDF</span>
+      </button>
+      <button type="button" class="mobile-bar-btn" id="mobBarCloudBtn">
+        <span class="bar-icon">☁️</span>
+        <span class="bar-label">Cloud</span>
+      </button>
+    </nav>
 
   </div>
   <script src="app.js"></script>

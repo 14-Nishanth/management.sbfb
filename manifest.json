@@ -1,0 +1,19 @@
+{
+  "name": "SBFB Quotation Studio & Cloud Management",
+  "short_name": "SBFB Studio",
+  "description": "Professional Quotation, Bill, and Cloud Management Studio for Civil, Bricks, and Infrastructure Works.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
