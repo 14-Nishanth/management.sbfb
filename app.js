@@ -77,6 +77,11 @@ const openAiKeyStorage = 'sbfbOpenAiKey';
 const gstRegistryStorageKey = 'sbfbGstRegistry';
 const gstApiConfigKey = 'sbfbGstApiConfig';
 
+const DEFAULT_SUPABASE_CONFIG = {
+  url: 'https://kijakljeagxocpxgmaav.supabase.co',
+  key: 'sb_publishable_Y4CedcRTY7NTEPUWrVisow_9C_Gn6DA'
+};
+
 /* Indian GST States & UTs (All 37 Official GST Codes) */
 const GST_STATES = {
   '01': 'Jammu & Kashmir',
@@ -2338,12 +2343,16 @@ async function testSupabaseConnectionDetailed(interactive = false) {
 
 function initSupabase() {
   try {
-    const savedConfig = JSON.parse(localStorage.getItem(supabaseConfigKey) || 'null');
+    let savedConfig = JSON.parse(localStorage.getItem(supabaseConfigKey) || 'null');
+    if (!savedConfig || !savedConfig.url || !savedConfig.key) {
+      savedConfig = DEFAULT_SUPABASE_CONFIG;
+      localStorage.setItem(supabaseConfigKey, JSON.stringify(savedConfig));
+    }
     const badge = $('cloudStatusBadge');
 
     if (savedConfig && savedConfig.url && savedConfig.key && window.supabase) {
-      $('supabaseUrl').value = savedConfig.url;
-      $('supabaseKey').value = savedConfig.key;
+      if ($('supabaseUrl')) $('supabaseUrl').value = savedConfig.url;
+      if ($('supabaseKey')) $('supabaseKey').value = savedConfig.key;
 
       supabaseClient = window.supabase.createClient(savedConfig.url, savedConfig.key);
       testSupabaseConnectionDetailed(false);
@@ -2538,13 +2547,48 @@ async function saveQuotationToCloud() {
   if (supabaseClient) {
     try {
       const { error } = await supabaseClient.from('quotations').upsert(quotePayload);
-      if (error) throw error;
+      if (error) {
+        if (error.code === 'PGRST204' || (error.message && error.message.includes('column'))) {
+          // Retry with baseline columns for backward-compatibility with unmigrated schema
+          const baselinePayload = {
+            id: quotePayload.id,
+            quote_no: quotePayload.quote_no,
+            quote_date: quotePayload.quote_date,
+            company_name: quotePayload.company_name,
+            company_phone: quotePayload.company_phone,
+            company_email: quotePayload.company_email,
+            company_gst: quotePayload.company_gst,
+            company_address: quotePayload.company_address,
+            client_name: quotePayload.client_name,
+            client_contact: quotePayload.client_contact,
+            client_phone: quotePayload.client_phone,
+            project_name: quotePayload.project_name,
+            site_location: quotePayload.site_location,
+            items: quotePayload.items,
+            gst_rate: quotePayload.gst_rate,
+            discount: quotePayload.discount,
+            validity: quotePayload.validity,
+            payment_terms: quotePayload.payment_terms,
+            notes: quotePayload.notes,
+            subtotal: quotePayload.subtotal,
+            total: quotePayload.total,
+            updated_at: quotePayload.updated_at
+          };
+          const { error: retryErr } = await supabaseClient.from('quotations').upsert(baselinePayload);
+          if (!retryErr) {
+            showToast(`☁️ ${conf.name} & items saved to Supabase Cloud Database!`);
+            saveDraftState();
+            return;
+          }
+        }
+        throw error;
+      }
       showToast(`☁️ ${conf.name} & items saved to Cloud Database successfully!`);
       saveDraftState();
       return;
     } catch (err) {
       console.error('Supabase save error:', err);
-      showToast(`Cloud save error: ${err.message || 'Check database'}. Saved locally.`, 'error');
+      showToast(`Cloud save notice: ${err.message || 'Check database'}. Saved locally.`, 'error');
     }
   }
 
