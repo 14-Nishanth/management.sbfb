@@ -16,7 +16,7 @@
   <link rel="apple-touch-icon" href="icon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&family=Manrope:wght@600;700;800&family=Outfit:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -31,6 +31,9 @@
         </div>
       </div>
       <div class="top-actions">
+        <button class="btn cloud-btn" id="topLayoutStudioBtn" title="Design, customize & manage Bill Layouts & Themes">
+          <span>🎨</span> <span class="btn-text">Layout Studio</span>
+        </button>
         <button class="btn cloud-btn" id="gstModalBtn" title="Search, verify & match businesses by GST Number">
           <span>🏢</span> <span class="btn-text">GST Register</span>
         </button>
@@ -89,60 +92,39 @@
 
         <input type="hidden" id="docType" value="quotation" />
         <input type="hidden" id="docTemplate" value="modern" />
-        <input type="hidden" id="billingMode" value="sqm_rate" />
+        <input type="hidden" id="billingMode" value="qty_rate" />
 
-        <!-- 🎨 Template Designs Card -->
+        <!-- 🎨 Template Designs & Custom Layout Studio Card -->
         <div class="card">
           <div class="card-head">
             <div>
-              <h2>🎨 Template Designs (Bill & Quotation)</h2>
-              <p>Pick a professional layout style for your client document & printout.</p>
+              <h2>🎨 Template Designs (17+ Layouts)</h2>
+              <p>Pick a professional layout style for your client document & printout, or create your own custom layout.</p>
             </div>
-            <span id="activeTemplateBadge" style="font-size:11px;font-weight:800;color:#2563eb;background:#eff6ff;padding:3px 8px;border-radius:99px;border:1px solid #bfdbfe;">🌟 Modern Executive</span>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <span id="activeTemplateBadge" style="font-size:11px;font-weight:800;color:#2563eb;background:#eff6ff;padding:4px 10px;border-radius:99px;border:1px solid #bfdbfe;">🌟 Modern Executive</span>
+              <button type="button" class="btn small primary" id="openLayoutDesignerBtn" title="Design a bespoke bill layout with custom colors, fonts & borders">
+                ✨ Create Custom Layout
+              </button>
+              <button type="button" class="btn small outline hidden" id="editActiveLayoutBtn" title="Edit this custom layout">
+                ✏️ Edit Layout
+              </button>
+            </div>
           </div>
-          <div class="template-picker-grid">
-            <button type="button" class="template-pill-btn active" data-tpl="modern" id="tplModernBtn">
-              <span class="template-color-dot" style="background:#f59e0b;"></span>
-              <div>
-                <strong>🌟 Modern Executive</strong>
-                <span style="font-size:9.5px;color:#64748b;display:block;">Sleek Slate & Amber</span>
-              </div>
-            </button>
-            <button type="button" class="template-pill-btn" data-tpl="classic" id="tplClassicBtn">
-              <span class="template-color-dot" style="background:#0f172a;"></span>
-              <div>
-                <strong>🏛️ Classic Corporate</strong>
-                <span style="font-size:9.5px;color:#64748b;display:block;">Formal Tax Grid</span>
-              </div>
-            </button>
-            <button type="button" class="template-pill-btn" data-tpl="industrial" id="tplIndustrialBtn">
-              <span class="template-color-dot" style="background:#f59e0b;"></span>
-              <div>
-                <strong>🧱 Industrial Amber</strong>
-                <span style="font-size:9.5px;color:#64748b;display:block;">SBFB Construction</span>
-              </div>
-            </button>
-            <button type="button" class="template-pill-btn" data-tpl="sapphire" id="tplSapphireBtn">
-              <span class="template-color-dot" style="background:#2563eb;"></span>
-              <div>
-                <strong>💎 Sapphire Clean</strong>
-                <span style="font-size:9.5px;color:#64748b;display:block;">Minimalist Blue</span>
-              </div>
-            </button>
-            <button type="button" class="template-pill-btn" data-tpl="emerald" id="tplEmeraldBtn">
-              <span class="template-color-dot" style="background:#059669;"></span>
-              <div>
-                <strong>🌿 Emerald Green</strong>
-                <span style="font-size:9.5px;color:#64748b;display:block;">Eco Infrastructure</span>
-              </div>
-            </button>
-            <button type="button" class="template-pill-btn" data-tpl="monochrome" id="tplMonochromeBtn">
-              <span class="template-color-dot" style="background:#000;"></span>
-              <div>
-                <strong>🖤 Monochrome Sleek</strong>
-                <span style="font-size:9.5px;color:#64748b;display:block;">High-Contrast B&W</span>
-              </div>
-            </button>
+
+          <!-- Category filter tabs -->
+          <div class="template-filter-bar no-print">
+            <button type="button" class="tpl-filter-pill active" data-filter="all">All Styles (17+)</button>
+            <button type="button" class="tpl-filter-pill" data-filter="corporate">🏛️ Corporate &amp; Tax</button>
+            <button type="button" class="tpl-filter-pill" data-filter="modern">🎨 Modern &amp; Tech</button>
+            <button type="button" class="tpl-filter-pill" data-filter="industrial">🧱 Industrial &amp; Civil</button>
+            <button type="button" class="tpl-filter-pill" data-filter="luxury">👑 Luxury &amp; Vintage</button>
+            <button type="button" class="tpl-filter-pill" data-filter="custom">✨ Custom (<span id="customFilterCount">0</span>)</button>
+          </div>
+
+          <!-- Dynamic Template Picker Grid -->
+          <div class="template-picker-grid" id="templatePickerGrid">
+            <!-- Populated dynamically by app.js -->
           </div>
         </div>
 
@@ -271,12 +253,12 @@
           <div class="card-head">
             <div>
               <h2>Work & Building Items</h2>
-              <p>Add quoted items with <strong>Rate per sq.m</strong> or <strong>Quantity × Unit Rate</strong>.</p>
+              <p>Add quoted items with <strong>Quantity × Unit Rate</strong> (pieces, nos, kg, tons, sq.m, brass, etc.) or <strong>Rate / sq.m</strong>.</p>
             </div>
             <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
               <div class="logo-mode-pill-bar">
-                <button type="button" class="logo-mode-pill active" id="modeSqmBtn" data-bmode="sqm_rate">📐 Rate / sq.m</button>
-                <button type="button" class="logo-mode-pill" id="modeQtyBtn" data-bmode="qty_rate">📦 Qty × Rate</button>
+                <button type="button" class="logo-mode-pill active" id="modeQtyBtn" data-bmode="qty_rate">📦 Qty × Unit Rate</button>
+                <button type="button" class="logo-mode-pill" id="modeSqmBtn" data-bmode="sqm_rate">📐 Rate / sq.m</button>
               </div>
               <button type="button" class="btn small outline" id="saveCatalogBtn" title="Save items to reusable library">💾 Save Library</button>
               <button class="btn small primary" id="addItemBtn">+ Add item</button>
@@ -291,10 +273,10 @@
                 <tr id="itemsHeaderRow">
                   <th style="width: 45px;">Sl.</th>
                   <th>Work / Item Description</th>
-                  <th id="thItemQty" class="hidden" style="width: 75px;">Qty</th>
-                  <th id="thItemUnit" class="hidden" style="width: 85px;">Unit</th>
-                  <th id="thItemRate" style="width: 150px;">Rate (₹)</th>
-                  <th id="thItemAmount" class="hidden" style="width: 110px;">Amount (₹)</th>
+                  <th id="thItemQty" style="width: 75px;">Qty</th>
+                  <th id="thItemUnit" style="width: 110px;">Unit</th>
+                  <th id="thItemRate" style="width: 140px;">Unit Rate (₹)</th>
+                  <th id="thItemAmount" style="width: 115px;">Amount (₹)</th>
                   <th style="width: 35px;"></th>
                 </tr>
               </thead>
@@ -332,7 +314,7 @@
               </label>
             </div>
             <label>Discount (₹) <span class="opt-tag">(Optional)</span><input id="discount" type="number" min="0" step="0.01" value="0" placeholder="0.00" /></label>
-            <label id="validityInputGroup">Validity (days) <span class="opt-tag">(Optional)</span><input id="validity" type="number" min="1" value="15" placeholder="15" /></label>
+            <label id="validityInputGroup">Validity (days) <span class="opt-tag">(Optional)</span><input id="validity" type="number" min="1" value="" placeholder="e.g. 15 (Optional)" /></label>
             
             <div class="wide" style="display:flex;flex-direction:column;gap:6px;">
               <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -601,10 +583,21 @@
       <!-- Live Printable Preview -->
       <aside class="preview-pane" id="previewPane">
         <div class="preview-toolbar no-print">
-          <span>LIVE PREVIEW</span>
-          <span id="previewTplLabel">A4 Document &bull; Modern Executive</span>
+          <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+            <span style="font-weight:800;letter-spacing:0.5px;color:#94a3b8;font-size:10.5px;">LIVE PREVIEW</span>
+            <span id="previewTplLabel" style="font-size:11px;color:#38bdf8;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">A4 Document &bull; Modern Executive</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+            <button type="button" class="btn small primary" id="previewLayoutStudioBtn" title="Customize bill layout, colors, borders & fonts" style="padding:4px 10px;font-size:11px;">
+              🎨 Layout Studio
+            </button>
+            <button type="button" class="btn small outline hidden" id="previewEditLayoutBtn" title="Edit this active custom layout" style="padding:4px 10px;font-size:11px;">
+              ✏️ Edit Layout
+            </button>
+          </div>
         </div>
         <article class="quotation tpl-modern" id="quotationPreview">
+          <div id="pWatermark" class="doc-watermark hidden"></div>
           <div class="quote-header">
             <div>
               <div id="pCompanyLogoWrap">
@@ -643,7 +636,7 @@
 
           <div class="accent-line"></div>
 
-          <div class="client-strip">
+          <div class="client-strip" id="pClientStrip">
             <div>
               <span id="pClientHeaderTag">BILL TO / CLIENT</span>
               <strong id="pClientName">Client name</strong>
@@ -656,7 +649,7 @@
               <strong id="pProjectName">Project name</strong>
               <p id="pSiteLocation">Site location</p>
             </div>
-            <div>
+            <div id="pThirdBoxWrap">
               <span id="pThirdBoxTag">VALIDITY</span>
               <strong id="pThirdBoxValue">15 days</strong>
               <p id="pThirdBoxSub">From quotation date</p>
@@ -668,10 +661,10 @@
               <tr>
                 <th style="width: 35px;">Sl.</th>
                 <th>Work / Item Description</th>
-                <th id="pThQty" class="center hidden" style="width: 50px;">Qty</th>
-                <th id="pThUnit" class="center hidden" style="width: 55px;">Unit</th>
-                <th id="pThRate" class="right" style="width: 140px;">Rate (₹)</th>
-                <th id="pThAmount" class="right hidden" style="width: 110px;">Amount (₹)</th>
+                <th id="pThQty" class="center" style="width: 50px;">Qty</th>
+                <th id="pThUnit" class="center" style="width: 60px;">Unit</th>
+                <th id="pThRate" class="right" style="width: 120px;">Rate (₹)</th>
+                <th id="pThAmount" class="right" style="width: 110px;">Amount (₹)</th>
               </tr>
             </thead>
             <tbody id="previewItems"></tbody>
@@ -744,6 +737,7 @@
         <div class="modal-tabs">
           <button class="tab-btn active" id="tabSavedBtn">📁 Saved Documents (<span id="savedCount">0</span>)</button>
           <button class="tab-btn" id="tabCatalogBtn">📚 Stored Item Library (<span id="catalogCount">0</span>)</button>
+          <button class="tab-btn" id="tabCustomLayoutsBtn">🎨 Custom Layouts (<span id="customLayoutsCount">0</span>)</button>
           <button class="tab-btn" id="tabConfigBtn">⚙️ Cloud Database Settings (Supabase)</button>
         </div>
 
@@ -768,14 +762,19 @@
         <div id="tabCatalogContent" class="tab-content hidden">
           <div class="catalog-add-box">
             <h4>Add New Item to Stored Library</h4>
-            <p class="helper-text">Add items here or directly in any quotation — they will be stored in your cloud database and available across all quotations.</p>
-            <div class="grid two" style="margin-top:10px;margin-bottom:12px;">
+            <p class="helper-text">Add master items with their unit of measurement (pieces, nos, kg, tons, sq.m, brass, etc.) and standard rate — stored in your cloud database and available across all quotations and bills.</p>
+            <div class="grid three" style="margin-top:10px;margin-bottom:12px;grid-template-columns: 1.4fr 1fr 1fr;">
               <label>Work / Item Description
-                <input id="newCatalogDesc" placeholder="e.g. Waterproof Exterior Texture Painting" />
+                <input id="newCatalogDesc" placeholder="e.g. Standard Fly Ash Bricks / Steel / Cement" />
               </label>
-              <label>Rate per Sq. Meter (₹/sq.m)
+              <label>Unit of Measurement
+                <select id="newCatalogUnit" style="padding:8px 8px;font-size:12px;border-radius:7px;border:1px solid #cbd5e1;background:#fff;width:100%;">
+                  <!-- Dynamically populated with all measurement units -->
+                </select>
+              </label>
+              <label>Quoted Rate (₹)
                 <div style="display:flex;gap:6px;">
-                  <input id="newCatalogRate" type="number" min="0" step="0.01" placeholder="e.g. 180" />
+                  <input id="newCatalogRate" type="number" min="0" step="0.01" placeholder="e.g. 7.50" />
                   <button type="button" class="btn primary small" id="addNewCatalogItemBtn" style="white-space:nowrap;">+ Add to Library</button>
                 </div>
               </label>
@@ -791,12 +790,38 @@
           </div>
         </div>
 
-        <!-- Tab 3: Supabase Settings & SQL Schema -->
+        <!-- Tab 3: Custom Bill Layouts Cloud Manager -->
+        <div id="tabCustomLayoutsContent" class="tab-content hidden">
+          <div class="catalog-add-box">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+              <div>
+                <h4 style="margin:0 0 2px;">🎨 Cloud Bill Layouts &amp; Templates (<span id="customLayoutsCount2">0</span>)</h4>
+                <p class="helper-text" style="margin:0;">Custom invoice &amp; quotation layouts created with the Layout Studio, synced to Supabase Cloud Database.</p>
+              </div>
+              <button type="button" class="btn primary small" id="cloudNewLayoutBtn">✨ + Create New Layout</button>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin:16px 0 10px;flex-wrap:wrap;gap:8px;">
+            <input id="searchLayoutsInput" placeholder="🔍 Search custom layouts by name or archetype..." style="flex:1;min-width:200px;font-size:12px;padding:6px 10px;" />
+            <div style="display:flex;gap:6px;">
+              <button type="button" class="btn small outline" id="exportAllLayoutsBtn">📥 Export JSON</button>
+              <button type="button" class="btn small outline" id="importLayoutsBtn">📤 Import JSON</button>
+              <button type="button" class="btn small" id="refreshLayoutsBtn">🔄 Refresh</button>
+            </div>
+          </div>
+
+          <div class="saved-list" id="customLayoutsManagerList">
+            <div class="empty-state">No custom layouts created yet. Click "Create New Layout" to design bespoke bill themes.</div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Supabase Settings & SQL Schema -->
         <div id="tabConfigContent" class="tab-content hidden">
           <div class="config-grid">
             <div class="config-section">
               <h4>Supabase Credentials</h4>
-              <p class="helper-text">Connect your free Supabase Postgres project to store quotations, items, and company details in the cloud.</p>
+              <p class="helper-text">Connect your free Supabase Postgres project to store quotations, items, custom layouts, and company details in the cloud.</p>
               <label>Supabase Project URL
                 <input id="supabaseUrl" placeholder="https://xyzcompany.supabase.co" />
               </label>
@@ -820,6 +845,7 @@
                   <div>🏢 <code>company_settings</code>: <span id="diagTabCompany">⏳ Testing...</span></div>
                   <div>📦 <code>item_catalog</code>: <span id="diagTabCatalog">⏳ Testing...</span></div>
                   <div>🏛️ <code>gst_registry</code>: <span id="diagTabGst">⏳ Testing...</span></div>
+                  <div style="grid-column: span 2;">🎨 <code>custom_layouts</code>: <span id="diagTabCustomLayouts">⏳ Testing...</span></div>
                 </div>
                 <div id="diagMsg" style="font-size:11px;color:#64748b;margin-top:8px;line-height:1.4;"></div>
               </div>
@@ -827,7 +853,7 @@
 
             <div class="config-section">
               <h4>Database SQL Setup (One-Time)</h4>
-              <p class="helper-text">Paste this SQL in your Supabase SQL Editor to create the <code>quotations</code>, <code>company_settings</code>, and <code>item_catalog</code> tables.</p>
+              <p class="helper-text">Paste this SQL in your Supabase SQL Editor to create the <code>quotations</code>, <code>company_settings</code>, <code>item_catalog</code>, <code>gst_registry</code>, and <code>custom_layouts</code> tables.</p>
               <div class="sql-box-wrap">
                 <pre id="sqlSchemaBox">-- 1. Create quotations table
 CREATE TABLE IF NOT EXISTS public.quotations (
@@ -863,7 +889,9 @@ CREATE TABLE IF NOT EXISTS public.quotations (
   payment_terms TEXT,
   notes TEXT,
   subtotal NUMERIC DEFAULT 0,
-  total NUMERIC DEFAULT 0
+  total NUMERIC DEFAULT 0,
+  template_theme TEXT DEFAULT 'modern',
+  custom_layout_config JSONB
 );
 
 -- 2. Create company_settings table
@@ -895,10 +923,11 @@ CREATE TABLE IF NOT EXISTS public.item_catalog (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   description TEXT NOT NULL UNIQUE,
   rate NUMERIC NOT NULL DEFAULT 0,
+  unit TEXT NOT NULL DEFAULT 'pcs',
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 4. Create master gst_registry table (Clients & Companies Master)
+-- 4. Create master gst_registry table
 CREATE TABLE IF NOT EXISTS public.gst_registry (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   gstin TEXT NOT NULL UNIQUE,
@@ -911,30 +940,359 @@ CREATE TABLE IF NOT EXISTS public.gst_registry (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 5. Ensure extra columns exist on existing databases (safe migrations)
+-- 5. Create custom_layouts table (User Bill Layouts Saved to Cloud)
+CREATE TABLE IF NOT EXISTS public.custom_layouts (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  category TEXT DEFAULT 'modern',
+  config JSONB NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 6. Ensure extra columns exist on existing databases (safe migrations)
 ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS client_gst TEXT;
 ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS logo_mode TEXT DEFAULT 'ai';
-ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS ai_logo_style TEXT DEFAULT 'industrial';
-ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS ai_logo_color TEXT DEFAULT 'amber_slate';
-ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS ai_logo_symbol TEXT DEFAULT 'auto';
-ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS ai_logo_seed NUMERIC DEFAULT 1;
-ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS ai_custom_svg TEXT;
-ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS company_logo_img TEXT;
-ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS gst_mode TEXT DEFAULT '18';
+ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS template_theme TEXT DEFAULT 'modern';
+ALTER TABLE public.quotations ADD COLUMN IF NOT EXISTS custom_layout_config JSONB;
+ALTER TABLE public.item_catalog ADD COLUMN IF NOT EXISTS unit TEXT DEFAULT 'pcs';
 
--- 6. Enable Row Level Security & grant access
+-- 7. Enable Row Level Security & grant access
 ALTER TABLE public.quotations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.company_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.item_catalog ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.gst_registry ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.custom_layouts ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Allow public access to quotations" ON public.quotations FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow public access to company_settings" ON public.company_settings FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow public access to item_catalog" ON public.item_catalog FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow public access to gst_registry" ON public.gst_registry FOR ALL USING (true) WITH CHECK (true);</pre>
+CREATE POLICY "Allow public access to gst_registry" ON public.gst_registry FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow public access to custom_layouts" ON public.custom_layouts FOR ALL USING (true) WITH CHECK (true);</pre>
                 <button type="button" class="btn small btn-copy" id="copySqlBtn">📋 Copy SQL</button>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Layout Studio & Custom Bill Designer Modal -->
+    <div id="layoutDesignerModal" class="modal-backdrop hidden">
+      <div class="modal-card layout-designer-card" style="max-width: 980px;">
+        <div class="modal-head">
+          <div class="modal-title-group">
+            <h3>🎨 Bill &amp; Quotation Layout Studio</h3>
+            <p>Design custom bill layouts with bespoke colors, fonts, grid styles &amp; sync them to the Supabase Cloud.</p>
+          </div>
+          <button type="button" class="btn-close" id="closeLayoutDesignerBtn">&times;</button>
+        </div>
+
+        <div class="modal-tabs">
+          <button class="tab-btn active" id="tabDesignerBuilderBtn">🛠️ Visual Layout Builder</button>
+          <button class="tab-btn" id="tabDesignerPresetsBtn">⚡ Starter Presets (8 Styles)</button>
+          <button class="tab-btn" id="tabDesignerSyncBtn">☁️ Cloud Sync &amp; Storage</button>
+          <button class="tab-btn" id="tabDesignerJsonBtn">📄 Import / Export JSON</button>
+        </div>
+
+        <!-- Tab 1: Visual Layout Builder -->
+        <div id="tabDesignerBuilderContent" class="tab-content">
+          <div class="layout-builder-grid">
+            <!-- Controls Column -->
+            <div class="layout-builder-controls">
+              <!-- Basic Info -->
+              <div class="builder-section">
+                <h4>1. Layout Information</h4>
+                <div class="grid two">
+                  <label>Layout Name *
+                    <input id="customLayoutName" placeholder="e.g. Sapphire Corporate Pro" value="My Custom Bill Layout" />
+                  </label>
+                  <label>Category
+                    <select id="customLayoutCategory">
+                      <option value="corporate">🏛️ Corporate &amp; Tax Grid</option>
+                      <option value="modern" selected>🎨 Modern &amp; Tech</option>
+                      <option value="industrial">🧱 Industrial &amp; Civil</option>
+                      <option value="luxury">👑 Luxury &amp; Vintage</option>
+                      <option value="minimal">📐 Swiss Minimalist</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Base Archetype -->
+              <div class="builder-section">
+                <h4>2. Base Structure Archetype</h4>
+                <div class="archetype-picker-grid">
+                  <label class="archetype-option">
+                    <input type="radio" name="customArchetype" value="modern" checked />
+                    <div class="archetype-card">
+                      <strong>🌟 Modern Top Bar</strong>
+                      <span>Clean card with bold accent bar</span>
+                    </div>
+                  </label>
+                  <label class="archetype-option">
+                    <input type="radio" name="customArchetype" value="classic" />
+                    <div class="archetype-card">
+                      <strong>🏛️ Formal Tax Grid</strong>
+                      <span>Fully enclosed table &amp; borders</span>
+                    </div>
+                  </label>
+                  <label class="archetype-option">
+                    <input type="radio" name="customArchetype" value="split" />
+                    <div class="archetype-card">
+                      <strong>🔲 Split Horizon</strong>
+                      <span>Dark left brand banner + light meta</span>
+                    </div>
+                  </label>
+                  <label class="archetype-option">
+                    <input type="radio" name="customArchetype" value="minimal" />
+                    <div class="archetype-card">
+                      <strong>📐 Swiss Minimal</strong>
+                      <span>Generous whitespace &amp; hairlines</span>
+                    </div>
+                  </label>
+                  <label class="archetype-option">
+                    <input type="radio" name="customArchetype" value="industrial" />
+                    <div class="archetype-card">
+                      <strong>🧱 Heavy Industrial</strong>
+                      <span>Dark solid header with vibrant tags</span>
+                    </div>
+                  </label>
+                  <label class="archetype-option">
+                    <input type="radio" name="customArchetype" value="brutalist" />
+                    <div class="archetype-card">
+                      <strong>⚡ Neo-Brutalist</strong>
+                      <span>Solid black lines &amp; drop shadows</span>
+                    </div>
+                  </label>
+                  <label class="archetype-option">
+                    <input type="radio" name="customArchetype" value="ledger" />
+                    <div class="archetype-card">
+                      <strong>📜 Vintage Ledger</strong>
+                      <span>Parchment tint &amp; double rules</span>
+                    </div>
+                  </label>
+                  <label class="archetype-option">
+                    <input type="radio" name="customArchetype" value="luxury" />
+                    <div class="archetype-card">
+                      <strong>👑 Luxury Crest</strong>
+                      <span>Metallic gold accents &amp; serif font</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Colors & Palette -->
+              <div class="builder-section">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
+                  <h4 style="margin:0;">3. Color System &amp; Palette</h4>
+                  <div class="palette-swatch-bar">
+                    <span style="font-size:10px;color:#64748b;margin-right:4px;">Presets:</span>
+                    <button type="button" class="swatch-btn" data-primary="#2563eb" data-accent="#f59e0b" data-header="#0f172a" data-text="#ffffff" data-paper="#ffffff" style="background:#2563eb;" title="Royal Blue &amp; Amber"></button>
+                    <button type="button" class="swatch-btn" data-primary="#059669" data-accent="#10b981" data-header="#064e3b" data-text="#ffffff" data-paper="#ffffff" style="background:#059669;" title="Emerald Green"></button>
+                    <button type="button" class="swatch-btn" data-primary="#b91c1c" data-accent="#f59e0b" data-header="#881337" data-text="#ffffff" data-paper="#ffffff" style="background:#b91c1c;" title="Crimson Titan"></button>
+                    <button type="button" class="swatch-btn" data-primary="#d97706" data-accent="#fbbf24" data-header="#091428" data-text="#fbbf24" data-paper="#fffdf9" style="background:#d97706;" title="Luxury Gold"></button>
+                    <button type="button" class="swatch-btn" data-primary="#7c3aed" data-accent="#06b6d4" data-header="#2e1065" data-text="#ffffff" data-paper="#ffffff" style="background:#7c3aed;" title="Cyber Violet"></button>
+                    <button type="button" class="swatch-btn" data-primary="#0f766e" data-accent="#2dd4bf" data-header="#134e4a" data-text="#ffffff" data-paper="#ffffff" style="background:#0f766e;" title="Deep Teal"></button>
+                    <button type="button" class="swatch-btn" data-primary="#000000" data-accent="#facc15" data-header="#000000" data-text="#ffffff" data-paper="#ffffff" style="background:#000000;" title="Monochrome Brutalist"></button>
+                  </div>
+                </div>
+
+                <div class="grid three" style="gap:10px;">
+                  <label class="color-picker-label">Primary Brand Color
+                    <div class="color-picker-wrap">
+                      <input type="color" id="customPrimaryColor" value="#2563eb" />
+                      <input type="text" id="customPrimaryColorHex" value="#2563eb" class="hex-input" />
+                    </div>
+                  </label>
+                  <label class="color-picker-label">Secondary / Accent Color
+                    <div class="color-picker-wrap">
+                      <input type="color" id="customAccentColor" value="#f59e0b" />
+                      <input type="text" id="customAccentColorHex" value="#f59e0b" class="hex-input" />
+                    </div>
+                  </label>
+                  <label class="color-picker-label">Document Paper Tint
+                    <div class="color-picker-wrap">
+                      <input type="color" id="customPaperBg" value="#ffffff" />
+                      <input type="text" id="customPaperBgHex" value="#ffffff" class="hex-input" />
+                    </div>
+                  </label>
+                  <label class="color-picker-label">Header Background
+                    <div class="color-picker-wrap">
+                      <input type="color" id="customHeaderBg" value="#0f172a" />
+                      <input type="text" id="customHeaderBgHex" value="#0f172a" class="hex-input" />
+                    </div>
+                  </label>
+                  <label class="color-picker-label">Header Text Color
+                    <div class="color-picker-wrap">
+                      <input type="color" id="customHeaderText" value="#ffffff" />
+                      <input type="text" id="customHeaderTextHex" value="#ffffff" class="hex-input" />
+                    </div>
+                  </label>
+                  <label class="color-picker-label">Table Header Background
+                    <div class="color-picker-wrap">
+                      <input type="color" id="customTableHeadBg" value="#eff6ff" />
+                      <input type="text" id="customTableHeadBgHex" value="#eff6ff" class="hex-input" />
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Typography & Fonts -->
+              <div class="builder-section">
+                <h4>4. Typography &amp; Grid Style</h4>
+                <div class="grid two">
+                  <label>Primary Font Family
+                    <select id="customFontFamily">
+                      <option value="'DM Sans', sans-serif" selected>DM Sans (Clean &amp; Modern Professional)</option>
+                      <option value="'Outfit', sans-serif">Outfit (Geometric &amp; Contemporary)</option>
+                      <option value="'Inter', sans-serif">Inter (Precision Swiss Standard)</option>
+                      <option value="'Cinzel', serif">Cinzel (Royal &amp; Luxury Capital Serif)</option>
+                      <option value="'Playfair Display', serif">Playfair Display (Classic Elegant Serif)</option>
+                      <option value="'Space Grotesk', sans-serif">Space Grotesk (Tech &amp; Architectural)</option>
+                      <option value="'Manrope', sans-serif">Manrope (Bold Heavy Commercial)</option>
+                      <option value="'JetBrains Mono', monospace">JetBrains Mono (Technical Monospace)</option>
+                    </select>
+                  </label>
+                  <label>Table &amp; Border Treatment
+                    <select id="customTableStyle">
+                      <option value="modern" selected>Modern Underlined Rows</option>
+                      <option value="grid">Full Boxed Grid Lines</option>
+                      <option value="zebra">Alternating Zebra Striping</option>
+                      <option value="minimal">Minimal Hairline Dividers</option>
+                      <option value="brutalist">Thick Solid Black Borders</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Watermark & Security Stamp -->
+              <div class="builder-section">
+                <h4>5. Background Watermark Stamp (Optional)</h4>
+                <div class="grid three" style="align-items:end;gap:10px;">
+                  <label style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;margin-bottom:8px;cursor:pointer;">
+                    <input type="checkbox" id="customWatermarkEnable" style="width:16px;height:16px;" />
+                    Enable Watermark
+                  </label>
+                  <label>Watermark Text
+                    <input id="customWatermarkText" placeholder="e.g. ORIGINAL / TAX INVOICE" value="ORIGINAL" />
+                  </label>
+                  <label>Watermark Opacity: <strong id="watermarkOpacityVal">6%</strong>
+                    <input type="range" id="customWatermarkOpacity" min="2" max="25" value="6" step="1" />
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Live Interactive Mini Preview Column -->
+            <div class="layout-builder-preview-col">
+              <div class="builder-preview-head">
+                <strong>👁️ Live Interactive Preview</strong>
+                <span class="badge-approx" id="builderPreviewBadge">🌟 Modern</span>
+              </div>
+              <div class="builder-preview-holder">
+                <div id="builderPreviewFrame" class="quotation-mini-sim">
+                  <!-- Mini simulated invoice preview -->
+                  <div class="mini-sim-header" id="simHeader">
+                    <div>
+                      <div class="mini-sim-logo" id="simLogo">🧱</div>
+                      <div>
+                        <strong class="mini-sim-title" id="simCompName">Sri Balamurugan Fly Ash Bricks</strong>
+                        <p class="mini-sim-sub">Civil &amp; Roadwork Infrastructure</p>
+                      </div>
+                    </div>
+                    <div class="mini-sim-tag" id="simDocTag">QUOTATION</div>
+                  </div>
+                  <div class="mini-sim-accent" id="simAccent"></div>
+                  <div class="mini-sim-client" id="simClient">
+                    <div>
+                      <span>BILL TO:</span>
+                      <strong>Apex Civil Developers</strong>
+                      <p>Bangalore, Karnataka</p>
+                    </div>
+                    <div>
+                      <span>DATE:</span>
+                      <strong>Today</strong>
+                      <p>Ref: QTN-2026-88</p>
+                    </div>
+                  </div>
+                  <div class="mini-sim-table" id="simTable">
+                    <div class="mini-sim-th" id="simTh">
+                      <span>Item Description</span>
+                      <span style="text-align:right;">Amount</span>
+                    </div>
+                    <div class="mini-sim-tr">
+                      <span>Fly Ash Bricks Class-1 (10,000 pcs)</span>
+                      <span style="text-align:right;">₹75,000</span>
+                    </div>
+                    <div class="mini-sim-tr">
+                      <span>M-Sand Road Base Material (20 tons)</span>
+                      <span style="text-align:right;">₹42,000</span>
+                    </div>
+                  </div>
+                  <div class="mini-sim-totals" id="simTotals">
+                    <div><span>GST (18%):</span> <strong>₹21,060</strong></div>
+                    <div class="mini-sim-grand" id="simGrand"><span>Total:</span> <strong>₹1,38,060</strong></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Starter Presets -->
+        <div id="tabDesignerPresetsContent" class="tab-content hidden">
+          <div class="catalog-add-box">
+            <h4>⚡ Choose a Starter Base to Customize</h4>
+            <p class="helper-text">Select any professional preset below as your starting canvas. You can customize every color, font, border, and detail.</p>
+            <div class="preset-cards-grid" id="designerPresetsGrid"></div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Cloud Sync & Storage -->
+        <div id="tabDesignerSyncContent" class="tab-content hidden">
+          <div class="config-grid">
+            <div class="config-section">
+              <h4>☁️ Cloud Layout Synchronization</h4>
+              <p class="helper-text">Custom layouts are automatically saved to your browser and synced across all your team members and devices via Supabase PostgreSQL.</p>
+              <div style="background:#f8fafc;padding:14px;border-radius:10px;border:1px solid #e2e8f0;margin-top:10px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                  <strong style="font-size:12.5px;color:#0f172a;">Supabase Cloud Database Sync:</strong>
+                  <span id="designerCloudStatusBadge" class="cloud-status-pill online">● Active</span>
+                </div>
+                <p style="font-size:11.5px;color:#64748b;margin:0;">Cloud table: <code>public.custom_layouts</code></p>
+              </div>
+              <div style="margin-top:14px;display:flex;gap:8px;">
+                <button type="button" class="btn primary small" id="syncAllLayoutsCloudBtn">🔄 Sync All Layouts to Cloud</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Import / Export JSON -->
+        <div id="tabDesignerJsonContent" class="tab-content hidden">
+          <div class="catalog-add-box">
+            <h4>📤 Export / 📥 Import Layouts (JSON)</h4>
+            <p class="helper-text">Share layouts between projects, export backups, or paste custom layout JSON configurations.</p>
+            <div style="margin-top:10px;">
+              <textarea id="layoutJsonArea" rows="6" placeholder="Paste custom layout JSON here..." style="font-family:monospace;font-size:11px;"></textarea>
+            </div>
+            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+              <button type="button" class="btn primary small" id="exportCurrentLayoutJsonBtn">📋 Copy Current Layout JSON</button>
+              <button type="button" class="btn outline small" id="downloadLayoutsJsonBtn">💾 Download Backup (.json)</button>
+              <button type="button" class="btn accent-btn small" id="importLayoutJsonBtn">📥 Import JSON Layout</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="modal-foot" style="padding:14px 20px;background:#f8fafc;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button type="button" class="btn ghost-dark small" id="deleteCurrentCustomLayoutBtn" style="display:none;color:#dc2626;">🗑️ Delete Layout</button>
+            <button type="button" class="btn outline small" id="resetLayoutDesignerBtn">🔄 Reset Defaults</button>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button type="button" class="btn primary" id="saveAndApplyLayoutBtn">💾 Save to Cloud &amp; Apply</button>
           </div>
         </div>
       </div>
@@ -1347,6 +1705,10 @@ CREATE POLICY "Allow public access to gst_registry" ON public.gst_registry FOR A
       <button type="button" class="mobile-bar-btn" id="mobBarPreviewBtn">
         <span class="bar-icon">👁️</span>
         <span class="bar-label">Preview</span>
+      </button>
+      <button type="button" class="mobile-bar-btn" id="mobBarLayoutBtn">
+        <span class="bar-icon">🎨</span>
+        <span class="bar-label">Layouts</span>
       </button>
       <button type="button" class="mobile-bar-btn" id="mobBarSaveBtn">
         <span class="bar-icon">💾</span>

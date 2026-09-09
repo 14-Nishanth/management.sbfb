@@ -12,13 +12,29 @@ const fields = [
 ];
 
 const TEMPLATES = {
-  modern: { name: '🌟 Modern Executive', subtitle: 'Sleek Slate & Amber', color: '#f59e0b' },
-  classic: { name: '🏛️ Classic Corporate', subtitle: 'Formal Tax Grid', color: '#0f172a' },
-  industrial: { name: '🧱 Industrial Amber', subtitle: 'SBFB Construction', color: '#f59e0b' },
-  sapphire: { name: '💎 Sapphire Clean', subtitle: 'Minimalist Blue', color: '#2563eb' },
-  emerald: { name: '🌿 Emerald Green', subtitle: 'Eco Infrastructure', color: '#059669' },
-  monochrome: { name: '🖤 Monochrome Sleek', subtitle: 'High-Contrast B&W', color: '#000000' }
+  modern: { name: '🌟 Modern Executive', subtitle: 'Sleek Slate & Amber', color: '#f59e0b', category: 'modern' },
+  classic: { name: '🏛️ Classic Corporate', subtitle: 'Formal Tax Grid', color: '#0f172a', category: 'corporate' },
+  industrial: { name: '🧱 Industrial Amber', subtitle: 'SBFB Construction', color: '#f59e0b', category: 'industrial' },
+  sapphire: { name: '💎 Sapphire Clean', subtitle: 'Minimalist Blue', color: '#2563eb', category: 'modern' },
+  emerald: { name: '🌿 Emerald Green', subtitle: 'Eco Infrastructure', color: '#059669', category: 'modern' },
+  monochrome: { name: '🖤 Monochrome Sleek', subtitle: 'High-Contrast B&W', color: '#000000', category: 'corporate' },
+  executive_gold: { name: '👑 Luxury Gold Crest', subtitle: 'Deep Navy & Metallic Gold', color: '#d97706', category: 'luxury' },
+  minimal_clean: { name: '📐 Swiss Minimalist', subtitle: 'Ultra-Clean Whitespace', color: '#475569', category: 'corporate' },
+  blueprint_tech: { name: '📐 Engineer Blueprint', subtitle: 'Drafting Grid & Monospace', color: '#0284c7', category: 'industrial' },
+  compact_pos: { name: '🧾 Compact Retail Slip', subtitle: 'Dashed Thermal Receipt', color: '#475569', category: 'corporate' },
+  bold_crimson: { name: '🔴 Crimson Titan', subtitle: 'Heavy Steel & Burgundy', color: '#991b1b', category: 'industrial' },
+  retro_ledger: { name: '📜 Vintage Ledger', subtitle: 'Warm Parchment & Ruled', color: '#78350f', category: 'luxury' },
+  split_header: { name: '🔲 Split Horizon', subtitle: 'Two-Tone Midnight Banner', color: '#312e81', category: 'modern' },
+  neo_brutalist: { name: '⚡ Neo-Brutalist', subtitle: 'Heavy Borders & Drop Shadow', color: '#facc15', category: 'modern' },
+  nordic_frost: { name: '❄️ Nordic Frost', subtitle: 'Scandinavian Slate & Ice', color: '#0284c7', category: 'modern' },
+  gradient_aurora: { name: '🌈 Modern Aurora', subtitle: 'Vibrant Tech Gradient', color: '#8b5cf6', category: 'modern' },
+  teal_prestige: { name: '🌊 Teal Prestige', subtitle: 'Deep Teal & Mint Accents', color: '#0f766e', category: 'luxury' }
 };
+
+const customLayoutsStorageKey = 'sbfbCustomLayouts';
+let customLayouts = [];
+let editingLayoutId = null;
+let currentCustomFilter = 'all';
 
 const DOC_TYPES = {
   quotation: {
@@ -179,13 +195,130 @@ const defaultGstDirectory = [
 
 let gstRegistry = [];
 
+/* --- Standard Units of Measurement System (All Types: Pieces, Units, Weight, Area, Volume, Length, Time) --- */
+const MEASUREMENT_UNITS = [
+  {
+    group: '🔢 Count & Pieces (Units)',
+    units: [
+      { id: 'pcs', label: 'pcs (Pieces)' },
+      { id: 'nos', label: 'nos (Numbers)' },
+      { id: 'unit', label: 'unit (Units)' },
+      { id: 'box', label: 'box (Boxes)' },
+      { id: 'pkt', label: 'pkt (Packets)' },
+      { id: 'set', label: 'set (Sets)' },
+      { id: 'pair', label: 'pair (Pairs)' },
+      { id: 'rolls', label: 'rolls (Rolls)' },
+      { id: 'bndl', label: 'bndl (Bundles)' },
+      { id: 'doz', label: 'doz (Dozens)' },
+      { id: 'lots', label: 'lots (Lots)' },
+      { id: 'cans', label: 'cans (Cans)' },
+      { id: 'drums', label: 'drums (Drums)' },
+      { id: 'bottles', label: 'bottles (Bottles)' }
+    ]
+  },
+  {
+    group: '⚖️ Weight & Mass',
+    units: [
+      { id: 'kg', label: 'kg (Kilograms)' },
+      { id: 'gm', label: 'gm (Grams)' },
+      { id: 'tons', label: 'tons / MT (Tonnes)' },
+      { id: 'quintal', label: 'quintal (100 kg)' },
+      { id: 'lbs', label: 'lbs (Pounds)' }
+    ]
+  },
+  {
+    group: '📐 Area & Surface',
+    units: [
+      { id: 'sq.m', label: 'sq.m (Sq. Meters)' },
+      { id: 'sq.ft', label: 'sq.ft (Sq. Feet)' },
+      { id: 'sq.yd', label: 'sq.yd (Sq. Yards / Guz)' },
+      { id: 'acres', label: 'acres (Acres)' },
+      { id: 'hectares', label: 'hectares (Hectares)' },
+      { id: 'sq.in', label: 'sq.in (Sq. Inches)' }
+    ]
+  },
+  {
+    group: '📏 Length & Linear',
+    units: [
+      { id: 'm', label: 'm (Meters)' },
+      { id: 'ft', label: 'ft (Feet)' },
+      { id: 'rft', label: 'rft (Running Feet)' },
+      { id: 'rmtr', label: 'rmtr (Running Meters)' },
+      { id: 'in', label: 'in (Inches)' },
+      { id: 'cm', label: 'cm (Centimeters)' },
+      { id: 'mm', label: 'mm (Millimeters)' },
+      { id: 'km', label: 'km (Kilometers)' },
+      { id: 'yards', label: 'yards (Yards)' }
+    ]
+  },
+  {
+    group: '🧱 Volume, Civil & Liquids',
+    units: [
+      { id: 'cu.m', label: 'cu.m (Cubic Meters)' },
+      { id: 'cu.ft', label: 'cu.ft (Cubic Feet)' },
+      { id: 'brass', label: 'brass (100 cu.ft)' },
+      { id: 'bags', label: 'bags (Bags)' },
+      { id: 'ltr', label: 'ltr (Litres)' },
+      { id: 'ml', label: 'ml (Millilitres)' },
+      { id: 'gallons', label: 'gallons (Gallons)' },
+      { id: 'trips', label: 'trips (Trips / Dumper)' },
+      { id: 'loads', label: 'loads (Truck Loads)' }
+    ]
+  },
+  {
+    group: '⏱️ Time & Labor Services',
+    units: [
+      { id: 'hrs', label: 'hrs (Hours)' },
+      { id: 'days', label: 'days (Days)' },
+      { id: 'shifts', label: 'shifts (Shifts)' },
+      { id: 'weeks', label: 'weeks (Weeks)' },
+      { id: 'months', label: 'months (Months)' },
+      { id: 'visits', label: 'visits (Visits)' },
+      { id: 'jobs', label: 'jobs (Jobs / Lumpsum)' }
+    ]
+  }
+];
+
+function renderUnitOptions(selectedUnit) {
+  const norm = (selectedUnit || 'pcs').toLowerCase().trim();
+  let found = false;
+  let html = '';
+
+  MEASUREMENT_UNITS.forEach(grp => {
+    html += `<optgroup label="${grp.group}">`;
+    grp.units.forEach(u => {
+      const isSel = norm === u.id.toLowerCase();
+      if (isSel) found = true;
+      html += `<option value="${u.id}" ${isSel ? 'selected' : ''}>${u.label}</option>`;
+    });
+    html += `</optgroup>`;
+  });
+
+  if (norm && !found && norm !== '__custom__') {
+    html = `<optgroup label="✏️ Custom"><option value="${esc(selectedUnit)}" selected>${esc(selectedUnit)}</option></optgroup>` + html;
+  }
+
+  html += `<optgroup label="Custom"><option value="__custom__">✏️ Custom Unit...</option></optgroup>`;
+  return html;
+}
+
 const defaultCatalog = [
-  { id: 'cat-1', desc: 'Building construction & structural civil work', rate: 1850 },
-  { id: 'cat-2', desc: 'Fly ash brick masonry with cement mortar', rate: 450 },
-  { id: 'cat-3', desc: 'Internal & external wall plastering', rate: 220 },
-  { id: 'cat-4', desc: 'Bitumen road surfacing & laying', rate: 380 },
-  { id: 'cat-5', desc: 'Earthwork excavation & site grading', rate: 140 },
-  { id: 'cat-6', desc: 'Concrete flooring & PCC work', rate: 320 }
+  { id: 'cat-1', desc: 'Standard Fly Ash Bricks (9"x4"x3")', rate: 7.5, unit: 'pcs' },
+  { id: 'cat-2', desc: 'Solid Concrete Blocks (400x200x200 mm)', rate: 45, unit: 'nos' },
+  { id: 'cat-3', desc: 'Building construction & structural civil work', rate: 1850, unit: 'sq.m' },
+  { id: 'cat-4', desc: 'Fly ash brick masonry with cement mortar', rate: 450, unit: 'sq.m' },
+  { id: 'cat-5', desc: 'Internal & external wall plastering (1:4)', rate: 220, unit: 'sq.m' },
+  { id: 'cat-6', desc: 'OPC 53 Grade Cement Bags (50 kg)', rate: 380, unit: 'bags' },
+  { id: 'cat-7', desc: 'River Sand / M-Sand Truck Delivery', rate: 4200, unit: 'brass' },
+  { id: 'cat-8', desc: 'TMT Steel 12mm / 16mm Rebars (Fe 550D)', rate: 68, unit: 'kg' },
+  { id: 'cat-9', desc: 'Structural Steel / Heavy Girders & Channels', rate: 65000, unit: 'tons' },
+  { id: 'cat-10', desc: 'Earthwork excavation & site grading', rate: 140, unit: 'cu.m' },
+  { id: 'cat-11', desc: 'Ready Mix Concrete (RMC M25 Grade)', rate: 4600, unit: 'cu.m' },
+  { id: 'cat-12', desc: 'Granite & Vitrified Tile Flooring', rate: 115, unit: 'sq.ft' },
+  { id: 'cat-13', desc: 'Bitumen road surfacing & laying', rate: 380, unit: 'sq.m' },
+  { id: 'cat-14', desc: 'JCB Excavator & Operator Hourly Rental', rate: 1200, unit: 'hrs' },
+  { id: 'cat-15', desc: 'Skilled Mason & Labor Gang Daily Wages', rate: 1500, unit: 'days' },
+  { id: 'cat-16', desc: 'Water Tanker Supply (6,000 Litres)', rate: 1100, unit: 'trips' }
 ];
 
 let items = [];
@@ -261,7 +394,12 @@ async function loadItemCatalog() {
   try {
     const local = JSON.parse(localStorage.getItem(catalogStorageKey) || 'null');
     if (Array.isArray(local) && local.length) {
-      itemCatalog = local;
+      itemCatalog = local.map(x => ({
+        id: x.id || crypto.randomUUID(),
+        desc: x.desc || x.description || '',
+        rate: Number(x.rate) || 0,
+        unit: x.unit || 'pcs'
+      }));
     } else {
       itemCatalog = [...defaultCatalog];
       localStorage.setItem(catalogStorageKey, JSON.stringify(itemCatalog));
@@ -279,11 +417,13 @@ async function loadItemCatalog() {
           if (idx >= 0) {
             itemCatalog[idx].rate = Number(cloudItem.rate) || itemCatalog[idx].rate;
             itemCatalog[idx].id = cloudItem.id || itemCatalog[idx].id;
+            if (cloudItem.unit) itemCatalog[idx].unit = cloudItem.unit;
           } else {
             itemCatalog.push({
               id: cloudItem.id || crypto.randomUUID(),
               desc: cloudItem.description,
-              rate: Number(cloudItem.rate) || 0
+              rate: Number(cloudItem.rate) || 0,
+              unit: cloudItem.unit || 'pcs'
             });
           }
         });
@@ -299,18 +439,20 @@ async function loadItemCatalog() {
   renderCatalogManager();
 }
 
-async function saveItemToCatalog(desc, rate, notify = true) {
+async function saveItemToCatalog(desc, rate, unit = 'pcs', notify = true) {
   const trimmedDesc = (desc || '').trim();
   if (!trimmedDesc) return;
   const rateNum = Number(rate) || 0;
+  const unitVal = (unit || 'pcs').trim();
 
   const existingIdx = itemCatalog.findIndex(x => x.desc.toLowerCase() === trimmedDesc.toLowerCase());
   let itemId = crypto.randomUUID();
   if (existingIdx >= 0) {
     itemCatalog[existingIdx].rate = rateNum;
+    itemCatalog[existingIdx].unit = unitVal;
     itemId = itemCatalog[existingIdx].id;
   } else {
-    itemCatalog.unshift({ id: itemId, desc: trimmedDesc, rate: rateNum });
+    itemCatalog.unshift({ id: itemId, desc: trimmedDesc, rate: rateNum, unit: unitVal });
   }
 
   localStorage.setItem(catalogStorageKey, JSON.stringify(itemCatalog));
@@ -320,10 +462,20 @@ async function saveItemToCatalog(desc, rate, notify = true) {
       await supabaseClient.from('item_catalog').upsert({
         description: trimmedDesc,
         rate: rateNum,
+        unit: unitVal,
         updated_at: new Date().toISOString()
       }, { onConflict: 'description' });
     } catch (err) {
-      console.warn('Supabase catalog save error:', err);
+      // Graceful fallback for Supabase databases without unit column yet
+      try {
+        await supabaseClient.from('item_catalog').upsert({
+          description: trimmedDesc,
+          rate: rateNum,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'description' });
+      } catch (e2) {
+        console.warn('Supabase catalog save error:', e2);
+      }
     }
   }
 
@@ -332,7 +484,7 @@ async function saveItemToCatalog(desc, rate, notify = true) {
   renderCatalogManager();
 
   if (notify) {
-    showToast(`📚 Saved "${trimmedDesc}" (₹${rateNum}/sq.m) to Item Library!`);
+    showToast(`📚 Saved "${trimmedDesc}" (₹${rateNum} / ${unitVal}) to Item Library!`);
   }
 }
 
@@ -364,16 +516,19 @@ function renderCatalogPills() {
     return;
   }
 
-  container.innerHTML = itemCatalog.map(item => `
-    <button type="button" class="catalog-pill" data-cat-desc="${esc(item.desc)}" data-cat-rate="${item.rate}">
-      ➕ ${esc(item.desc)} <strong style="color:#b45309;">(₹${Number(item.rate).toLocaleString('en-IN')}/sq.m)</strong>
-    </button>
-  `).join('');
+  container.innerHTML = itemCatalog.map(item => {
+    const uStr = item.unit ? ` / ${esc(item.unit)}` : '';
+    return `
+      <button type="button" class="catalog-pill" data-cat-desc="${esc(item.desc)}" data-cat-rate="${item.rate}" data-cat-unit="${esc(item.unit || 'pcs')}">
+        ➕ ${esc(item.desc)} <strong style="color:#b45309;">(₹${Number(item.rate).toLocaleString('en-IN')}${uStr})</strong>
+      </button>
+    `;
+  }).join('');
 
   container.querySelectorAll('[data-cat-desc]').forEach(btn => {
     btn.addEventListener('click', () => {
-      addItem(btn.dataset.catDesc, Number(btn.dataset.catRate) || 0);
-      showToast(`➕ Added "${btn.dataset.catDesc}" to quotation!`);
+      addItem(btn.dataset.catDesc, Number(btn.dataset.catRate) || 0, 1, btn.dataset.catUnit || 'pcs');
+      showToast(`➕ Added "${btn.dataset.catDesc}" to document!`);
     });
   });
 }
@@ -381,7 +536,7 @@ function renderCatalogPills() {
 function renderCatalogDatalist() {
   const dl = $('catalogDatalist');
   if (!dl) return;
-  dl.innerHTML = itemCatalog.map(item => `<option value="${esc(item.desc)}">₹${Number(item.rate).toLocaleString('en-IN')} / sq.m</option>`).join('');
+  dl.innerHTML = itemCatalog.map(item => `<option value="${esc(item.desc)}">₹${Number(item.rate).toLocaleString('en-IN')}${item.unit ? ' / ' + esc(item.unit) : ''}</option>`).join('');
 }
 
 function renderCatalogManager() {
@@ -390,11 +545,28 @@ function renderCatalogManager() {
   if (countEl) countEl.textContent = itemCatalog.length;
   if (count2El) count2El.textContent = itemCatalog.length;
 
+  const newUnitSel = $('newCatalogUnit');
+  if (newUnitSel && !newUnitSel.dataset.loaded) {
+    newUnitSel.innerHTML = renderUnitOptions('pcs');
+    newUnitSel.dataset.loaded = 'true';
+    newUnitSel.addEventListener('change', () => {
+      if (newUnitSel.value === '__custom__') {
+        const customUnit = prompt('Enter custom unit name (e.g. bundle, barrel, kW, cylinder, etc.):', 'unit');
+        if (customUnit && customUnit.trim()) {
+          newUnitSel.innerHTML = renderUnitOptions(customUnit.trim());
+          newUnitSel.value = customUnit.trim();
+        } else {
+          newUnitSel.value = 'pcs';
+        }
+      }
+    });
+  }
+
   const listEl = $('catalogManagerList');
   if (!listEl) return;
 
   if (!itemCatalog.length) {
-    listEl.innerHTML = '<div class="empty-state">No saved items in library. Add your frequently quoted civil and construction items above.</div>';
+    listEl.innerHTML = '<div class="empty-state">No saved items in library. Add your frequently quoted civil, materials, and service items above.</div>';
     return;
   }
 
@@ -402,7 +574,7 @@ function renderCatalogManager() {
     <div class="quote-card">
       <div class="quote-card-main">
         <strong>${esc(item.desc)}</strong>
-        <p>📐 Quoted Rate: <strong style="color:#b45309;">${money(item.rate)} / sq.m</strong></p>
+        <p>📐 Quoted Rate: <strong style="color:#b45309;">${money(item.rate)}</strong> <span class="badge-unit">${esc(item.unit || 'pcs')}</span></p>
       </div>
       <div class="quote-card-right">
         <button class="btn small primary" data-insert-id="${item.id}">➕ Add to Quote</button>
@@ -415,9 +587,9 @@ function renderCatalogManager() {
     btn.addEventListener('click', () => {
       const item = itemCatalog.find(x => x.id === btn.dataset.insertId);
       if (item) {
-        addItem(item.desc, item.rate);
+        addItem(item.desc, item.rate, 1, item.unit || 'pcs');
         $('cloudModal').classList.add('hidden');
-        showToast(`➕ Added "${item.desc}" to quotation!`);
+        showToast(`➕ Added "${item.desc}" to document!`);
       }
     });
   });
@@ -433,12 +605,12 @@ function syncCurrentQuoteToCatalog() {
   let savedCount = 0;
   items.forEach(item => {
     if (item.desc && item.desc.trim()) {
-      saveItemToCatalog(item.desc, item.rate, false);
+      saveItemToCatalog(item.desc, item.rate, item.unit || 'pcs', false);
       savedCount++;
     }
   });
   if (savedCount > 0) {
-    showToast(`💾 Stored ${savedCount} item(s) to Library! Available for all future quotations.`);
+    showToast(`💾 Stored ${savedCount} item(s) to Library with rates & units! Available for all future documents.`);
   } else {
     showToast('Add some work items with descriptions first to store them.', 'error');
   }
@@ -1014,14 +1186,15 @@ function verifyAndMatchGst(gstinInput) {
 }
 
 /* --- Work Items Logic (Rate per Sq.M or Itemized Quantity x Rate) --- */
-function addItem(desc = '', rate = 450, qty = 1, unit = 'sq.m') {
+function addItem(desc = '', rate = 450, qty = 1, unit = null) {
   const r = Number(rate) || 0;
   const q = Number(qty) || 1;
+  const defaultUnit = val('billingMode') === 'sqm_rate' ? 'sq.m' : 'pcs';
   items.push({
     id: crypto.randomUUID(),
     desc,
     qty: q,
-    unit: unit || 'sq.m',
+    unit: unit || defaultUnit,
     rate: r,
     amount: q * r
   });
@@ -1033,7 +1206,7 @@ function renderItems() {
   const tbody = $('itemsBody');
   if (!tbody) return;
 
-  const mode = val('billingMode') || 'sqm_rate';
+  const mode = val('billingMode') || 'qty_rate';
   const isQtyMode = mode === 'qty_rate';
 
   if (!items.length) {
@@ -1053,23 +1226,14 @@ function renderItems() {
         <tr>
           <td style="text-align:center;color:#64748b;font-weight:700;font-size:12px">${i + 1}</td>
           <td>
-            <input class="item-desc" list="catalogDatalist" data-id="${x.id}" data-k="desc" value="${esc(x.desc)}" placeholder="e.g. Fly ash brick masonry">
+            <input class="item-desc" list="catalogDatalist" data-id="${x.id}" data-k="desc" value="${esc(x.desc)}" placeholder="e.g. Fly ash bricks / Cement / Civil work">
           </td>
           <td>
             <input class="num" type="number" min="0" step="0.01" data-id="${x.id}" data-k="qty" value="${qty}" placeholder="1">
           </td>
           <td>
-            <select data-id="${x.id}" data-k="unit" style="padding:6px 4px;font-size:11px;">
-              <option value="sq.m" ${x.unit === 'sq.m' ? 'selected' : ''}>sq.m</option>
-              <option value="sq.ft" ${x.unit === 'sq.ft' ? 'selected' : ''}>sq.ft</option>
-              <option value="nos" ${x.unit === 'nos' ? 'selected' : ''}>nos (pcs)</option>
-              <option value="tons" ${x.unit === 'tons' ? 'selected' : ''}>tons</option>
-              <option value="trips" ${x.unit === 'trips' ? 'selected' : ''}>trips</option>
-              <option value="brass" ${x.unit === 'brass' ? 'selected' : ''}>brass</option>
-              <option value="bags" ${x.unit === 'bags' ? 'selected' : ''}>bags</option>
-              <option value="days" ${x.unit === 'days' ? 'selected' : ''}>days</option>
-              <option value="hrs" ${x.unit === 'hrs' ? 'selected' : ''}>hrs</option>
-              <option value="lots" ${x.unit === 'lots' ? 'selected' : ''}>lots</option>
+            <select data-id="${x.id}" data-k="unit" style="padding:6px 4px;font-size:11px;width:100%;min-width:85px;">
+              ${renderUnitOptions(x.unit)}
             </select>
           </td>
           <td>
@@ -1111,25 +1275,48 @@ function renderItems() {
       if (key === 'rate') {
         x.rate = Number(e.target.value) || 0;
         x.amount = (Number(x.qty) || 1) * x.rate;
-        // Auto-update catalog rate if exists
         if (x.desc && x.desc.trim()) {
-          saveItemToCatalog(x.desc, x.rate, false);
+          saveItemToCatalog(x.desc, x.rate, x.unit || 'pcs', false);
         }
       } else if (key === 'qty') {
         x.qty = Number(e.target.value) || 1;
         x.amount = x.qty * (Number(x.rate) || 0);
       } else if (key === 'unit') {
-        x.unit = e.target.value;
+        if (e.target.value === '__custom__') {
+          const customUnit = prompt('Enter custom unit of measurement (e.g. bundle, barrel, kW, cylinder, pallet, etc.):', x.unit || 'pcs');
+          if (customUnit && customUnit.trim()) {
+            x.unit = customUnit.trim();
+            e.target.innerHTML = renderUnitOptions(x.unit);
+            e.target.value = x.unit;
+          } else {
+            e.target.value = x.unit || 'pcs';
+          }
+        } else {
+          x.unit = e.target.value;
+        }
+        if (x.desc && x.desc.trim()) {
+          saveItemToCatalog(x.desc, x.rate, x.unit || 'pcs', false);
+        }
       } else if (key === 'desc') {
         x.desc = e.target.value;
-        // Check if entered description matches a catalog item to autofill rate
         const matched = itemCatalog.find(c => c.desc.toLowerCase() === x.desc.trim().toLowerCase());
-        if (matched && (!x.rate || x.rate === 450 || x.rate === 0)) {
-          x.rate = matched.rate;
-          x.amount = (Number(x.qty) || 1) * matched.rate;
-          const row = e.target.closest('tr');
-          const rateInput = row ? row.querySelector('[data-k="rate"]') : null;
-          if (rateInput) rateInput.value = matched.rate;
+        if (matched) {
+          if (!x.rate || x.rate === 450 || x.rate === 0) {
+            x.rate = matched.rate;
+            x.amount = (Number(x.qty) || 1) * matched.rate;
+            const row = e.target.closest('tr');
+            const rateInput = row ? row.querySelector('[data-k="rate"]') : null;
+            if (rateInput) rateInput.value = matched.rate;
+          }
+          if (matched.unit) {
+            x.unit = matched.unit;
+            const row = e.target.closest('tr');
+            const unitSelect = row ? row.querySelector('[data-k="unit"]') : null;
+            if (unitSelect) {
+              unitSelect.innerHTML = renderUnitOptions(x.unit);
+              unitSelect.value = x.unit;
+            }
+          }
         }
       }
       updatePreview();
@@ -1139,7 +1326,7 @@ function renderItems() {
       const x = items.find(a => a.id === e.target.dataset.id);
       if (!x) return;
       if (x.desc && x.desc.trim()) {
-        saveItemToCatalog(x.desc, x.rate, false);
+        saveItemToCatalog(x.desc, x.rate, x.unit || 'pcs', false);
       }
     });
   });
@@ -1646,39 +1833,816 @@ function setDocumentType(type, userSwitched = false) {
   updatePreview();
 }
 
-function setDocumentTemplate(tpl) {
-  if (!TEMPLATES[tpl]) tpl = 'modern';
-  const docTemplateInput = $('docTemplate');
-  if (docTemplateInput) docTemplateInput.value = tpl;
+/* --- 🎨 Template & Custom Bill Layout System --- */
+function renderTemplatePicker(filter = currentCustomFilter || 'all') {
+  currentCustomFilter = filter;
+  const grid = $('templatePickerGrid');
+  if (!grid) return;
 
-  document.querySelectorAll('.template-pill-btn').forEach(btn => {
-    if (btn.dataset.tpl === tpl) {
-      btn.classList.add('active');
-    } else {
-      btn.classList.remove('active');
+  const currentTpl = val('docTemplate') || 'modern';
+
+  // Filter tabs active state
+  document.querySelectorAll('.tpl-filter-pill').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === filter);
+  });
+
+  if ($('customFilterCount')) {
+    $('customFilterCount').textContent = customLayouts.length;
+  }
+
+  let html = '';
+
+  // Render Built-in templates if matching filter
+  Object.entries(TEMPLATES).forEach(([key, tpl]) => {
+    if (filter === 'all' || filter === tpl.category) {
+      const isActive = currentTpl === key;
+      html += `
+        <button type="button" class="template-pill-btn ${isActive ? 'active' : ''}" data-tpl="${key}" id="tpl_${key}_Btn" title="${tpl.subtitle || tpl.name}">
+          <span class="template-color-dot" style="background:${tpl.color};"></span>
+          <div>
+            <strong>${tpl.name}</strong>
+            <span style="font-size:9.5px;color:#64748b;display:block;">${tpl.subtitle}</span>
+          </div>
+        </button>
+      `;
     }
   });
 
+  // Render Custom Layouts if matching filter
+  customLayouts.forEach(cl => {
+    if (filter === 'all' || filter === 'custom' || filter === cl.category) {
+      const isActive = currentTpl === cl.id;
+      const fontName = cl.fontFamily ? cl.fontFamily.split(',')[0].replace(/['"]/g, '') : 'DM Sans';
+      html += `
+        <button type="button" class="template-pill-btn ${isActive ? 'active' : ''}" data-tpl="${cl.id}" data-custom-id="${cl.id}" title="${esc(cl.name)} (Custom Layout)">
+          <span class="custom-badge-tag">✨ Custom</span>
+          <span class="template-color-dot" style="background:${cl.primaryColor || '#2563eb'};"></span>
+          <div style="flex:1;min-width:0;text-align:left;">
+            <strong style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;">${esc(cl.name)}</strong>
+            <span style="font-size:9.5px;color:#64748b;display:block;">${esc((cl.archetype || 'modern').toUpperCase())} • ${esc(fontName)}</span>
+          </div>
+          <div class="tpl-action-btns" onclick="event.stopPropagation();">
+            <button type="button" class="tpl-mini-action-btn" data-edit-custom-tpl="${cl.id}" title="Edit in Studio">✏️</button>
+            <button type="button" class="tpl-mini-action-btn" data-del-custom-tpl="${cl.id}" title="Delete Layout">🗑️</button>
+          </div>
+        </button>
+      `;
+    }
+  });
+
+  // Plus button inside grid
+  html += `
+    <button type="button" class="template-pill-btn" id="pickerCreateNewLayoutBtn" style="border-style:dashed;background:#faf5ff;border-color:#d8b4fe;" title="Design a new custom layout">
+      <span style="font-size:16px;">✨</span>
+      <div>
+        <strong style="color:#7e22ce;">+ Create Layout</strong>
+        <span style="font-size:9.5px;color:#a855f7;display:block;">Design &amp; Save to Cloud</span>
+      </div>
+    </button>
+  `;
+
+  grid.innerHTML = html;
+
+  // Bind click handlers
+  grid.querySelectorAll('.template-pill-btn[data-tpl]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setDocumentTemplate(btn.dataset.tpl);
+    });
+  });
+
+  grid.querySelectorAll('[data-edit-custom-tpl]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openLayoutDesigner(btn.dataset.editCustomTpl);
+    });
+  });
+
+  grid.querySelectorAll('[data-del-custom-tpl]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      deleteCustomLayout(btn.dataset.delCustomTpl);
+    });
+  });
+
+  const plusBtn = $('pickerCreateNewLayoutBtn');
+  if (plusBtn) {
+    plusBtn.addEventListener('click', () => openLayoutDesigner(null));
+  }
+}
+
+function setDocumentTemplate(tpl) {
+  const docTemplateInput = $('docTemplate');
   const preview = $('quotationPreview');
-  if (preview) {
-    preview.className = `quotation tpl-${tpl}`;
-  }
-
   const badge = $('activeTemplateBadge');
-  if (badge && TEMPLATES[tpl]) {
-    badge.textContent = TEMPLATES[tpl].name;
+  const prevLbl = $('previewTplLabel');
+  const prevEditBtn = $('previewEditLayoutBtn');
+  const wmEl = $('pWatermark');
+
+  // Check if it's a custom layout
+  const customLayout = customLayouts.find(x => x.id === tpl);
+
+  if (customLayout) {
+    if (docTemplateInput) docTemplateInput.value = customLayout.id;
+    if (badge) {
+      badge.textContent = `✨ ${customLayout.name}`;
+      badge.style.background = '#faf5ff';
+      badge.style.color = '#7e22ce';
+      badge.style.borderColor = '#d8b4fe';
+    }
+    if (prevLbl) {
+      prevLbl.innerHTML = `A4 Document &bull; ✨ ${customLayout.name}`;
+    }
+    if (editBtn) {
+      editBtn.classList.remove('hidden');
+      editBtn.style.display = 'inline-flex';
+    }
+    if (prevEditBtn) {
+      prevEditBtn.classList.remove('hidden');
+      prevEditBtn.style.display = 'inline-flex';
+    }
+
+    if (preview) {
+      preview.className = `quotation tpl-custom tpl-arch-${customLayout.archetype || 'modern'}`;
+      preview.style.setProperty('--custom-primary', customLayout.primaryColor || '#2563eb');
+      preview.style.setProperty('--custom-secondary', customLayout.secondaryColor || '#1e293b');
+      preview.style.setProperty('--custom-accent', customLayout.accentColor || '#f59e0b');
+      preview.style.setProperty('--custom-header-bg', customLayout.headerBg || '#0f172a');
+      preview.style.setProperty('--custom-header-text', customLayout.headerText || '#ffffff');
+      preview.style.setProperty('--custom-paper-bg', customLayout.paperBg || '#ffffff');
+      preview.style.setProperty('--custom-font', customLayout.fontFamily || "'DM Sans', sans-serif");
+      preview.style.setProperty('--custom-table-head-bg', customLayout.tableHeadBg || '#eff6ff');
+      preview.style.setProperty('--custom-table-head-text', customLayout.tableHeadText || '#1e40af');
+      preview.style.setProperty('--custom-border-color', customLayout.borderColor || '#cbd5e1');
+    }
+
+    if (wmEl) {
+      if (customLayout.watermarkEnable && customLayout.watermarkText) {
+        wmEl.textContent = customLayout.watermarkText;
+        wmEl.style.opacity = (Number(customLayout.watermarkOpacity) || 6) / 100;
+        wmEl.classList.remove('hidden');
+      } else {
+        wmEl.classList.add('hidden');
+      }
+    }
+  } else {
+    // Built-in template
+    if (!TEMPLATES[tpl]) tpl = 'modern';
+    if (docTemplateInput) docTemplateInput.value = tpl;
+
+    if (badge && TEMPLATES[tpl]) {
+      badge.textContent = TEMPLATES[tpl].name;
+      badge.style.background = '#eff6ff';
+      badge.style.color = '#2563eb';
+      badge.style.borderColor = '#bfdbfe';
+    }
+    if (prevLbl && TEMPLATES[tpl]) {
+      prevLbl.innerHTML = `A4 Document &bull; ${TEMPLATES[tpl].name}`;
+    }
+    if (editBtn) {
+      editBtn.classList.add('hidden');
+      editBtn.style.display = 'none';
+    }
+    if (prevEditBtn) {
+      prevEditBtn.classList.add('hidden');
+      prevEditBtn.style.display = 'none';
+    }
+
+    if (preview) {
+      preview.className = `quotation tpl-${tpl}`;
+      preview.style.removeProperty('--custom-primary');
+      preview.style.removeProperty('--custom-secondary');
+      preview.style.removeProperty('--custom-accent');
+      preview.style.removeProperty('--custom-header-bg');
+      preview.style.removeProperty('--custom-header-text');
+      preview.style.removeProperty('--custom-paper-bg');
+      preview.style.removeProperty('--custom-font');
+      preview.style.removeProperty('--custom-table-head-bg');
+      preview.style.removeProperty('--custom-table-head-text');
+      preview.style.removeProperty('--custom-border-color');
+    }
+
+    if (wmEl) wmEl.classList.add('hidden');
   }
 
-  const prevLbl = $('previewTplLabel');
-  if (prevLbl && TEMPLATES[tpl]) {
-    prevLbl.innerHTML = `A4 Document &bull; ${TEMPLATES[tpl].name}`;
-  }
+  // Update active pill styling in grid
+  document.querySelectorAll('.template-pill-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tpl === tpl);
+  });
 
   saveDraftState();
 }
 
+/* --- Layout Designer Modal Controller & Cloud Sync --- */
+const DESIGNER_STARTER_PRESETS = [
+  {
+    id: 'starter_executive_gold',
+    name: 'Crown Executive Gold',
+    category: 'luxury',
+    archetype: 'luxury',
+    primaryColor: '#d97706',
+    secondaryColor: '#091428',
+    accentColor: '#fbbf24',
+    headerBg: '#091428',
+    headerText: '#fbbf24',
+    paperBg: '#fffdfa',
+    fontFamily: "'Cinzel', serif",
+    tableStyle: 'grid',
+    tableHeadBg: '#091428',
+    tableHeadText: '#fbbf24',
+    borderColor: '#fde68a',
+    watermarkEnable: true,
+    watermarkText: 'ORIGINAL',
+    watermarkOpacity: 5,
+    description: 'High-end gold metallic borders with deep navy headers for premium client proposals.'
+  },
+  {
+    id: 'starter_cyber_aurora',
+    name: 'Cyber Aurora Gradient',
+    category: 'modern',
+    archetype: 'modern',
+    primaryColor: '#6366f1',
+    secondaryColor: '#a855f7',
+    accentColor: '#06b6d4',
+    headerBg: '#1e1b4b',
+    headerText: '#ffffff',
+    paperBg: '#ffffff',
+    fontFamily: "'Space Grotesk', sans-serif",
+    tableStyle: 'modern',
+    tableHeadBg: '#4338ca',
+    tableHeadText: '#ffffff',
+    borderColor: '#e0e7ff',
+    watermarkEnable: false,
+    watermarkText: 'TAX INVOICE',
+    watermarkOpacity: 6,
+    description: 'Vibrant indigo-to-cyan modern tech styling with glowing accents.'
+  },
+  {
+    id: 'starter_swiss_minimal',
+    name: 'Swiss Pure Minimalist',
+    category: 'minimal',
+    archetype: 'minimal',
+    primaryColor: '#0f172a',
+    secondaryColor: '#475569',
+    accentColor: '#2563eb',
+    headerBg: '#ffffff',
+    headerText: '#0f172a',
+    paperBg: '#ffffff',
+    fontFamily: "'Inter', sans-serif",
+    tableStyle: 'minimal',
+    tableHeadBg: '#f8fafc',
+    tableHeadText: '#334155',
+    borderColor: '#e2e8f0',
+    watermarkEnable: false,
+    watermarkText: '',
+    watermarkOpacity: 4,
+    description: 'Ultra-clean whitespace, hairline borders, and understated elegance.'
+  },
+  {
+    id: 'starter_neo_brutalist',
+    name: 'Neo-Brutalist Electric',
+    category: 'modern',
+    archetype: 'brutalist',
+    primaryColor: '#000000',
+    secondaryColor: '#000000',
+    accentColor: '#facc15',
+    headerBg: '#ffffff',
+    headerText: '#000000',
+    paperBg: '#ffffff',
+    fontFamily: "'Space Grotesk', sans-serif",
+    tableStyle: 'brutalist',
+    tableHeadBg: '#000000',
+    tableHeadText: '#ffffff',
+    borderColor: '#000000',
+    watermarkEnable: true,
+    watermarkText: 'VERIFIED',
+    watermarkOpacity: 8,
+    description: 'Thick 3.5px solid black borders with offset drop shadows and electric yellow tags.'
+  },
+  {
+    id: 'starter_civil_blueprint',
+    name: 'Civil Engineering Blueprint',
+    category: 'industrial',
+    archetype: 'industrial',
+    primaryColor: '#0284c7',
+    secondaryColor: '#0c4a6e',
+    accentColor: '#38bdf8',
+    headerBg: '#0c4a6e',
+    headerText: '#ffffff',
+    paperBg: '#f8fafc',
+    fontFamily: "'JetBrains Mono', monospace",
+    tableStyle: 'grid',
+    tableHeadBg: '#0369a1',
+    tableHeadText: '#ffffff',
+    borderColor: '#7dd3fc',
+    watermarkEnable: true,
+    watermarkText: 'APPROVED ESTIMATE',
+    watermarkOpacity: 7,
+    description: 'Cadet blue drafting theme with technical monospace numbers and boxed grid.'
+  },
+  {
+    id: 'starter_vintage_ledger',
+    name: 'Vintage Master Ledger',
+    category: 'luxury',
+    archetype: 'ledger',
+    primaryColor: '#78350f',
+    secondaryColor: '#92400e',
+    accentColor: '#d97706',
+    headerBg: '#fef3c7',
+    headerText: '#78350f',
+    paperBg: '#fefcf6',
+    fontFamily: "'Playfair Display', serif",
+    tableStyle: 'grid',
+    tableHeadBg: '#fef3c7',
+    tableHeadText: '#78350f',
+    borderColor: '#fde68a',
+    watermarkEnable: true,
+    watermarkText: 'CONFIDENTIAL',
+    watermarkOpacity: 5,
+    description: 'Classic double-ruled accounting ledger parchment with warm tan accents.'
+  },
+  {
+    id: 'starter_emerald_eco',
+    name: 'Emerald Eco Infrastructure',
+    category: 'industrial',
+    archetype: 'modern',
+    primaryColor: '#059669',
+    secondaryColor: '#064e3b',
+    accentColor: '#10b981',
+    headerBg: '#064e3b',
+    headerText: '#ffffff',
+    paperBg: '#ffffff',
+    fontFamily: "'Outfit', sans-serif",
+    tableStyle: 'zebra',
+    tableHeadBg: '#ecfdf5',
+    tableHeadText: '#065f46',
+    borderColor: '#a7f3d0',
+    watermarkEnable: false,
+    watermarkText: 'ECO PROJECT',
+    watermarkOpacity: 6,
+    description: 'Fresh emerald and mint styling for environmental and sustainable construction.'
+  },
+  {
+    id: 'starter_split_horizon',
+    name: 'Split Horizon Midnight',
+    category: 'modern',
+    archetype: 'split',
+    primaryColor: '#312e81',
+    secondaryColor: '#1e1b4b',
+    accentColor: '#6366f1',
+    headerBg: '#1e1b4b',
+    headerText: '#ffffff',
+    paperBg: '#ffffff',
+    fontFamily: "'DM Sans', sans-serif",
+    tableStyle: 'zebra',
+    tableHeadBg: '#312e81',
+    tableHeadText: '#ffffff',
+    borderColor: '#c7d2fe',
+    watermarkEnable: false,
+    watermarkText: '',
+    watermarkOpacity: 5,
+    description: 'Two-tone split header banner with deep midnight indigo and clean zebra rows.'
+  }
+];
+
+async function fetchCustomLayouts() {
+  let list = [];
+  try {
+    list = JSON.parse(localStorage.getItem(customLayoutsStorageKey) || '[]');
+  } catch {}
+
+  if (supabaseClient) {
+    try {
+      const { data, error } = await supabaseClient.from('custom_layouts').select('*').order('updated_at', { ascending: false });
+      if (!error && Array.isArray(data)) {
+        const cloudList = data.map(row => ({
+          id: row.id,
+          name: row.name,
+          category: row.category || 'modern',
+          ...(row.config || {}),
+          cloudSynced: true,
+          updated_at: row.updated_at
+        }));
+        const map = new Map();
+        cloudList.forEach(l => map.set(l.id, l));
+        list.forEach(l => {
+          if (!map.has(l.id)) map.set(l.id, l);
+        });
+        list = Array.from(map.values());
+        localStorage.setItem(customLayoutsStorageKey, JSON.stringify(list));
+      }
+    } catch (err) {
+      console.warn('Supabase custom_layouts query fallback:', err);
+    }
+  }
+
+  customLayouts = list;
+  renderTemplatePicker();
+  renderCustomLayoutsManager();
+  if ($('customLayoutsCount')) $('customLayoutsCount').textContent = customLayouts.length;
+  if ($('customLayoutsCount2')) $('customLayoutsCount2').textContent = customLayouts.length;
+}
+
+async function saveCustomLayoutToCloud(layoutObj) {
+  if (!layoutObj.id) {
+    layoutObj.id = 'custom_' + Date.now();
+  }
+  layoutObj.updated_at = new Date().toISOString();
+
+  const idx = customLayouts.findIndex(x => x.id === layoutObj.id);
+  if (idx >= 0) {
+    customLayouts[idx] = layoutObj;
+  } else {
+    customLayouts.unshift(layoutObj);
+  }
+  localStorage.setItem(customLayoutsStorageKey, JSON.stringify(customLayouts));
+
+  if (supabaseClient) {
+    try {
+      await supabaseClient.from('custom_layouts').upsert({
+        id: layoutObj.id,
+        name: layoutObj.name,
+        category: layoutObj.category || 'modern',
+        config: layoutObj,
+        updated_at: layoutObj.updated_at
+      }, { onConflict: 'id' });
+      layoutObj.cloudSynced = true;
+    } catch (err) {
+      console.warn('Supabase custom_layouts save error:', err);
+    }
+  }
+
+  renderTemplatePicker();
+  renderCustomLayoutsManager();
+  return layoutObj;
+}
+
+async function deleteCustomLayout(layoutId) {
+  const cl = customLayouts.find(x => x.id === layoutId);
+  const name = cl ? cl.name : 'this layout';
+  if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
+
+  customLayouts = customLayouts.filter(x => x.id !== layoutId);
+  localStorage.setItem(customLayoutsStorageKey, JSON.stringify(customLayouts));
+
+  if (supabaseClient) {
+    try {
+      await supabaseClient.from('custom_layouts').delete().eq('id', layoutId);
+    } catch (err) {
+      console.warn('Supabase custom_layouts delete error:', err);
+    }
+  }
+
+  if (val('docTemplate') === layoutId) {
+    setDocumentTemplate('modern');
+  }
+
+  renderTemplatePicker();
+  renderCustomLayoutsManager();
+  showToast(`🗑️ Deleted custom layout "${name}".`);
+}
+
+function openLayoutDesigner(layoutIdToEdit = null) {
+  editingLayoutId = layoutIdToEdit;
+  const modal = $('layoutDesignerModal');
+  if (!modal) return;
+
+  const deleteBtn = $('deleteCurrentCustomLayoutBtn');
+  if (deleteBtn) {
+    if (editingLayoutId) {
+      deleteBtn.style.display = 'inline-flex';
+    } else {
+      deleteBtn.style.display = 'none';
+    }
+  }
+
+  // Populate starter presets
+  renderDesignerPresets();
+
+  if (layoutIdToEdit) {
+    const cl = customLayouts.find(x => x.id === layoutIdToEdit);
+    if (cl) {
+      loadCustomLayoutIntoForm(cl);
+    }
+  } else {
+    // Default starter
+    loadCustomLayoutIntoForm(DESIGNER_STARTER_PRESETS[0]);
+    $('customLayoutName').value = `My Custom Layout ${customLayouts.length + 1}`;
+  }
+
+  modal.classList.remove('hidden');
+  switchDesignerTab('builder');
+  updateLayoutDesignerPreview();
+}
+
+function closeLayoutDesigner() {
+  const modal = $('layoutDesignerModal');
+  if (modal) modal.classList.add('hidden');
+  editingLayoutId = null;
+}
+
+function switchDesignerTab(tab) {
+  const tabs = ['Builder', 'Presets', 'Sync', 'Json'];
+  tabs.forEach(t => {
+    const btn = $(`tabDesigner${t}Btn`);
+    const content = $(`tabDesigner${t}Content`);
+    const isTarget = t.toLowerCase() === tab.toLowerCase();
+    if (btn) btn.classList.toggle('active', isTarget);
+    if (content) content.classList.toggle('hidden', !isTarget);
+  });
+
+  if (tab === 'sync') {
+    updateDesignerSyncStatus();
+  } else if (tab === 'json') {
+    const curConfig = collectCurrentLayoutFromForm();
+    if ($('layoutJsonArea')) {
+      $('layoutJsonArea').value = JSON.stringify(curConfig, null, 2);
+    }
+  }
+}
+
+function renderDesignerPresets() {
+  const grid = $('designerPresetsGrid');
+  if (!grid) return;
+
+  grid.innerHTML = DESIGNER_STARTER_PRESETS.map(p => `
+    <div class="preset-canvas-card" data-preset-id="${p.id}">
+      <div class="preset-header-strip" style="background:${p.primaryColor};"></div>
+      <strong>${p.name}</strong>
+      <p>${p.description}</p>
+      <div class="preset-chips">
+        <span class="badge-approx" style="background:#eff6ff;color:#2563eb;font-size:9px;">${p.archetype.toUpperCase()}</span>
+        <span class="badge-approx" style="background:${p.headerBg};color:${p.headerText};font-size:9px;">Theme</span>
+        <span class="badge-approx" style="background:#f1f5f9;color:#475569;font-size:9px;">${p.fontFamily.split(',')[0].replace(/['"]/g, '')}</span>
+      </div>
+    </div>
+  `).join('');
+
+  grid.querySelectorAll('[data-preset-id]').forEach(card => {
+    card.addEventListener('click', () => {
+      const p = DESIGNER_STARTER_PRESETS.find(x => x.id === card.dataset.presetId);
+      if (p) {
+        loadCustomLayoutIntoForm(p);
+        $('customLayoutName').value = p.name;
+        switchDesignerTab('builder');
+        updateLayoutDesignerPreview();
+        showToast(`⚡ Loaded preset: ${p.name}`);
+      }
+    });
+  });
+}
+
+function loadCustomLayoutIntoForm(cfg) {
+  if ($('customLayoutName')) $('customLayoutName').value = cfg.name || 'My Custom Bill';
+  if ($('customLayoutCategory')) $('customLayoutCategory').value = cfg.category || 'modern';
+
+  // Archetype radio
+  const archRadios = document.querySelectorAll('input[name="customArchetype"]');
+  archRadios.forEach(r => {
+    r.checked = r.value === (cfg.archetype || 'modern');
+  });
+
+  // Colors
+  setDesignerColor('customPrimaryColor', cfg.primaryColor || '#2563eb');
+  setDesignerColor('customAccentColor', cfg.accentColor || '#f59e0b');
+  setDesignerColor('customPaperBg', cfg.paperBg || '#ffffff');
+  setDesignerColor('customHeaderBg', cfg.headerBg || '#0f172a');
+  setDesignerColor('customHeaderText', cfg.headerText || '#ffffff');
+  setDesignerColor('customTableHeadBg', cfg.tableHeadBg || '#eff6ff');
+
+  // Font & Table
+  if ($('customFontFamily')) $('customFontFamily').value = cfg.fontFamily || "'DM Sans', sans-serif";
+  if ($('customTableStyle')) $('customTableStyle').value = cfg.tableStyle || 'modern';
+
+  // Watermark
+  if ($('customWatermarkEnable')) $('customWatermarkEnable').checked = Boolean(cfg.watermarkEnable);
+  if ($('customWatermarkText')) $('customWatermarkText').value = cfg.watermarkText || 'ORIGINAL';
+  if ($('customWatermarkOpacity')) $('customWatermarkOpacity').value = cfg.watermarkOpacity || 6;
+  if ($('watermarkOpacityVal')) $('watermarkOpacityVal').textContent = `${cfg.watermarkOpacity || 6}%`;
+
+  updateLayoutDesignerPreview();
+}
+
+function setDesignerColor(id, hex) {
+  const picker = $(id);
+  const text = $(id + 'Hex');
+  if (picker) picker.value = hex;
+  if (text) text.value = hex;
+}
+
+function collectCurrentLayoutFromForm() {
+  const archChecked = document.querySelector('input[name="customArchetype"]:checked');
+  const archetype = archChecked ? archChecked.value : 'modern';
+
+  return {
+    id: editingLayoutId || ('custom_' + Date.now()),
+    name: ($('customLayoutName') ? $('customLayoutName').value.trim() : 'My Custom Layout') || 'My Custom Layout',
+    category: ($('customLayoutCategory') ? $('customLayoutCategory').value : 'modern') || 'modern',
+    archetype: archetype,
+    primaryColor: ($('customPrimaryColor') ? $('customPrimaryColor').value : '#2563eb') || '#2563eb',
+    accentColor: ($('customAccentColor') ? $('customAccentColor').value : '#f59e0b') || '#f59e0b',
+    paperBg: ($('customPaperBg') ? $('customPaperBg').value : '#ffffff') || '#ffffff',
+    headerBg: ($('customHeaderBg') ? $('customHeaderBg').value : '#0f172a') || '#0f172a',
+    headerText: ($('customHeaderText') ? $('customHeaderText').value : '#ffffff') || '#ffffff',
+    tableHeadBg: ($('customTableHeadBg') ? $('customTableHeadBg').value : '#eff6ff') || '#eff6ff',
+    tableHeadText: ($('customPrimaryColor') ? $('customPrimaryColor').value : '#1e40af'),
+    borderColor: '#cbd5e1',
+    fontFamily: ($('customFontFamily') ? $('customFontFamily').value : "'DM Sans', sans-serif"),
+    tableStyle: ($('customTableStyle') ? $('customTableStyle').value : 'modern'),
+    watermarkEnable: $('customWatermarkEnable') ? $('customWatermarkEnable').checked : false,
+    watermarkText: $('customWatermarkText') ? $('customWatermarkText').value.trim() : '',
+    watermarkOpacity: $('customWatermarkOpacity') ? Number($('customWatermarkOpacity').value) : 6
+  };
+}
+
+function updateLayoutDesignerPreview() {
+  const cfg = collectCurrentLayoutFromForm();
+  const sim = $('builderPreviewFrame');
+  if (!sim) return;
+
+  sim.style.background = cfg.paperBg;
+  sim.style.fontFamily = cfg.fontFamily;
+  sim.style.borderTop = `5px solid ${cfg.primaryColor}`;
+
+  if ($('builderPreviewBadge')) {
+    $('builderPreviewBadge').textContent = `✨ ${cfg.archetype.toUpperCase()}`;
+  }
+
+  const sHeader = $('simHeader');
+  const sAccent = $('simAccent');
+  const sTag = $('simDocTag');
+  const sTh = $('simTh');
+  const sGrand = $('simGrand');
+
+  if (sHeader) {
+    if (cfg.archetype === 'split' || cfg.archetype === 'industrial' || cfg.archetype === 'luxury') {
+      sHeader.style.background = cfg.headerBg;
+      sHeader.style.color = cfg.headerText;
+      sHeader.querySelectorAll('strong, p, span').forEach(el => el.style.color = cfg.headerText);
+    } else {
+      sHeader.style.background = 'transparent';
+      sHeader.style.color = '#0f172a';
+      sHeader.querySelectorAll('strong, p, span').forEach(el => el.style.color = '');
+    }
+  }
+
+  if (sTag) {
+    sTag.style.background = cfg.accentColor;
+    sTag.style.color = '#0f172a';
+  }
+
+  if (sAccent) {
+    sAccent.style.background = cfg.primaryColor;
+  }
+
+  if (sTh) {
+    sTh.style.background = cfg.tableHeadBg;
+    sTh.style.color = cfg.primaryColor;
+    sTh.style.borderBottom = `2px solid ${cfg.primaryColor}`;
+  }
+
+  if (sGrand) {
+    sGrand.style.background = cfg.headerBg;
+    sGrand.style.color = cfg.accentColor;
+  }
+}
+
+async function saveCurrentLayoutFromDesigner() {
+  const cfg = collectCurrentLayoutFromForm();
+  if (!cfg.name || !cfg.name.trim()) {
+    showToast('Please enter a name for your custom layout.', 'error');
+    return;
+  }
+
+  const saved = await saveCustomLayoutToCloud(cfg);
+  setDocumentTemplate(saved.id);
+  closeLayoutDesigner();
+  showToast(`🎉 Custom layout "${saved.name}" saved & applied! Synced with Cloud Database.`);
+}
+
+function renderCustomLayoutsManager() {
+  const listEl = $('customLayoutsManagerList');
+  if (!listEl) return;
+
+  if ($('customLayoutsCount')) $('customLayoutsCount').textContent = customLayouts.length;
+  if ($('customLayoutsCount2')) $('customLayoutsCount2').textContent = customLayouts.length;
+
+  if (!customLayouts.length) {
+    listEl.innerHTML = '<div class="empty-state">No custom bill layouts created yet. Click "+ Create New Layout" above to design custom color themes, fonts &amp; structures.</div>';
+    return;
+  }
+
+  const q = ($('searchLayoutsInput') ? $('searchLayoutsInput').value : '').toLowerCase();
+
+  const filtered = customLayouts.filter(cl => {
+    if (!q) return true;
+    return (cl.name && cl.name.toLowerCase().includes(q)) || (cl.archetype && cl.archetype.toLowerCase().includes(q));
+  });
+
+  if (!filtered.length) {
+    listEl.innerHTML = '<div class="empty-state">No matching layouts found.</div>';
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(cl => {
+    const syncBadge = cl.cloudSynced
+      ? '<span class="badge-approx" style="background:#dcfce7;color:#15803d;font-size:9.5px;">● Cloud Synced</span>'
+      : '<span class="badge-approx" style="background:#eff6ff;color:#2563eb;font-size:9.5px;">● Local &amp; Cloud</span>';
+
+    return `
+      <div class="quote-card">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:${cl.primaryColor || '#2563eb'};box-shadow:0 2px 6px rgba(0,0,0,0.15);flex-shrink:0;border:2px solid #fff;"></div>
+          <div class="quote-card-main">
+            <strong>${esc(cl.name)}</strong>
+            <p>📐 Archetype: <strong>${esc((cl.archetype || 'modern').toUpperCase())}</strong> &bull; Font: <strong>${esc(cl.fontFamily ? cl.fontFamily.split(',')[0].replace(/['"]/g, '') : 'DM Sans')}</strong> &bull; ${syncBadge}</p>
+          </div>
+        </div>
+        <div class="quote-card-right">
+          <button class="btn small primary" data-apply-layout-id="${cl.id}">✅ Apply</button>
+          <button class="btn small outline" data-edit-layout-id="${cl.id}">✏️ Edit</button>
+          <button class="btn small ghost-dark" data-del-layout-id="${cl.id}" title="Delete layout">&times;</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  listEl.querySelectorAll('[data-apply-layout-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setDocumentTemplate(btn.dataset.applyLayoutId);
+      $('cloudModal').classList.add('hidden');
+      showToast('🎨 Custom bill layout applied to document!');
+    });
+  });
+
+  listEl.querySelectorAll('[data-edit-layout-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      $('cloudModal').classList.add('hidden');
+      openLayoutDesigner(btn.dataset.editLayoutId);
+    });
+  });
+
+  listEl.querySelectorAll('[data-del-layout-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      deleteCustomLayout(btn.dataset.delLayoutId);
+    });
+  });
+}
+
+function updateDesignerSyncStatus() {
+  const badge = $('designerCloudStatusBadge');
+  if (!badge) return;
+  if (supabaseClient) {
+    badge.textContent = '● Online (Supabase PostgreSQL)';
+    badge.className = 'cloud-status-pill online';
+  } else {
+    badge.textContent = '● Local Browser Mode';
+    badge.className = 'cloud-status-pill local';
+  }
+}
+
+function exportCurrentLayoutJson() {
+  const cfg = collectCurrentLayoutFromForm();
+  navigator.clipboard.writeText(JSON.stringify(cfg, null, 2)).then(() => {
+    showToast('📋 Layout JSON copied to clipboard!');
+  }).catch(() => {
+    showToast('Could not copy automatically. Select JSON in the text area.', 'error');
+  });
+}
+
+function downloadLayoutsJson() {
+  const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(customLayouts, null, 2));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute('href', dataStr);
+  downloadAnchor.setAttribute('download', `sbfb_custom_layouts_${Date.now()}.json`);
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+  showToast('💾 Custom Layouts exported to JSON file!');
+}
+
+function importLayoutJson() {
+  const txt = ($('layoutJsonArea') ? $('layoutJsonArea').value : '').trim();
+  if (!txt) {
+    showToast('Please paste a layout JSON configuration first.', 'error');
+    return;
+  }
+  try {
+    const parsed = JSON.parse(txt);
+    if (Array.isArray(parsed)) {
+      parsed.forEach(item => saveCustomLayoutToCloud(item));
+      showToast(`📥 Imported ${parsed.length} custom layout(s)!`);
+    } else if (parsed && typeof parsed === 'object') {
+      saveCustomLayoutToCloud(parsed);
+      loadCustomLayoutIntoForm(parsed);
+      showToast(`📥 Imported layout: "${parsed.name || 'Custom Layout'}"!`);
+    }
+  } catch (err) {
+    showToast(`Invalid JSON: ${err.message}`, 'error');
+  }
+}
+
 function setBillingMode(mode) {
-  if (!['sqm_rate', 'qty_rate'].includes(mode)) mode = 'sqm_rate';
+  if (!['sqm_rate', 'qty_rate'].includes(mode)) mode = 'qty_rate';
   const bModeInput = $('billingMode');
   if (bModeInput) bModeInput.value = mode;
 
@@ -1734,8 +2698,13 @@ function updatePreview() {
 
   // Apply template class
   const preview = $('quotationPreview');
+  const customLayout = customLayouts.find(x => x.id === tpl);
   if (preview) {
-    preview.className = `quotation tpl-${tpl}`;
+    if (customLayout) {
+      preview.className = `quotation tpl-custom tpl-arch-${customLayout.archetype || 'modern'}`;
+    } else {
+      preview.className = `quotation tpl-${TEMPLATES[tpl] ? tpl : 'modern'}`;
+    }
   }
 
   // Dates & Numbers
@@ -1913,16 +2882,33 @@ function updatePreview() {
   }
 
   // Third box in client strip
+  const rawValidity = (val('validity') || '').toString().trim();
+  const validityNum = Number(rawValidity);
+  const hasValidity = rawValidity !== '' && !isNaN(validityNum) && validityNum > 0;
+  const thirdBoxWrap = $('pThirdBoxWrap');
+  const clientStrip = $('pClientStrip') || (thirdBoxWrap ? thirdBoxWrap.parentElement : null);
+
   if ($('pThirdBoxTag')) $('pThirdBoxTag').textContent = conf.thirdBoxTag;
   if (docType === 'quotation') {
-    if ($('pThirdBoxValue')) $('pThirdBoxValue').textContent = `${val('validity') || 15} days`;
-    if ($('pThirdBoxSub')) $('pThirdBoxSub').textContent = 'From quotation date';
+    if (hasValidity) {
+      if ($('pThirdBoxValue')) $('pThirdBoxValue').textContent = `${validityNum} days`;
+      if ($('pThirdBoxSub')) $('pThirdBoxSub').textContent = 'From quotation date';
+      if (thirdBoxWrap) thirdBoxWrap.style.display = '';
+      if (clientStrip) clientStrip.classList.remove('no-third-box');
+    } else {
+      if (thirdBoxWrap) thirdBoxWrap.style.display = 'none';
+      if (clientStrip) clientStrip.classList.add('no-third-box');
+    }
   } else if (docType === 'invoice') {
     if ($('pThirdBoxValue')) $('pThirdBoxValue').textContent = dueDate ? formatDate(dueDate) : 'Due on Receipt';
     if ($('pThirdBoxSub')) $('pThirdBoxSub').textContent = val('paymentModeSelect') || 'Bank / UPI';
+    if (thirdBoxWrap) thirdBoxWrap.style.display = '';
+    if (clientStrip) clientStrip.classList.remove('no-third-box');
   } else {
     if ($('pThirdBoxValue')) $('pThirdBoxValue').textContent = 'PAID (CASH)';
     if ($('pThirdBoxSub')) $('pThirdBoxSub').textContent = 'Direct Receipt';
+    if (thirdBoxWrap) thirdBoxWrap.style.display = '';
+    if (clientStrip) clientStrip.classList.remove('no-third-box');
   }
 
   // Commercial / Payment Terms Box (Optional & Clickable Toggle)
@@ -1931,8 +2917,7 @@ function updatePreview() {
   if (pTermsTextarea) pTermsTextarea.classList.toggle('toggle-dimmed', !showTerms);
 
   const pTerms = showTerms ? (val('paymentTerms') || '').trim() : '';
-  const validityDays = val('validity') || 15;
-  const showValidity = docType === 'quotation' && Number(validityDays) > 0;
+  const showValidity = docType === 'quotation' && hasValidity;
   const pTermsBox = $('pTermsBox');
   const pTermsHeading = $('pTermsHeading');
   const pPaymentTerms = $('pPaymentTerms');
@@ -1955,7 +2940,7 @@ function updatePreview() {
   if (validityLine) {
     if (showValidity) {
       validityLine.style.display = '';
-      if ($('pValidity2')) $('pValidity2').textContent = `${validityDays} days`;
+      if ($('pValidity2')) $('pValidity2').textContent = `${validityNum} days`;
     } else {
       validityLine.style.display = 'none';
     }
@@ -2085,7 +3070,7 @@ function updatePreview() {
     if (pThQty) pThQty.classList.remove('hidden');
     if (pThUnit) pThUnit.classList.remove('hidden');
     if (pThAmount) pThAmount.classList.remove('hidden');
-    if (pThRate) pThRate.textContent = 'Rate (₹)';
+    if (pThRate) pThRate.textContent = 'Unit Rate (₹)';
   } else {
     if (pThQty) pThQty.classList.add('hidden');
     if (pThUnit) pThUnit.classList.add('hidden');
@@ -2111,7 +3096,7 @@ function updatePreview() {
               <td>${i + 1}</td>
               <td><strong>${esc(x.desc || 'Work / Material description')}</strong></td>
               <td class="center"><strong>${qty}</strong></td>
-              <td class="center"><span class="badge-sqm">${esc(x.unit || 'sq.m')}</span></td>
+              <td class="center"><span class="badge-unit">${esc(x.unit || 'pcs')}</span></td>
               <td class="right">${money(rate)}</td>
               <td class="right"><strong>${money(amount)}</strong></td>
             </tr>
@@ -2149,6 +3134,13 @@ function saveDraftState() {
 
 function loadDraftState() {
   try {
+    const customLocal = JSON.parse(localStorage.getItem(customLayoutsStorageKey) || '[]');
+    if (Array.isArray(customLocal) && customLocal.length) {
+      customLayouts = customLocal;
+    }
+  } catch {}
+
+  try {
     const data = JSON.parse(localStorage.getItem(stateKey) || 'null');
     if (data) {
       if (data.currentQuoteId) currentQuoteId = data.currentQuoteId;
@@ -2172,10 +3164,26 @@ function loadDraftState() {
         $('showNotesOnDoc').checked = Boolean(data.showNotesOnDoc);
       }
       if (Array.isArray(data.items) && data.items.length) {
-        items = data.items;
+        items = data.items.map(item => ({
+          id: item.id || crypto.randomUUID(),
+          desc: item.desc || '',
+          qty: Number(item.qty) || 1,
+          unit: item.unit || 'pcs',
+          rate: Number(item.rate) || 0,
+          amount: (Number(item.qty) || 1) * (Number(item.rate) || 0)
+        }));
       }
     }
   } catch {}
+
+  if (!items.length) {
+    items = [
+      { id: crypto.randomUUID(), desc: 'Standard Fly Ash Bricks (9"x4"x3")', qty: 5000, unit: 'pcs', rate: 7.5, amount: 37500 },
+      { id: crypto.randomUUID(), desc: 'Fly ash brick masonry with cement mortar (1:6)', qty: 45, unit: 'sq.m', rate: 450, amount: 20250 },
+      { id: crypto.randomUUID(), desc: 'OPC 53 Grade Cement Bags', qty: 50, unit: 'bags', rate: 380, amount: 19000 },
+      { id: crypto.randomUUID(), desc: 'TMT Steel 12mm Rebars', qty: 500, unit: 'kg', rate: 68, amount: 34000 }
+    ];
+  }
 
   if (!$('quoteDate').value) {
     $('quoteDate').value = today();
@@ -2257,23 +3265,26 @@ async function testSupabaseConnectionDetailed(interactive = false) {
     const client = window.supabase.createClient(url, key);
     supabaseClient = client;
 
-    // Test each of the 4 tables concurrently
-    const [qRes, cRes, catRes, gstRes] = await Promise.allSettled([
+    // Test all 5 tables concurrently
+    const [qRes, cRes, catRes, gstRes, layoutRes] = await Promise.allSettled([
       client.from('quotations').select('id').limit(1),
       client.from('company_settings').select('id').limit(1),
       client.from('item_catalog').select('id').limit(1),
-      client.from('gst_registry').select('id').limit(1)
+      client.from('gst_registry').select('id').limit(1),
+      client.from('custom_layouts').select('id').limit(1)
     ]);
 
     const qOk = qRes.status === 'fulfilled' && !qRes.value.error;
     const cOk = cRes.status === 'fulfilled' && !cRes.value.error;
     const catOk = catRes.status === 'fulfilled' && !catRes.value.error;
     const gstOk = gstRes.status === 'fulfilled' && !gstRes.value.error;
+    const layoutOk = layoutRes.status === 'fulfilled' && !layoutRes.value.error;
 
     if ($('diagTabQuotations')) $('diagTabQuotations').innerHTML = qOk ? '<strong style="color:#16a34a">✅ Active</strong>' : `<span style="color:#dc2626">❌ Missing</span>`;
     if ($('diagTabCompany')) $('diagTabCompany').innerHTML = cOk ? '<strong style="color:#16a34a">✅ Active</strong>' : `<span style="color:#dc2626">❌ Missing</span>`;
     if ($('diagTabCatalog')) $('diagTabCatalog').innerHTML = catOk ? '<strong style="color:#16a34a">✅ Active</strong>' : `<span style="color:#dc2626">❌ Missing</span>`;
     if ($('diagTabGst')) $('diagTabGst').innerHTML = gstOk ? '<strong style="color:#16a34a">✅ Active</strong>' : `<span style="color:#dc2626">❌ Missing</span>`;
+    if ($('diagTabCustomLayouts')) $('diagTabCustomLayouts').innerHTML = layoutOk ? '<strong style="color:#16a34a">✅ Active</strong>' : `<span style="color:#f59e0b">⚠️ Offline (Local active)</span>`;
 
     const allOk = qOk && cOk && catOk && gstOk;
     const partialOk = qOk || cOk || catOk || gstOk;
@@ -2288,13 +3299,14 @@ async function testSupabaseConnectionDetailed(interactive = false) {
         mainBadge.textContent = '● Cloud Online';
         mainBadge.className = 'cloud-status-pill online';
       }
-      if (overall) overall.textContent = '🎉 All 4 Database Tables Verified & Online!';
-      if (msg) msg.innerHTML = '✨ Real-time cloud sync is active. Quotations, Item Library, Company Defaults, and GST Register are syncing properly.';
+      if (overall) overall.textContent = '🎉 Supabase Database Verified & Online!';
+      if (msg) msg.innerHTML = '✨ Real-time cloud sync is active. Quotations, Custom Layouts, Item Library, Company Defaults, and GST Register are syncing properly.';
       
       localStorage.setItem(supabaseConfigKey, JSON.stringify({ url, key }));
       loadCompanyDefaults();
       loadItemCatalog();
       loadGstRegistry();
+      fetchCustomLayouts();
       fetchSavedQuotations();
 
       if (interactive) showToast('🎉 Connected to Supabase Cloud Database! All tables verified.');
@@ -2493,9 +3505,12 @@ async function saveQuotationToCloud() {
     }
   });
 
+  const activeCustomLayout = customLayouts.find(x => x.id === docTemplate) || null;
+
   const quotePayload = {
     doc_type: docType,
     template_theme: docTemplate,
+    custom_layout_config: activeCustomLayout,
     billing_mode: mode,
     quote_no: (val('quoteNo') || '').trim() || null,
     quote_date: val('quoteDate') || today(),
@@ -2531,7 +3546,7 @@ async function saveQuotationToCloud() {
     items: items,
     gst_rate: Number(val('gstRate')) || 18,
     discount: Number(val('discount')) || 0,
-    validity: Number(val('validity')) || 15,
+    validity: (val('validity') && Number(val('validity')) > 0) ? Number(val('validity')) : null,
     payment_terms: val('paymentTerms'),
     notes: val('notes'),
     subtotal,
@@ -2766,7 +3781,7 @@ function loadQuotationById(id) {
   }
   $('gstRate').value = q.gst_rate ?? 18;
   $('discount').value = q.discount ?? 0;
-  $('validity').value = q.validity ?? 15;
+  $('validity').value = q.validity ? q.validity : '';
   $('paymentTerms').value = q.payment_terms || '30% advance with work order. Balance as per measured progress / agreed milestones.';
   $('notes').value = q.notes || 'Rates are quoted based on specifications above.';
 
@@ -2774,14 +3789,24 @@ function loadQuotationById(id) {
     id: item.id || crypto.randomUUID(),
     desc: item.desc || '',
     qty: Number(item.qty) || 1,
-    unit: item.unit || 'sq.m',
+    unit: item.unit || 'pcs',
     rate: Number(item.rate) || 0,
     amount: (Number(item.qty) || 1) * (Number(item.rate) || 0)
   })) : [];
 
   setDocumentType(q.doc_type || 'quotation', false);
+
+  if (q.custom_layout_config && q.custom_layout_config.id) {
+    const exists = customLayouts.some(x => x.id === q.custom_layout_config.id);
+    if (!exists) {
+      customLayouts.unshift(q.custom_layout_config);
+      localStorage.setItem(customLayoutsStorageKey, JSON.stringify(customLayouts));
+      renderTemplatePicker();
+    }
+  }
+
   setDocumentTemplate(q.template_theme || 'modern');
-  setBillingMode(q.billing_mode || 'sqm_rate');
+  setBillingMode(q.billing_mode || 'qty_rate');
 
   $('cloudModal').classList.add('hidden');
   showToast(`📂 Loaded ${DOC_TYPES[q.doc_type || 'quotation'].name} for ${q.client_name || 'Client'}!`);
@@ -3635,11 +4660,11 @@ if ($('modeQtyBtn')) {
 });
 
 $('addItemBtn').addEventListener('click', () => {
-  const mode = val('billingMode') || 'sqm_rate';
+  const mode = val('billingMode') || 'qty_rate';
   if (mode === 'qty_rate') {
-    addItem('New item / service', 450, 1, 'sq.m');
+    addItem('New item / material / service', 450, 1, 'pcs');
   } else {
-    addItem('New work item', 450);
+    addItem('New work item', 450, 1, 'sq.m');
   }
 });
 
@@ -3649,11 +4674,12 @@ $('syncCatalogFromCurrentBtn').addEventListener('click', syncCurrentQuoteToCatal
 $('addNewCatalogItemBtn').addEventListener('click', () => {
   const desc = $('newCatalogDesc').value.trim();
   const rate = Number($('newCatalogRate').value) || 0;
+  const unit = ($('newCatalogUnit') ? $('newCatalogUnit').value : 'pcs') || 'pcs';
   if (!desc) {
     showToast('Please enter an item description.', 'error');
     return;
   }
-  saveItemToCatalog(desc, rate, true);
+  saveItemToCatalog(desc, rate, unit, true);
   $('newCatalogDesc').value = '';
   $('newCatalogRate').value = '';
 });
@@ -3690,7 +4716,7 @@ $('resetBtn').addEventListener('click', async () => {
   if ($('gstModeSelect')) $('gstModeSelect').value = '18';
   $('gstRate').value = 18;
   $('discount').value = 0;
-  $('validity').value = 15;
+  $('validity').value = '';
   $('paymentTerms').value = conf.defaultTerms;
   $('notes').value = conf.defaultNotes;
 
@@ -3708,6 +4734,7 @@ $('cloudModalBtn').addEventListener('click', () => {
   $('cloudModal').classList.remove('hidden');
   fetchSavedQuotations();
   renderCatalogManager();
+  fetchCustomLayouts();
 });
 
 $('closeCloudModalBtn').addEventListener('click', () => {
@@ -3720,34 +4747,31 @@ $('cloudModal').addEventListener('click', e => {
   }
 });
 
-$('tabSavedBtn').addEventListener('click', () => {
-  $('tabSavedBtn').classList.add('active');
-  $('tabCatalogBtn').classList.remove('active');
-  $('tabConfigBtn').classList.remove('active');
-  $('tabSavedContent').classList.remove('hidden');
-  $('tabCatalogContent').classList.add('hidden');
-  $('tabConfigContent').classList.add('hidden');
-  fetchSavedQuotations();
-});
+function switchCloudTab(tabName) {
+  const tabs = [
+    { id: 'Saved', btn: 'tabSavedBtn', content: 'tabSavedContent' },
+    { id: 'Catalog', btn: 'tabCatalogBtn', content: 'tabCatalogContent' },
+    { id: 'CustomLayouts', btn: 'tabCustomLayoutsBtn', content: 'tabCustomLayoutsContent' },
+    { id: 'Config', btn: 'tabConfigBtn', content: 'tabConfigContent' }
+  ];
 
-$('tabCatalogBtn').addEventListener('click', () => {
-  $('tabCatalogBtn').classList.add('active');
-  $('tabSavedBtn').classList.remove('active');
-  $('tabConfigBtn').classList.remove('active');
-  $('tabCatalogContent').classList.remove('hidden');
-  $('tabSavedContent').classList.add('hidden');
-  $('tabConfigContent').classList.add('hidden');
-  renderCatalogManager();
-});
+  tabs.forEach(t => {
+    const isTarget = t.id.toLowerCase() === tabName.toLowerCase();
+    const btn = $(t.btn);
+    const content = $(t.content);
+    if (btn) btn.classList.toggle('active', isTarget);
+    if (content) content.classList.toggle('hidden', !isTarget);
+  });
 
-$('tabConfigBtn').addEventListener('click', () => {
-  $('tabConfigBtn').classList.add('active');
-  $('tabSavedBtn').classList.remove('active');
-  $('tabCatalogBtn').classList.remove('active');
-  $('tabConfigContent').classList.remove('hidden');
-  $('tabSavedContent').classList.add('hidden');
-  $('tabCatalogContent').classList.add('hidden');
-});
+  if (tabName === 'saved') fetchSavedQuotations();
+  if (tabName === 'catalog') renderCatalogManager();
+  if (tabName === 'customlayouts') renderCustomLayoutsManager();
+}
+
+if ($('tabSavedBtn')) $('tabSavedBtn').addEventListener('click', () => switchCloudTab('saved'));
+if ($('tabCatalogBtn')) $('tabCatalogBtn').addEventListener('click', () => switchCloudTab('catalog'));
+if ($('tabCustomLayoutsBtn')) $('tabCustomLayoutsBtn').addEventListener('click', () => switchCloudTab('customlayouts'));
+if ($('tabConfigBtn')) $('tabConfigBtn').addEventListener('click', () => switchCloudTab('config'));
 
 $('saveSupabaseConfigBtn').addEventListener('click', async () => {
   const url = $('supabaseUrl').value.trim();
@@ -4105,6 +5129,198 @@ if ($('saveGstApiSettingsBtn')) {
   });
 }
 
+// --- 🎨 Layout Studio & Custom Templates Event Listeners ---
+
+// Open / Edit Layout Studio
+if ($('topLayoutStudioBtn')) {
+  $('topLayoutStudioBtn').addEventListener('click', () => openLayoutDesigner(null));
+}
+
+if ($('previewLayoutStudioBtn')) {
+  $('previewLayoutStudioBtn').addEventListener('click', () => openLayoutDesigner(null));
+}
+
+if ($('previewEditLayoutBtn')) {
+  $('previewEditLayoutBtn').addEventListener('click', () => openLayoutDesigner(val('docTemplate')));
+}
+
+if ($('mobBarLayoutBtn')) {
+  $('mobBarLayoutBtn').addEventListener('click', () => openLayoutDesigner(null));
+}
+
+if ($('openLayoutDesignerBtn')) {
+  $('openLayoutDesignerBtn').addEventListener('click', () => openLayoutDesigner(null));
+}
+
+if ($('editActiveLayoutBtn')) {
+  $('editActiveLayoutBtn').addEventListener('click', () => openLayoutDesigner(val('docTemplate')));
+}
+
+if ($('closeLayoutDesignerBtn')) {
+  $('closeLayoutDesignerBtn').addEventListener('click', closeLayoutDesigner);
+}
+
+if ($('layoutDesignerModal')) {
+  $('layoutDesignerModal').addEventListener('click', e => {
+    if (e.target === $('layoutDesignerModal')) {
+      closeLayoutDesigner();
+    }
+  });
+}
+
+// Layout Studio Tabs
+if ($('tabDesignerBuilderBtn')) $('tabDesignerBuilderBtn').addEventListener('click', () => switchDesignerTab('builder'));
+if ($('tabDesignerPresetsBtn')) $('tabDesignerPresetsBtn').addEventListener('click', () => switchDesignerTab('presets'));
+if ($('tabDesignerSyncBtn')) $('tabDesignerSyncBtn').addEventListener('click', () => switchDesignerTab('sync'));
+if ($('tabDesignerJsonBtn')) $('tabDesignerJsonBtn').addEventListener('click', () => switchDesignerTab('json'));
+
+// Layout Studio Live Inputs
+['customLayoutName', 'customWatermarkText'].forEach(id => {
+  const el = $(id);
+  if (el) el.addEventListener('input', updateLayoutDesignerPreview);
+});
+
+['customLayoutCategory', 'customFontFamily', 'customTableStyle', 'customWatermarkEnable'].forEach(id => {
+  const el = $(id);
+  if (el) el.addEventListener('change', updateLayoutDesignerPreview);
+});
+
+if ($('customWatermarkOpacity')) {
+  $('customWatermarkOpacity').addEventListener('input', () => {
+    if ($('watermarkOpacityVal')) {
+      $('watermarkOpacityVal').textContent = `${$('customWatermarkOpacity').value}%`;
+    }
+    updateLayoutDesignerPreview();
+  });
+}
+
+document.querySelectorAll('input[name="customArchetype"]').forEach(r => {
+  r.addEventListener('change', updateLayoutDesignerPreview);
+});
+
+// Color Pickers & Hex Synchronization
+const designerColorPairs = [
+  { picker: 'customPrimaryColor', hex: 'customPrimaryColorHex' },
+  { picker: 'customAccentColor', hex: 'customAccentColorHex' },
+  { picker: 'customPaperBg', hex: 'customPaperBgHex' },
+  { picker: 'customHeaderBg', hex: 'customHeaderBgHex' },
+  { picker: 'customHeaderText', hex: 'customHeaderTextHex' },
+  { picker: 'customTableHeadBg', hex: 'customTableHeadBgHex' }
+];
+
+designerColorPairs.forEach(({ picker, hex }) => {
+  const pEl = $(picker);
+  const hEl = $(hex);
+  if (pEl && hEl) {
+    pEl.addEventListener('input', () => {
+      hEl.value = pEl.value;
+      updateLayoutDesignerPreview();
+    });
+    hEl.addEventListener('input', () => {
+      let valHex = hEl.value.trim();
+      if (!valHex.startsWith('#')) valHex = '#' + valHex;
+      if (/^#[0-9A-Fa-f]{6}$/.test(valHex)) {
+        pEl.value = valHex;
+        updateLayoutDesignerPreview();
+      }
+    });
+  }
+});
+
+// Quick Palette Swatches in Studio
+document.querySelectorAll('.palette-swatch-bar .swatch-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.dataset.primary) setDesignerColor('customPrimaryColor', btn.dataset.primary);
+    if (btn.dataset.accent) setDesignerColor('customAccentColor', btn.dataset.accent);
+    if (btn.dataset.header) setDesignerColor('customHeaderBg', btn.dataset.header);
+    if (btn.dataset.text) setDesignerColor('customHeaderText', btn.dataset.text);
+    if (btn.dataset.paper) setDesignerColor('customPaperBg', btn.dataset.paper);
+    updateLayoutDesignerPreview();
+    showToast(`⚡ Palette applied: ${btn.title || 'Theme'}`);
+  });
+});
+
+// Layout Studio Action Buttons
+if ($('saveAndApplyLayoutBtn')) {
+  $('saveAndApplyLayoutBtn').addEventListener('click', saveCurrentLayoutFromDesigner);
+}
+
+if ($('resetLayoutDesignerBtn')) {
+  $('resetLayoutDesignerBtn').addEventListener('click', () => {
+    loadCustomLayoutIntoForm(DESIGNER_STARTER_PRESETS[0]);
+    $('customLayoutName').value = `My Custom Layout ${customLayouts.length + 1}`;
+    updateLayoutDesignerPreview();
+    showToast('Reset to default starter preset.');
+  });
+}
+
+if ($('deleteCurrentCustomLayoutBtn')) {
+  $('deleteCurrentCustomLayoutBtn').addEventListener('click', () => {
+    if (editingLayoutId) {
+      deleteCustomLayout(editingLayoutId);
+      closeLayoutDesigner();
+    }
+  });
+}
+
+if ($('exportCurrentLayoutJsonBtn')) $('exportCurrentLayoutJsonBtn').addEventListener('click', exportCurrentLayoutJson);
+if ($('downloadLayoutsJsonBtn')) $('downloadLayoutsJsonBtn').addEventListener('click', downloadLayoutsJson);
+if ($('importLayoutJsonBtn')) $('importLayoutJsonBtn').addEventListener('click', importLayoutJson);
+
+if ($('syncAllLayoutsCloudBtn')) {
+  $('syncAllLayoutsCloudBtn').addEventListener('click', async () => {
+    if (!supabaseClient) {
+      showToast('Supabase database is offline. Please connect in Cloud Settings first.', 'error');
+      return;
+    }
+    let count = 0;
+    for (const l of customLayouts) {
+      await saveCustomLayoutToCloud(l);
+      count++;
+    }
+    showToast(`☁️ Successfully synced ${count} custom layout(s) to Supabase Cloud!`);
+    updateDesignerSyncStatus();
+  });
+}
+
+// Template Category Filter Pills
+document.querySelectorAll('.tpl-filter-pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    renderTemplatePicker(btn.dataset.filter);
+  });
+});
+
+// Cloud Modal Tab 3 (Custom Layouts Manager) Controls
+if ($('cloudNewLayoutBtn')) {
+  $('cloudNewLayoutBtn').addEventListener('click', () => {
+    $('cloudModal').classList.add('hidden');
+    openLayoutDesigner(null);
+  });
+}
+
+if ($('searchLayoutsInput')) {
+  $('searchLayoutsInput').addEventListener('input', renderCustomLayoutsManager);
+}
+
+if ($('exportAllLayoutsBtn')) {
+  $('exportAllLayoutsBtn').addEventListener('click', downloadLayoutsJson);
+}
+
+if ($('importLayoutsBtn')) {
+  $('importLayoutsBtn').addEventListener('click', () => {
+    $('cloudModal').classList.add('hidden');
+    openLayoutDesigner(null);
+    switchDesignerTab('json');
+  });
+}
+
+if ($('refreshLayoutsBtn')) {
+  $('refreshLayoutsBtn').addEventListener('click', () => {
+    fetchCustomLayouts();
+    showToast('🔄 Custom layouts refreshed from cloud.');
+  });
+}
+
 // Service Worker for Offline PWA Support on Mobile & Desktop
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -4123,6 +5339,8 @@ loadDraftState();
 loadItemCatalog();
 loadGstRegistry();
 initSupabase();
+fetchCustomLayouts();
+renderTemplatePicker();
 renderItems();
 updatePreview();
 
