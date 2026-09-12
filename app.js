@@ -12,23 +12,46 @@ const fields = [
 ];
 
 const TEMPLATES = {
-  modern: { name: '🌟 Modern Executive', subtitle: 'Sleek Slate & Amber', color: '#f59e0b', category: 'modern' },
-  classic: { name: '🏛️ Classic Corporate', subtitle: 'Formal Tax Grid', color: '#0f172a', category: 'corporate' },
-  industrial: { name: '🧱 Industrial Amber', subtitle: 'SBFB Construction', color: '#f59e0b', category: 'industrial' },
-  sapphire: { name: '💎 Sapphire Clean', subtitle: 'Minimalist Blue', color: '#2563eb', category: 'modern' },
-  emerald: { name: '🌿 Emerald Green', subtitle: 'Eco Infrastructure', color: '#059669', category: 'modern' },
-  monochrome: { name: '🖤 Monochrome Sleek', subtitle: 'High-Contrast B&W', color: '#000000', category: 'corporate' },
-  executive_gold: { name: '👑 Luxury Gold Crest', subtitle: 'Deep Navy & Metallic Gold', color: '#d97706', category: 'luxury' },
-  minimal_clean: { name: '📐 Swiss Minimalist', subtitle: 'Ultra-Clean Whitespace', color: '#475569', category: 'corporate' },
-  blueprint_tech: { name: '📐 Engineer Blueprint', subtitle: 'Drafting Grid & Monospace', color: '#0284c7', category: 'industrial' },
-  compact_pos: { name: '🧾 Compact Retail Slip', subtitle: 'Dashed Thermal Receipt', color: '#475569', category: 'corporate' },
-  bold_crimson: { name: '🔴 Crimson Titan', subtitle: 'Heavy Steel & Burgundy', color: '#991b1b', category: 'industrial' },
-  retro_ledger: { name: '📜 Vintage Ledger', subtitle: 'Warm Parchment & Ruled', color: '#78350f', category: 'luxury' },
-  split_header: { name: '🔲 Split Horizon', subtitle: 'Two-Tone Midnight Banner', color: '#312e81', category: 'modern' },
-  neo_brutalist: { name: '⚡ Neo-Brutalist', subtitle: 'Heavy Borders & Drop Shadow', color: '#facc15', category: 'modern' },
-  nordic_frost: { name: '❄️ Nordic Frost', subtitle: 'Scandinavian Slate & Ice', color: '#0284c7', category: 'modern' },
-  gradient_aurora: { name: '🌈 Modern Aurora', subtitle: 'Vibrant Tech Gradient', color: '#8b5cf6', category: 'modern' },
-  teal_prestige: { name: '🌊 Teal Prestige', subtitle: 'Deep Teal & Mint Accents', color: '#0f766e', category: 'luxury' }
+  // --- Corporate & Tax ---
+  classic: { name: '🏛️ Classic Corporate', subtitle: 'Formal Indian GST & Tax Grid', color: '#0f172a', category: 'corporate', archetype: 'classic', desc: 'Enclosed structured borders & traditional double-line tax headers for official corporate bills.' },
+  corporate_navy: { name: '🏢 Enterprise Navy Pro', subtitle: 'Global MNC & Corporate Blue', color: '#1e3a8a', category: 'corporate', archetype: 'modern', desc: 'Deep sapphire navy headers with crisp clean tabular alignment for enterprise accounts.' },
+  monochrome: { name: '🖤 Monochrome Sleek', subtitle: 'High-Contrast B&W Executive', color: '#000000', category: 'corporate', archetype: 'classic', desc: 'Distinguished ink-black hairline borders and maximum contrast readability.' },
+  minimal_clean: { name: '📐 Swiss Minimalist', subtitle: 'Ultra-Clean Whitespace & Inter', color: '#475569', category: 'corporate', archetype: 'minimal', desc: 'Generous typographic breathing room, understated dividers, and modern Swiss aesthetics.' },
+  compact_pos: { name: '🧾 Compact Retail Slip', subtitle: 'Dashed Thermal Receipt & Counter Bill', color: '#475569', category: 'corporate', archetype: 'minimal', desc: 'Compact dashed receipt layout ideal for over-the-counter payments and fast retail POS slips.' },
+  legal_formal: { name: '⚖️ Legal & Clauses', subtitle: 'Structured Advocates & Contracts', color: '#334155', category: 'corporate', archetype: 'classic', desc: 'Numbered clauses, formal legal column borders, and official sworn affidavit formatting.' },
+  government_tender: { name: '🇮🇳 PWD / Govt Tender', subtitle: 'Official Public Works & CPWD', color: '#15803d', category: 'corporate', archetype: 'classic', desc: 'Standard Government of India tender measurement sheets and CPWD contractor billing format.' },
+
+  // --- Modern & Tech ---
+  modern: { name: '🌟 Modern Executive', subtitle: 'Sleek Slate & Vibrant Amber Bar', color: '#f59e0b', category: 'modern', archetype: 'modern', desc: 'Contemporary corporate presentation with warm gold accent bars and slate headings.' },
+  sapphire: { name: '💎 Sapphire Clean', subtitle: 'Minimalist Blue & Tech Consulting', color: '#2563eb', category: 'modern', archetype: 'modern', desc: 'Fresh tech-forward azure blues and highlighted total boxes for high-tech agencies.' },
+  emerald: { name: '🌿 Emerald Green', subtitle: 'Eco Infrastructure & Sustainability', color: '#059669', category: 'modern', archetype: 'modern', desc: 'Rich botanical green tones for environmental consultants, landscaping, and solar works.' },
+  gradient_aurora: { name: '🌈 Modern Aurora', subtitle: 'Vibrant Indigo to Cyan Tech Gradient', color: '#8b5cf6', category: 'modern', archetype: 'modern', desc: 'Multi-stop linear mesh gradients with high-tech software agency aesthetics.' },
+  nordic_frost: { name: '❄️ Nordic Frost', subtitle: 'Scandinavian Slate & Ice Blue', color: '#0284c7', category: 'modern', archetype: 'modern', desc: 'Subtle cool blue pastels with rounded pill badges and contemporary geometric fonts.' },
+  split_header: { name: '🔲 Split Horizon', subtitle: 'Two-Tone Midnight Brand Banner', color: '#312e81', category: 'modern', archetype: 'split', desc: 'Split dark/light header card with elevated brand identity and modern status badges.' },
+  neo_brutalist: { name: '⚡ Neo-Brutalist Pop', subtitle: 'Heavy Solid Borders & Offset Shadow', color: '#facc15', category: 'modern', archetype: 'brutalist', desc: 'Bold thick black outlines, high-energy pop yellow tags, and neo-brutalist drop shadows.' },
+  cyber_glow: { name: '🔮 Cyber Indigo Glow', subtitle: 'Neon Tech & SaaS Software Grid', color: '#6366f1', category: 'modern', archetype: 'modern', desc: 'High-contrast glowing violet dividers and monospaced data fields for software & IT.' },
+  minimal_dark: { name: '🌑 Carbon Dark Theme', subtitle: 'Stealth Dark Mode Document', color: '#18181b', category: 'modern', archetype: 'modern', desc: 'Ultra-modern carbon-slate dark theme with luminous amber accents for digital invoicing.' },
+
+  // --- Industrial & Construction ---
+  industrial: { name: '🧱 Industrial Amber', subtitle: 'SBFB Civil, Bricks & Masonry', color: '#f59e0b', category: 'industrial', archetype: 'industrial', desc: 'Robust construction-grade amber borders with heavy industrial work badges.' },
+  blueprint_tech: { name: '📐 Engineer Blueprint', subtitle: 'Drafting Grid & CAD Monospace', color: '#0284c7', category: 'industrial', archetype: 'classic', desc: 'Drafting grid background accents and JetBrains Monospace alignment for civil engineers.' },
+  bold_crimson: { name: '🔴 Crimson Titan', subtitle: 'Heavy Steel, Girders & Manufacturing', color: '#991b1b', category: 'industrial', archetype: 'industrial', desc: 'Authoritative deep crimson header cards for heavy fabrication and structural steelworks.' },
+  roadwork_hazard: { name: '🚧 Highway & Asphalt', subtitle: 'High-Visibility Safety Stripe & Roadwork', color: '#d97706', category: 'industrial', archetype: 'industrial', desc: 'Vibrant caution stripes, road construction rates, and bitumen highway contractor specs.' },
+  quarry_stone: { name: '🪨 Quarry & Aggregate', subtitle: 'Granite, Mining & Earthwork', color: '#57534e', category: 'industrial', archetype: 'industrial', desc: 'Earthy slate-stone texture accents for quarries, gravel suppliers, and earthmoving.' },
+  equipment_rental: { name: '🚜 Fleet & Heavy Crane', subtitle: 'JCB, Crane & Equipment Rental', color: '#ea580c', category: 'industrial', archetype: 'modern', desc: 'Dynamic industrial orange layout with shift/hourly rental measurement tags.' },
+
+  // --- Luxury & Vintage ---
+  executive_gold: { name: '👑 Luxury Gold Crest', subtitle: 'Deep Navy & Metallic Gold Accents', color: '#d97706', category: 'luxury', archetype: 'luxury', desc: 'Cinzel Roman serif typography with 24k gold borders for luxury real estate & VIP proposals.' },
+  retro_ledger: { name: '📜 Vintage Ledger', subtitle: 'Warm Parchment & Historic Rules', color: '#78350f', category: 'luxury', archetype: 'ledger', desc: 'Warm ivory parchment styling with historic double-ruled borders and serif ledger lines.' },
+  teal_prestige: { name: '🌊 Teal Prestige', subtitle: 'Deep Teal & Mint Architectural Crest', color: '#0f766e', category: 'luxury', archetype: 'luxury', desc: 'Sophisticated deep oceanic teal styling for architects, interior designers, and luxury villas.' },
+  royal_amethyst: { name: '🟣 Imperial Amethyst', subtitle: 'Royal Purple & Platinum Crest', color: '#7e22ce', category: 'luxury', archetype: 'luxury', desc: 'Opulent royal purple banner with platinum table highlights for prestigious consulting.' },
+  artisan_craft: { name: '☕ Terracotta Artisan', subtitle: 'Warm Sienna & Handmade Craft', color: '#c2410c', category: 'luxury', archetype: 'modern', desc: 'Earthy terracotta warmth for bespoke tile makers, boutique architecture, and craft masonry.' },
+
+  // --- Trade, Logistics & Healthcare ---
+  logistics_cargo: { name: '🚚 Freight & Waybill', subtitle: 'Cargo Dispatch & Delivery Challan', color: '#0284c7', category: 'trade', archetype: 'classic', desc: 'Integrated transporter consignment number, vehicle number, and dispatch route grids.' },
+  medical_pharma: { name: '🩺 Clinical Precision', subtitle: 'Healthcare, Pharma & Medical Supply', color: '#0891b2', category: 'trade', archetype: 'modern', desc: 'Crisp sterile cyan-teal layout with batch number, expiry date, and medical drug licenses.' },
+  agriculture_farm: { name: '🌾 Agri & Fertilizer', subtitle: 'Farm Supply, Agritech & Seeds', color: '#65a30d', category: 'trade', archetype: 'modern', desc: 'Fresh lime and olive green tones for agricultural produce, fertilizers, and tractor works.' },
+  electrical_solar: { name: '⚡ Solar & Energy Grid', subtitle: 'Renewable Power & Electrical Contracting', color: '#eab308', category: 'trade', archetype: 'modern', desc: 'High-voltage amber-yellow highlights for electrical engineers, panel boards, and solar arrays.' }
 };
 
 const customLayoutsStorageKey = 'sbfbCustomLayouts';
@@ -1834,6 +1857,191 @@ function setDocumentType(type, userSwitched = false) {
 }
 
 /* --- 🎨 Template & Custom Bill Layout System --- */
+let currentGalleryFilter = 'all';
+
+function openTemplateGallery() {
+  const modal = $('templateGalleryModal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  renderTemplateGallery(currentGalleryFilter, $('searchGalleryInput')?.value || '');
+}
+
+function closeTemplateGallery() {
+  const modal = $('templateGalleryModal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+}
+
+function renderTemplateGallery(filter = 'all', search = '') {
+  currentGalleryFilter = filter;
+  const grid = $('templateGalleryGrid');
+  if (!grid) return;
+
+  const currentTpl = val('docTemplate') || 'modern';
+  const query = (search || '').toLowerCase().trim();
+
+  // Update modal category filter tabs active state
+  document.querySelectorAll('.gallery-filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.gcat === filter);
+  });
+
+  const totalBuiltin = Object.keys(TEMPLATES).length;
+  const totalAll = totalBuiltin + customLayouts.length;
+  if ($('galleryTotalCount')) $('galleryTotalCount').textContent = `${totalAll}`;
+  if ($('galleryCustomCount')) $('galleryCustomCount').textContent = `${customLayouts.length}`;
+
+  let html = '';
+  let count = 0;
+
+  // 1. Built-in Templates
+  Object.entries(TEMPLATES).forEach(([key, tpl]) => {
+    const matchCat = filter === 'all' || filter === tpl.category;
+    const matchSearch = !query || 
+      tpl.name.toLowerCase().includes(query) || 
+      (tpl.subtitle && tpl.subtitle.toLowerCase().includes(query)) ||
+      (tpl.desc && tpl.desc.toLowerCase().includes(query)) ||
+      tpl.category.toLowerCase().includes(query);
+
+    if (matchCat && matchSearch) {
+      count++;
+      const isActive = currentTpl === key;
+      const catLabels = {
+        corporate: '🏛️ Corporate & Tax',
+        modern: '🎨 Modern & Tech',
+        industrial: '🧱 Industrial & Infra',
+        luxury: '👑 Luxury & Vintage',
+        trade: '🚚 Trade & Health'
+      };
+      const catLabel = catLabels[tpl.category] || tpl.category;
+
+      html += `
+        <div class="tpl-gallery-card ${isActive ? 'active' : ''}" id="galCard_${key}">
+          ${isActive ? '<div class="tpl-gallery-card-badge">✓ Active Style</div>' : ''}
+          <div class="tpl-gallery-preview-box" style="background:${tpl.category === 'corporate' ? '#0f172a' : (tpl.category === 'luxury' ? '#1c1917' : '#0f172a')}; color:#fff;">
+            <div class="tpl-gallery-preview-top">
+              <div class="tpl-gallery-preview-logo" style="background:${tpl.color}; color:#fff;">🧱</div>
+              <span style="font-size:9px;font-weight:800;letter-spacing:0.5px;color:${tpl.color};">${(tpl.archetype || 'MODERN').toUpperCase()}</span>
+            </div>
+            <div>
+              <div class="tpl-gallery-preview-bar" style="background:${tpl.color};"></div>
+              <div class="tpl-gallery-preview-table-sim">
+                <span style="background:${tpl.color};opacity:0.7;"></span>
+                <span style="background:${tpl.color};opacity:0.4;"></span>
+                <span style="background:${tpl.color};opacity:0.5;"></span>
+              </div>
+            </div>
+          </div>
+          <div class="tpl-gallery-body">
+            <div class="tpl-gallery-title-row">
+              <span class="template-color-dot" style="background:${tpl.color};"></span>
+              <h4>${tpl.name}</h4>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;margin:2px 0 6px;">
+              <span class="tpl-gallery-category-tag">${catLabel}</span>
+              <span style="font-size:10px;color:#64748b;">${tpl.subtitle}</span>
+            </div>
+            <p class="tpl-gallery-desc">${tpl.desc || 'Professional layout designed for print, PDF & digital proposals.'}</p>
+            <div class="tpl-gallery-footer">
+              <button type="button" class="btn small outline" data-gal-preview="${key}" title="See how your invoice looks in this template">
+                👁️ Preview Live
+              </button>
+              <button type="button" class="btn small ${isActive ? 'outline' : 'primary'}" data-gal-choose="${key}" title="Apply this template style">
+                ${isActive ? '✅ Selected' : '⚡ Choose Style'}
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  });
+
+  // 2. Custom Cloud Layouts
+  customLayouts.forEach(cl => {
+    const matchCat = filter === 'all' || filter === 'custom' || filter === cl.category;
+    const matchSearch = !query ||
+      cl.name.toLowerCase().includes(query) ||
+      (cl.category && cl.category.toLowerCase().includes(query)) ||
+      (cl.archetype && cl.archetype.toLowerCase().includes(query));
+
+    if (matchCat && matchSearch) {
+      count++;
+      const isActive = currentTpl === cl.id;
+      const fontName = cl.fontFamily ? cl.fontFamily.split(',')[0].replace(/['"]/g, '') : 'DM Sans';
+
+      html += `
+        <div class="tpl-gallery-card ${isActive ? 'active' : ''}" id="galCard_${cl.id}">
+          ${isActive ? '<div class="tpl-gallery-card-badge">✓ Active Style</div>' : ''}
+          <div class="tpl-gallery-preview-box" style="background:${cl.headerBg || '#0f172a'}; color:${cl.headerText || '#fff'};">
+            <div class="tpl-gallery-preview-top">
+              <div class="tpl-gallery-preview-logo" style="background:${cl.primaryColor || '#2563eb'}; color:#fff;">✨</div>
+              <span style="font-size:9px;font-weight:800;letter-spacing:0.5px;color:${cl.accentColor || '#fbbf24'};">${(cl.archetype || 'MODERN').toUpperCase()}</span>
+            </div>
+            <div>
+              <div class="tpl-gallery-preview-bar" style="background:${cl.primaryColor || '#2563eb'};"></div>
+              <div class="tpl-gallery-preview-table-sim">
+                <span style="background:${cl.primaryColor || '#2563eb'};opacity:0.7;"></span>
+                <span style="background:${cl.accentColor || '#fbbf24'};opacity:0.6;"></span>
+                <span style="background:${cl.primaryColor || '#2563eb'};opacity:0.5;"></span>
+              </div>
+            </div>
+          </div>
+          <div class="tpl-gallery-body">
+            <div class="tpl-gallery-title-row">
+              <span class="custom-badge-tag">✨ Custom Cloud</span>
+              <h4>${esc(cl.name)}</h4>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;margin:2px 0 6px;">
+              <span class="tpl-gallery-category-tag">🎨 ${esc((cl.category || 'modern').toUpperCase())}</span>
+              <span style="font-size:10px;color:#64748b;">Font: ${esc(fontName)}</span>
+            </div>
+            <p class="tpl-gallery-desc">${esc(cl.description || 'Custom bespoke design saved in your Supabase Cloud account.')}</p>
+            <div class="tpl-gallery-footer">
+              <button type="button" class="btn small outline" data-gal-preview="${cl.id}" title="See how your invoice looks in this template">
+                👁️ Preview Live
+              </button>
+              <button type="button" class="btn small ${isActive ? 'outline' : 'primary'}" data-gal-choose="${cl.id}" title="Apply this template style">
+                ${isActive ? '✅ Selected' : '⚡ Choose Style'}
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  });
+
+  if (count === 0) {
+    html = `<div class="empty-state" style="grid-column: 1 / -1; padding: 40px 20px;">
+      <span style="font-size:32px;display:block;margin-bottom:8px;">🔍</span>
+      <strong>No templates found matching "${esc(search)}"</strong>
+      <p style="margin:4px 0 12px;font-size:12px;color:#64748b;">Try searching for another keyword or select "All Styles".</p>
+      <button type="button" class="btn small primary" onclick="$('searchGalleryInput').value=''; renderTemplateGallery('all', '');">Show All Templates</button>
+    </div>`;
+  }
+
+  grid.innerHTML = html;
+
+  // Event handlers inside gallery
+  grid.querySelectorAll('[data-gal-preview]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const tplId = btn.dataset.galPreview;
+      setDocumentTemplate(tplId);
+      renderTemplateGallery(currentGalleryFilter, $('searchGalleryInput')?.value || '');
+      showToast(`👁️ Previewing "${TEMPLATES[tplId]?.name || 'Custom Layout'}" live!`);
+    });
+  });
+
+  grid.querySelectorAll('[data-gal-choose]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const tplId = btn.dataset.galChoose;
+      setDocumentTemplate(tplId);
+      closeTemplateGallery();
+      showToast(`🎉 Applied "${TEMPLATES[tplId]?.name || 'Custom Layout'}" template!`);
+    });
+  });
+}
+
 function renderTemplatePicker(filter = currentCustomFilter || 'all') {
   currentCustomFilter = filter;
   const grid = $('templatePickerGrid');
@@ -1848,6 +2056,9 @@ function renderTemplatePicker(filter = currentCustomFilter || 'all') {
 
   if ($('customFilterCount')) {
     $('customFilterCount').textContent = customLayouts.length;
+  }
+  if ($('allTplHeadingCount')) {
+    $('allTplHeadingCount').textContent = `${Object.keys(TEMPLATES).length + customLayouts.length}+`;
   }
 
   let html = '';
@@ -5372,6 +5583,38 @@ if ($('refreshLayoutsBtn')) {
   });
 }
 
+// Template Gallery & Showcase Modal Controls
+if ($('topGalleryBtn')) $('topGalleryBtn').addEventListener('click', openTemplateGallery);
+if ($('openTemplateGalleryBtn')) $('openTemplateGalleryBtn').addEventListener('click', openTemplateGallery);
+if ($('previewGalleryBtn')) $('previewGalleryBtn').addEventListener('click', openTemplateGallery);
+if ($('closeGalleryModalBtn')) $('closeGalleryModalBtn').addEventListener('click', closeTemplateGallery);
+
+if ($('searchGalleryInput')) {
+  $('searchGalleryInput').addEventListener('input', () => {
+    renderTemplateGallery(currentGalleryFilter, $('searchGalleryInput').value);
+  });
+}
+
+document.querySelectorAll('.gallery-filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    renderTemplateGallery(btn.dataset.gcat, $('searchGalleryInput')?.value || '');
+  });
+});
+
+if ($('galleryCreateLayoutBtn')) {
+  $('galleryCreateLayoutBtn').addEventListener('click', () => {
+    closeTemplateGallery();
+    openLayoutDesigner(null);
+  });
+}
+
+// Mobile bottom bar layouts button
+if ($('mobBarLayoutBtn')) {
+  $('mobBarLayoutBtn').addEventListener('click', () => {
+    openTemplateGallery();
+  });
+}
+
 // Service Worker for Offline PWA Support on Mobile & Desktop
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -5394,6 +5637,7 @@ fetchCustomLayouts();
 renderTemplatePicker();
 renderItems();
 updatePreview();
+
 
 
 

@@ -31,6 +31,9 @@
         </div>
       </div>
       <div class="top-actions">
+        <button class="btn cloud-btn" id="topGalleryBtn" title="View all Bill & Quotation Template Designs & Showcase">
+          <span>👁️</span> <span class="btn-text">Template Gallery</span>
+        </button>
         <button class="btn cloud-btn" id="topLayoutStudioBtn" title="Design, customize & manage Bill Layouts & Themes">
           <span>🎨</span> <span class="btn-text">Layout Studio</span>
         </button>
@@ -60,12 +63,13 @@
         <span>✏️</span> Edit Form
       </button>
       <button type="button" class="mobile-nav-btn" id="mobileTabPreviewBtn">
-        <span>👁️</span> Document Preview <span class="preview-badge-total" id="mobileTotalBadge">₹0.00</span>
+        <span>👁️</span> Live Preview <span id="mobileTotalBadge" class="preview-badge-total">₹0.00</span>
       </button>
     </nav>
 
     <main class="workspace">
-      <section class="editor no-print" id="editorSection">
+      <!-- Form Input Editor Pane -->
+      <section class="editor" id="editorPane">
         <!-- Document Type Selector & Page Heading -->
         <div class="page-heading">
           <div>
@@ -98,11 +102,14 @@
         <div class="card">
           <div class="card-head">
             <div>
-              <h2>🎨 Template Designs (17+ Layouts)</h2>
-              <p>Pick a professional layout style for your client document & printout, or create your own custom layout.</p>
+              <h2>🎨 Template Designs (<span id="allTplHeadingCount">31+</span> Layouts)</h2>
+              <p>Pick a professional layout style for your client document & printout, view visual designs, or create your own custom layout.</p>
             </div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
               <span id="activeTemplateBadge" style="font-size:11px;font-weight:800;color:#2563eb;background:#eff6ff;padding:4px 10px;border-radius:99px;border:1px solid #bfdbfe;">🌟 Modern Executive</span>
+              <button type="button" class="btn small accent-btn" id="openTemplateGalleryBtn" title="View visual designs of all templates to choose">
+                <span>👁️</span> View Designs &amp; Choose
+              </button>
               <button type="button" class="btn small primary" id="openLayoutDesignerBtn" title="Design a bespoke bill layout with custom colors, fonts & borders">
                 ✨ Create Custom Layout
               </button>
@@ -114,11 +121,12 @@
 
           <!-- Category filter tabs -->
           <div class="template-filter-bar no-print">
-            <button type="button" class="tpl-filter-pill active" data-filter="all">All Styles (17+)</button>
+            <button type="button" class="tpl-filter-pill active" data-filter="all">All Styles</button>
             <button type="button" class="tpl-filter-pill" data-filter="corporate">🏛️ Corporate &amp; Tax</button>
             <button type="button" class="tpl-filter-pill" data-filter="modern">🎨 Modern &amp; Tech</button>
             <button type="button" class="tpl-filter-pill" data-filter="industrial">🧱 Industrial &amp; Civil</button>
             <button type="button" class="tpl-filter-pill" data-filter="luxury">👑 Luxury &amp; Vintage</button>
+            <button type="button" class="tpl-filter-pill" data-filter="trade">🚚 Trade &amp; Health</button>
             <button type="button" class="tpl-filter-pill" data-filter="custom">✨ Custom (<span id="customFilterCount">0</span>)</button>
           </div>
 
@@ -588,6 +596,9 @@
             <span id="previewTplLabel" style="font-size:11px;color:#38bdf8;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">A4 Document &bull; Modern Executive</span>
           </div>
           <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+            <button type="button" class="btn small accent-btn" id="previewGalleryBtn" title="View all template designs and choose" style="padding:4px 10px;font-size:11px;">
+              👁️ View Designs
+            </button>
             <button type="button" class="btn small primary" id="previewLayoutStudioBtn" title="Customize bill layout, colors, borders & fonts" style="padding:4px 10px;font-size:11px;">
               🎨 Layout Studio
             </button>
@@ -1691,6 +1702,45 @@ CREATE POLICY "Allow public access to custom_layouts" ON public.custom_layouts F
             <button type="button" class="btn outline small" id="previewModalCopyBtn" style="padding:7px 11px;font-size:11.5px;">
               📋 Copy SVG
             </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🖼️ Visual Bill Template Gallery & Showcase Modal -->
+    <div id="templateGalleryModal" class="modal-backdrop hidden">
+      <div class="modal-card" style="max-width: 1040px; max-height: 94vh;">
+        <div class="modal-head">
+          <div class="modal-title-group">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:24px;">🎨</span>
+              <div>
+                <h3 style="margin:0 0 2px;">Bill &amp; Quotation Template Gallery</h3>
+                <p style="margin:0;font-size:11.5px;color:#94a3b8;">Browse visual designs across all industries, preview live, and choose your favorite style in 1-click.</p>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="btn-close" id="closeGalleryModalBtn">&times;</button>
+        </div>
+
+        <div class="modal-tabs" style="flex-wrap:wrap;padding:0 12px;">
+          <button type="button" class="tab-btn active gallery-filter-btn" data-gcat="all">🌟 All Styles (<span id="galleryTotalCount">31+</span>)</button>
+          <button type="button" class="tab-btn gallery-filter-btn" data-gcat="corporate">🏛️ Corporate &amp; Tax</button>
+          <button type="button" class="tab-btn gallery-filter-btn" data-gcat="modern">🎨 Modern &amp; Tech</button>
+          <button type="button" class="tab-btn gallery-filter-btn" data-gcat="industrial">🧱 Industrial &amp; Infra</button>
+          <button type="button" class="tab-btn gallery-filter-btn" data-gcat="luxury">👑 Luxury &amp; Vintage</button>
+          <button type="button" class="tab-btn gallery-filter-btn" data-gcat="trade">🚚 Trade &amp; Health</button>
+          <button type="button" class="tab-btn gallery-filter-btn" data-gcat="custom">✨ Cloud Layouts (<span id="galleryCustomCount">0</span>)</button>
+        </div>
+
+        <div style="padding:10px 18px;background:#f8fafc;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+          <input id="searchGalleryInput" placeholder="🔍 Search templates by name, color, style, or industry..." style="flex:1;min-width:240px;font-size:12px;padding:7px 12px;" />
+          <button type="button" class="btn small primary" id="galleryCreateLayoutBtn">✨ + Design Custom Layout</button>
+        </div>
+
+        <div class="tab-content" style="padding:16px 18px;background:#f1f5f9;overflow-y:auto;max-height:calc(94vh - 190px);">
+          <div class="tpl-gallery-grid" id="templateGalleryGrid">
+            <!-- Populated dynamically by app.js -->
           </div>
         </div>
       </div>

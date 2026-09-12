@@ -2140,6 +2140,420 @@ textarea { resize: vertical; }
   color: #0f766e;
 }
 
+/* 18. Enterprise Navy Pro (tpl-corporate_navy) */
+.quotation.tpl-corporate_navy {
+  border-top: 7px solid #1e3a8a;
+  border-radius: 8px;
+}
+.quotation.tpl-corporate_navy .quote-header {
+  background: #1e3a8a;
+  color: #fff;
+  padding: 20px 24px;
+  border-radius: 8px;
+}
+.quotation.tpl-corporate_navy .quote-header h2 { color: #fff; }
+.quotation.tpl-corporate_navy .quote-header p { color: #bfdbfe; }
+.quotation.tpl-corporate_navy .title-tag { color: #93c5fd; }
+.quotation.tpl-corporate_navy .title-quote-no strong,
+.quotation.tpl-corporate_navy .title-date-wrap strong { color: #fff; }
+.quotation.tpl-corporate_navy .accent-line { background: #1e3a8a; height: 3px; }
+.quotation.tpl-corporate_navy .client-strip { background: #eff6ff; border: 1px solid #bfdbfe; }
+.quotation.tpl-corporate_navy .client-strip span { color: #1e40af; }
+.quotation.tpl-corporate_navy .preview-table th { background: #1e3a8a; color: #fff; border-bottom: 2px solid #3b82f6; }
+.quotation.tpl-corporate_navy .totals .grand { background: #1e3a8a; color: #fff; padding: 6px 12px; border-radius: 6px; }
+.quotation.tpl-corporate_navy .totals .grand strong { color: #93c5fd; }
+
+/* 19. Legal & Formal Clauses (tpl-legal_formal) */
+.quotation.tpl-legal_formal {
+  border: 2px solid #334155;
+  background: #fdfdfd;
+  font-family: 'Times New Roman', Times, serif;
+}
+.quotation.tpl-legal_formal .quote-header h2 { font-family: 'Times New Roman', serif; color: #0f172a; text-transform: uppercase; }
+.quotation.tpl-legal_formal .title-tag { color: #0f172a; font-family: 'Times New Roman', serif; text-decoration: underline; }
+.quotation.tpl-legal_formal .accent-line { background: #334155; height: 1.5px; margin: 12px 0; }
+.quotation.tpl-legal_formal .client-strip { background: #f8fafc; border: 1px solid #334155; border-radius: 0; font-family: 'DM Sans', sans-serif; }
+.quotation.tpl-legal_formal .preview-table { border: 1px solid #334155; }
+.quotation.tpl-legal_formal .preview-table th { background: #f1f5f9; color: #0f172a; border-bottom: 1.5px solid #334155; border-right: 1px solid #cbd5e1; font-family: 'Times New Roman', serif; }
+.quotation.tpl-legal_formal .preview-table td { border-bottom: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1; font-family: 'DM Sans', sans-serif; }
+.quotation.tpl-legal_formal .totals .grand { border-top: 2px solid #334155; border-bottom: 2px solid #334155; padding: 6px 0; }
+.quotation.tpl-legal_formal .totals .grand strong { color: #0f172a; }
+
+/* 20. Government & CPWD Tender (tpl-government_tender) */
+.quotation.tpl-government_tender {
+  border: 2.5px solid #15803d;
+  background: #fcfdfd;
+  font-family: 'DM Sans', sans-serif;
+}
+.quotation.tpl-government_tender .quote-header {
+  background: #14532d;
+  color: #fff;
+  padding: 16px 20px;
+  border-bottom: 3px solid #f59e0b;
+}
+.quotation.tpl-government_tender .quote-header h2 { color: #fef08a; }
+.quotation.tpl-government_tender .quote-header p { color: #bbf7d0; }
+.quotation.tpl-government_tender .title-tag { color: #fef08a; }
+.quotation.tpl-government_tender .accent-line { background: repeating-linear-gradient(90deg, #15803d, #15803d 10px, #f59e0b 10px, #f59e0b 20px); height: 3px; }
+.quotation.tpl-government_tender .client-strip { background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 4px; }
+.quotation.tpl-government_tender .client-strip span { color: #166534; }
+.quotation.tpl-government_tender .preview-table th { background: #166534; color: #fff; border-bottom: 2px solid #f59e0b; }
+.quotation.tpl-government_tender .totals .grand { background: #f0fdf4; border: 1.5px solid #166534; padding: 6px 12px; border-radius: 4px; }
+.quotation.tpl-government_tender .totals .grand strong { color: #15803d; }
+
+/* 21. Neon Cyber Glow (tpl-cyber_glow) */
+.quotation.tpl-cyber_glow {
+  border-top: 6px solid #6366f1;
+  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.15);
+  font-family: 'Space Grotesk', sans-serif;
+}
+.quotation.tpl-cyber_glow .quote-header {
+  background: #0f172a;
+  color: #fff;
+  padding: 22px 24px;
+  border-radius: 10px;
+  border-left: 6px solid #6366f1;
+}
+.quotation.tpl-cyber_glow .quote-header h2 { color: #a5b4fc; }
+.quotation.tpl-cyber_glow .title-tag { color: #38bdf8; text-shadow: 0 0 10px rgba(56, 189, 248, 0.4); }
+.quotation.tpl-cyber_glow .accent-line { background: linear-gradient(90deg, #6366f1, #ec4899, #06b6d4); height: 3px; }
+.quotation.tpl-cyber_glow .client-strip { background: #f5f3ff; border: 1px solid #c4b5fd; border-radius: 8px; }
+.quotation.tpl-cyber_glow .client-strip span { color: #6d28d9; }
+.quotation.tpl-cyber_glow .preview-table th { background: #312e81; color: #e0e7ff; border-bottom: 2px solid #818cf8; }
+.quotation.tpl-cyber_glow .totals .grand { background: #0f172a; color: #fff; padding: 8px 14px; border-radius: 8px; border: 1px solid #6366f1; }
+.quotation.tpl-cyber_glow .totals .grand strong { color: #38bdf8; }
+
+/* 22. Stealth Carbon Dark (tpl-minimal_dark) */
+.quotation.tpl-minimal_dark {
+  background: #18181b;
+  color: #f4f4f5;
+  border: 1px solid #27272a;
+}
+.quotation.tpl-minimal_dark .quote-header h2 { color: #fafafa; }
+.quotation.tpl-minimal_dark .quote-header p { color: #a1a1aa; }
+.quotation.tpl-minimal_dark .title-tag { color: #fbbf24; }
+.quotation.tpl-minimal_dark .title-quote-no strong,
+.quotation.tpl-minimal_dark .title-date-wrap strong { color: #fafafa; }
+.quotation.tpl-minimal_dark .accent-line { background: #fbbf24; height: 2px; }
+.quotation.tpl-minimal_dark .client-strip { background: #27272a; border: 1px solid #3f3f46; color: #e4e4e7; }
+.quotation.tpl-minimal_dark .client-strip span { color: #fbbf24; }
+.quotation.tpl-minimal_dark .client-strip strong { color: #fafafa; }
+.quotation.tpl-minimal_dark .client-strip p { color: #a1a1aa; }
+.quotation.tpl-minimal_dark .preview-table th { background: #27272a; color: #fbbf24; border-bottom: 1.5px solid #fbbf24; }
+.quotation.tpl-minimal_dark .preview-table td { color: #e4e4e7; border-bottom: 1px solid #27272a; }
+.quotation.tpl-minimal_dark .totals > div { color: #a1a1aa; }
+.quotation.tpl-minimal_dark .totals strong { color: #fafafa; }
+.quotation.tpl-minimal_dark .totals .grand { background: #27272a; border-top: 1.5px solid #fbbf24; color: #fafafa; padding: 8px 12px; border-radius: 6px; }
+.quotation.tpl-minimal_dark .totals .grand strong { color: #fbbf24; }
+.quotation.tpl-minimal_dark .doc-bottom-section { color: #a1a1aa; }
+.quotation.tpl-minimal_dark .doc-meta-box { background: #27272a; border-color: #3f3f46; color: #e4e4e7; }
+.quotation.tpl-minimal_dark .doc-meta-box strong { color: #fafafa; }
+
+/* 23. Highway & Safety Stripe (tpl-roadwork_hazard) */
+.quotation.tpl-roadwork_hazard {
+  border-top: 8px solid #f59e0b;
+  border-bottom: 4px solid #0f172a;
+}
+.quotation.tpl-roadwork_hazard .quote-header {
+  background: #0f172a;
+  color: #fff;
+  padding: 18px 22px;
+  border-left: 10px solid #f59e0b;
+}
+.quotation.tpl-roadwork_hazard .quote-header h2 { color: #fbbf24; }
+.quotation.tpl-roadwork_hazard .title-tag { color: #fbbf24; }
+.quotation.tpl-roadwork_hazard .accent-line {
+  height: 6px;
+  background: repeating-linear-gradient(45deg, #f59e0b, #f59e0b 12px, #0f172a 12px, #0f172a 24px);
+  margin: 16px 0;
+}
+.quotation.tpl-roadwork_hazard .client-strip { background: #fffbeb; border: 1.5px solid #fde68a; }
+.quotation.tpl-roadwork_hazard .client-strip span { color: #b45309; }
+.quotation.tpl-roadwork_hazard .preview-table th { background: #0f172a; color: #fbbf24; border-bottom: 2px solid #f59e0b; }
+.quotation.tpl-roadwork_hazard .totals .grand { background: #0f172a; color: #fbbf24; padding: 6px 12px; border-radius: 4px; }
+.quotation.tpl-roadwork_hazard .totals .grand strong { color: #fbbf24; }
+
+/* 24. Quarry & Heavy Aggregate (tpl-quarry_stone) */
+.quotation.tpl-quarry_stone {
+  border-top: 6px solid #57534e;
+  background: #fafaf9;
+}
+.quotation.tpl-quarry_stone .quote-header h2 { color: #292524; }
+.quotation.tpl-quarry_stone .accent-line { background: #78716c; height: 3px; }
+.quotation.tpl-quarry_stone .client-strip { background: #f5f5f4; border: 1px solid #d6d3d1; }
+.quotation.tpl-quarry_stone .client-strip span { color: #57534e; }
+.quotation.tpl-quarry_stone .preview-table th { background: #44403c; color: #f5f5f4; border-bottom: 2px solid #78716c; }
+.quotation.tpl-quarry_stone .totals .grand { background: #e7e5e4; border: 1px solid #d6d3d1; padding: 6px 12px; border-radius: 4px; }
+.quotation.tpl-quarry_stone .totals .grand strong { color: #292524; }
+
+/* 25. Machinery Fleet & Rental (tpl-equipment_rental) */
+.quotation.tpl-equipment_rental {
+  border-top: 7px solid #ea580c;
+}
+.quotation.tpl-equipment_rental .quote-header {
+  background: #c2410c;
+  color: #fff;
+  padding: 18px 22px;
+  border-radius: 8px;
+}
+.quotation.tpl-equipment_rental .quote-header h2 { color: #fff; }
+.quotation.tpl-equipment_rental .quote-header p { color: #ffedd5; }
+.quotation.tpl-equipment_rental .title-tag { color: #ffedd5; }
+.quotation.tpl-equipment_rental .accent-line { background: #ea580c; height: 3px; }
+.quotation.tpl-equipment_rental .client-strip { background: #fff7ed; border: 1px solid #fed7aa; }
+.quotation.tpl-equipment_rental .client-strip span { color: #c2410c; }
+.quotation.tpl-equipment_rental .preview-table th { background: #9a3412; color: #fff; border-bottom: 2px solid #ea580c; }
+.quotation.tpl-equipment_rental .totals .grand { background: #fff7ed; border: 1.5px solid #fdba74; padding: 6px 12px; border-radius: 6px; }
+.quotation.tpl-equipment_rental .totals .grand strong { color: #c2410c; }
+
+/* 26. Imperial Royal Amethyst (tpl-royal_amethyst) */
+.quotation.tpl-royal_amethyst {
+  border-top: 8px solid #7e22ce;
+  background: #faf5ff;
+}
+.quotation.tpl-royal_amethyst .quote-header {
+  background: #581c87;
+  color: #fff;
+  padding: 20px 24px;
+  border-radius: 8px;
+  border: 1px solid #a855f7;
+}
+.quotation.tpl-royal_amethyst .quote-header h2 { color: #f3e8ff; font-family: 'Cinzel', serif; }
+.quotation.tpl-royal_amethyst .quote-header p { color: #e9d5ff; }
+.quotation.tpl-royal_amethyst .title-tag { color: #d8b4fe; font-family: 'Cinzel', serif; }
+.quotation.tpl-royal_amethyst .accent-line { background: linear-gradient(90deg, #7e22ce, #c084fc, #7e22ce); height: 3px; }
+.quotation.tpl-royal_amethyst .client-strip { background: #fff; border: 1.5px solid #d8b4fe; border-radius: 6px; }
+.quotation.tpl-royal_amethyst .client-strip span { color: #6b21a8; }
+.quotation.tpl-royal_amethyst .preview-table th { background: #581c87; color: #f3e8ff; border-bottom: 2px solid #a855f7; }
+.quotation.tpl-royal_amethyst .totals .grand { background: #581c87; color: #f3e8ff; padding: 6px 12px; border-radius: 6px; }
+.quotation.tpl-royal_amethyst .totals .grand strong { color: #e9d5ff; }
+
+/* 27. Terracotta Artisan & Brick (tpl-artisan_craft) */
+.quotation.tpl-artisan_craft {
+  border-top: 6px solid #c2410c;
+  background: #fffbf9;
+}
+.quotation.tpl-artisan_craft .quote-header h2 { color: #9a3412; }
+.quotation.tpl-artisan_craft .accent-line { background: #ea580c; height: 2px; }
+.quotation.tpl-artisan_craft .client-strip { background: #fff7ed; border: 1px solid #ffedd5; }
+.quotation.tpl-artisan_craft .client-strip span { color: #9a3412; }
+.quotation.tpl-artisan_craft .preview-table th { background: #ffedd5; color: #9a3412; border-bottom: 2px solid #ea580c; }
+.quotation.tpl-artisan_craft .totals .grand strong { color: #9a3412; }
+
+/* 28. Logistics, Freight & Waybill (tpl-logistics_cargo) */
+.quotation.tpl-logistics_cargo {
+  border: 2px solid #0369a1;
+  background: #fff;
+}
+.quotation.tpl-logistics_cargo .quote-header {
+  background: #075985;
+  color: #fff;
+  padding: 16px 20px;
+}
+.quotation.tpl-logistics_cargo .quote-header h2 { color: #fff; }
+.quotation.tpl-logistics_cargo .quote-header p { color: #bae6fd; }
+.quotation.tpl-logistics_cargo .title-tag { color: #38bdf8; }
+.quotation.tpl-logistics_cargo .accent-line { background: #0284c7; height: 3px; }
+.quotation.tpl-logistics_cargo .client-strip { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 0; }
+.quotation.tpl-logistics_cargo .client-strip span { color: #0369a1; }
+.quotation.tpl-logistics_cargo .preview-table th { background: #0284c7; color: #fff; border-bottom: 2px solid #075985; }
+.quotation.tpl-logistics_cargo .totals .grand { background: #f0f9ff; border: 1px solid #7dd3fc; padding: 6px 12px; }
+.quotation.tpl-logistics_cargo .totals .grand strong { color: #0369a1; }
+
+/* 29. Healthcare & Medical Supply (tpl-medical_pharma) */
+.quotation.tpl-medical_pharma {
+  border-top: 6px solid #0891b2;
+}
+.quotation.tpl-medical_pharma .quote-header h2 { color: #0e7490; }
+.quotation.tpl-medical_pharma .accent-line { background: #0891b2; height: 2px; }
+.quotation.tpl-medical_pharma .client-strip { background: #ecfeff; border: 1px solid #a5f3fc; border-radius: 6px; }
+.quotation.tpl-medical_pharma .client-strip span { color: #0e7490; }
+.quotation.tpl-medical_pharma .preview-table th { background: #ecfeff; color: #0891b2; border-bottom: 2px solid #06b6d4; }
+.quotation.tpl-medical_pharma .totals .grand strong { color: #0891b2; }
+
+/* 30. Agriculture & Agritech (tpl-agriculture_farm) */
+.quotation.tpl-agriculture_farm {
+  border-top: 6px solid #65a30d;
+}
+.quotation.tpl-agriculture_farm .quote-header h2 { color: #4d7c0f; }
+.quotation.tpl-agriculture_farm .accent-line { background: #65a30d; height: 3px; }
+.quotation.tpl-agriculture_farm .client-strip { background: #f7fee7; border: 1px solid #d9f99d; border-radius: 6px; }
+.quotation.tpl-agriculture_farm .client-strip span { color: #4d7c0f; }
+.quotation.tpl-agriculture_farm .preview-table th { background: #f7fee7; color: #4d7c0f; border-bottom: 2px solid #84cc16; }
+.quotation.tpl-agriculture_farm .totals .grand strong { color: #4d7c0f; }
+
+/* 31. Solar & Renewable Energy (tpl-electrical_solar) */
+.quotation.tpl-electrical_solar {
+  border-top: 7px solid #eab308;
+  border-bottom: 3px solid #ca8a04;
+}
+.quotation.tpl-electrical_solar .quote-header {
+  background: #1e293b;
+  color: #fff;
+  padding: 18px 22px;
+  border-left: 8px solid #facc15;
+  border-radius: 8px;
+}
+.quotation.tpl-electrical_solar .quote-header h2 { color: #fef08a; }
+.quotation.tpl-electrical_solar .title-tag { color: #facc15; }
+.quotation.tpl-electrical_solar .accent-line { background: linear-gradient(90deg, #eab308, #facc15); height: 3px; }
+.quotation.tpl-electrical_solar .client-strip { background: #fefce8; border: 1px solid #fef08a; }
+.quotation.tpl-electrical_solar .client-strip span { color: #854d0e; }
+.quotation.tpl-electrical_solar .preview-table th { background: #1e293b; color: #fef08a; border-bottom: 2px solid #eab308; }
+.quotation.tpl-electrical_solar .totals .grand { background: #1e293b; color: #fef08a; padding: 6px 12px; border-radius: 6px; }
+.quotation.tpl-electrical_solar .totals .grand strong { color: #facc15; }
+
+/* ========================================================
+   TEMPLATE GALLERY SHOWCASE MODAL STYLES
+======================================================== */
+.tpl-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.tpl-gallery-card {
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.tpl-gallery-card:hover {
+  transform: translateY(-4px);
+  border-color: #2563eb;
+  box-shadow: 0 14px 28px rgba(37, 99, 235, 0.15);
+}
+
+.tpl-gallery-card.active {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px #2563eb, 0 10px 24px rgba(37, 99, 235, 0.2);
+  background: #f8fafc;
+}
+
+.tpl-gallery-card-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 99px;
+  z-index: 2;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+}
+
+/* Card Visual Header Preview */
+.tpl-gallery-preview-box {
+  height: 90px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.tpl-gallery-preview-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tpl-gallery-preview-logo {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+}
+
+.tpl-gallery-preview-bar {
+  height: 3px;
+  border-radius: 2px;
+  margin: 6px 0 4px;
+}
+
+.tpl-gallery-preview-table-sim {
+  display: flex;
+  gap: 3px;
+  margin-top: 4px;
+}
+
+.tpl-gallery-preview-table-sim span {
+  flex: 1;
+  height: 4px;
+  border-radius: 1px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/* Card Body Information */
+.tpl-gallery-body {
+  padding: 14px 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.tpl-gallery-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.tpl-gallery-body h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.tpl-gallery-category-tag {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.tpl-gallery-desc {
+  font-size: 11.5px;
+  color: #64748b;
+  margin: 4px 0 12px;
+  line-height: 1.4;
+  flex: 1;
+}
+
+/* Card Action Buttons */
+.tpl-gallery-footer {
+  display: flex;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.tpl-gallery-footer .btn {
+  flex: 1;
+  justify-content: center;
+  font-size: 11.5px;
+  padding: 7px 10px;
+}
+
+
 /* ========================================================
    CUSTOM DYNAMIC LAYOUT SYSTEM (tpl-custom)
 ======================================================== */
