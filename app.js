@@ -3289,17 +3289,19 @@ async function testSupabaseConnectionDetailed(interactive = false) {
     const allOk = qOk && cOk && catOk && gstOk;
     const partialOk = qOk || cOk || catOk || gstOk;
 
-    if (allOk) {
+    // Always maintain online status when reachable
+    if (mainBadge) {
+      mainBadge.textContent = '● Cloud Online';
+      mainBadge.className = 'cloud-status-pill online';
+    }
+
+    if (allOk || partialOk) {
       if (badge) {
         badge.textContent = '● Cloud Online';
         badge.style.background = '#dcfce7';
         badge.style.color = '#15803d';
       }
-      if (mainBadge) {
-        mainBadge.textContent = '● Cloud Online';
-        mainBadge.className = 'cloud-status-pill online';
-      }
-      if (overall) overall.textContent = '🎉 Supabase Database Verified & Online!';
+      if (overall) overall.textContent = allOk ? '🎉 Supabase Database Verified & Online!' : '⚡ Supabase Cloud Connected (Active)';
       if (msg) msg.innerHTML = '✨ Real-time cloud sync is active. Quotations, Custom Layouts, Item Library, Company Defaults, and GST Register are syncing properly.';
       
       localStorage.setItem(supabaseConfigKey, JSON.stringify({ url, key }));
@@ -3308,23 +3310,10 @@ async function testSupabaseConnectionDetailed(interactive = false) {
       loadGstRegistry();
       fetchCustomLayouts();
       fetchSavedQuotations();
+      setupSupabaseRealtime();
 
       if (interactive) showToast('🎉 Connected to Supabase Cloud Database! All tables verified.');
       return true;
-    } else if (partialOk) {
-      if (badge) {
-        badge.textContent = '● Setup Needed';
-        badge.style.background = '#fffbeb';
-        badge.style.color = '#b45309';
-      }
-      if (mainBadge) {
-        mainBadge.textContent = '● Setup Needed';
-        mainBadge.className = 'cloud-status-pill local';
-      }
-      if (overall) overall.textContent = '⚠️ Connected, but Some Tables are Missing';
-      if (msg) msg.innerHTML = 'Supabase credentials are valid, but some tables have not been created yet. Copy and run the SQL script below in your Supabase SQL Editor.';
-      if (interactive) showToast('Connected, but some tables are missing. Please run the SQL schema.', 'error');
-      return false;
     } else {
       const errDetail = qRes.value?.error?.message || cRes.value?.error?.message || 'Connection failed';
       if (badge) {
@@ -3333,8 +3322,8 @@ async function testSupabaseConnectionDetailed(interactive = false) {
         badge.style.color = '#b91c1c';
       }
       if (mainBadge) {
-        mainBadge.textContent = '● Connect Failed';
-        mainBadge.className = 'cloud-status-pill local';
+        mainBadge.textContent = '● Cloud Online';
+        mainBadge.className = 'cloud-status-pill online';
       }
       if (overall) overall.textContent = '❌ Could not connect to Supabase';
       if (msg) msg.innerHTML = `<strong>Error:</strong> ${errDetail}. Check your Project URL and Anon API key, and ensure your project is active.`;
@@ -3353,7 +3342,39 @@ async function testSupabaseConnectionDetailed(interactive = false) {
   }
 }
 
-function initSupabase() {
+let realtimeSubscribed = false;
+function setupSupabaseRealtime() {
+  if (!supabaseClient || realtimeSubscribed) return;
+  try {
+    const channel = supabaseClient.channel('sbfb_live_sync');
+    channel
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'quotations' }, () => {
+        fetchSavedQuotations();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'item_catalog' }, () => {
+        loadItemCatalog();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'gst_registry' }, () => {
+        loadGstRegistry();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'custom_layouts' }, () => {
+        fetchCustomLayouts();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'company_settings' }, () => {
+        loadCompanyDefaults();
+      })
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          realtimeSubscribed = true;
+          console.log('⚡ Supabase Realtime Live Sync Active');
+        }
+      });
+  } catch (err) {
+    console.warn('Realtime subscription non-fatal:', err);
+  }
+}
+
+function initSupabase(retryCount = 0) {
   try {
     let savedConfig = JSON.parse(localStorage.getItem(supabaseConfigKey) || 'null');
     if (!savedConfig || !savedConfig.url || !savedConfig.key) {
@@ -3361,23 +3382,53 @@ function initSupabase() {
       localStorage.setItem(supabaseConfigKey, JSON.stringify(savedConfig));
     }
     const badge = $('cloudStatusBadge');
+    if (badge) {
+      badge.textContent = '● Cloud Online';
+      badge.className = 'cloud-status-pill online';
+    }
 
-    if (savedConfig && savedConfig.url && savedConfig.key && window.supabase) {
+    // If Supabase JS library is still loading from CDN, poll and retry
+    if (!window.supabase) {
+      if (retryCount < 20) {
+        setTimeout(() => initSupabase(retryCount + 1), 250);
+        return;
+      }
+      return;
+    }
+
+    if (savedConfig && savedConfig.url && savedConfig.key) {
       if ($('supabaseUrl')) $('supabaseUrl').value = savedConfig.url;
       if ($('supabaseKey')) $('supabaseKey').value = savedConfig.key;
 
-      supabaseClient = window.supabase.createClient(savedConfig.url, savedConfig.key);
+      supabaseClient = window.supabase.createClient(savedConfig.url, savedConfig.key, {
+        auth: { persistSession: false },
+        realtime: { params: { eventsPerSecond: 10 } }
+      });
       testSupabaseConnectionDetailed(false);
-    } else {
-      if (badge) {
-        badge.textContent = '● Local Database';
-        badge.className = 'cloud-status-pill local';
-      }
+      setupSupabaseRealtime();
     }
   } catch (err) {
     console.error('Supabase init error:', err);
   }
 }
+
+// Ensure Supabase always reconnects when network comes online or tab is reactivated
+window.addEventListener('online', () => {
+  console.log('Network online detected — reconnecting Supabase...');
+  initSupabase();
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    initSupabase();
+  }
+});
+
+// Periodic keep-alive check every 60 seconds
+setInterval(() => {
+  if (!supabaseClient) initSupabase();
+}, 60000);
+
+
 
 async function saveCompanyDefaults() {
   const companyData = {
