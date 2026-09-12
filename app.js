@@ -51,7 +51,14 @@ const TEMPLATES = {
   logistics_cargo: { name: '🚚 Freight & Waybill', subtitle: 'Cargo Dispatch & Delivery Challan', color: '#0284c7', category: 'trade', archetype: 'classic', desc: 'Integrated transporter consignment number, vehicle number, and dispatch route grids.' },
   medical_pharma: { name: '🩺 Clinical Precision', subtitle: 'Healthcare, Pharma & Medical Supply', color: '#0891b2', category: 'trade', archetype: 'modern', desc: 'Crisp sterile cyan-teal layout with batch number, expiry date, and medical drug licenses.' },
   agriculture_farm: { name: '🌾 Agri & Fertilizer', subtitle: 'Farm Supply, Agritech & Seeds', color: '#65a30d', category: 'trade', archetype: 'modern', desc: 'Fresh lime and olive green tones for agricultural produce, fertilizers, and tractor works.' },
-  electrical_solar: { name: '⚡ Solar & Energy Grid', subtitle: 'Renewable Power & Electrical Contracting', color: '#eab308', category: 'trade', archetype: 'modern', desc: 'High-voltage amber-yellow highlights for electrical engineers, panel boards, and solar arrays.' }
+  electrical_solar: { name: '⚡ Solar & Energy Grid', subtitle: 'Renewable Power & Electrical Contracting', color: '#eab308', category: 'trade', archetype: 'modern', desc: 'High-voltage amber-yellow highlights for electrical engineers, panel boards, and solar arrays.' },
+
+  // --- 🇮🇳 Tamil Nadu Material Supply & Brick Company Formats ---
+  tn_material_supply: { name: '🧱 தமிழ்நாடு மெட்டீரியல் சப்ளை', subtitle: 'Sri Balamurugan Lorry Trip & Tax Bill', color: '#b91c1c', category: 'tamilnadu', archetype: 'classic', desc: 'Traditional Tamil Nadu Material Supply bill with auspicious || ஓம் முருகா || header, vehicle lorry no, loading site trip breakdown, and Tamil signature blocks.' },
+  tn_bricks_kiln: { name: '🧱 TN Chamber & Fly Ash Bricks Kiln', subtitle: 'செங்கல் காளவாசல் டெலிவரி பில்', color: '#c2410c', category: 'tamilnadu', archetype: 'industrial', desc: 'Dedicated brick kiln layout with count per load (1,000 to 5,000 bricks), lorry freight charges, and unloading labor rates.' },
+  tn_blue_metals_quarry: { name: '🪨 TN Blue Metals & M-Sand Quarry', subtitle: '20mm / 40mm Metal, M-Sand & Quarry Challan', color: '#0f766e', category: 'tamilnadu', archetype: 'classic', desc: 'Quarry weighbridge challan format with Gross / Tare / Net weight (Tons / Brass / Units) and Tipper Lorry details.' },
+  tn_cement_steel_traders: { name: '🏗️ TN Cement & TMT Steel Traders', subtitle: 'OPC/PPC Cement Bags, Fe 550D TMT Rebars', color: '#1e3a8a', category: 'tamilnadu', archetype: 'modern', desc: 'Stockist & retail hardware invoice with HSN Codes (6815, 2523, 7214), bundle counts, and piece-to-kg conversion.' },
+  tn_lorry_transport_challan: { name: '🚚 TN Lorry Service & GTA Waybill', subtitle: 'தமிழ்நாடு லாரி புக்கிங் & டெலிவரி சலான்', color: '#78350f', category: 'tamilnadu', archetype: 'classic', desc: 'Goods Transport Agency (GTA) consignment receipt with Driver Batta, Diesel Advance, To-Pay / Paid freight status, and toll charges.' }
 };
 
 const customLayoutsStorageKey = 'sbfbCustomLayouts';
@@ -1906,6 +1913,7 @@ function renderTemplateGallery(filter = 'all', search = '') {
       count++;
       const isActive = currentTpl === key;
       const catLabels = {
+        tamilnadu: '🧱 தமிழ்நாடு சப்ளை',
         corporate: '🏛️ Corporate & Tax',
         modern: '🎨 Modern & Tech',
         industrial: '🧱 Industrial & Infra',
@@ -5584,6 +5592,22 @@ if ($('refreshLayoutsBtn')) {
 }
 
 // Template Gallery & Showcase Modal Controls
+if ($('topTnTemplateBtn')) {
+  $('topTnTemplateBtn').addEventListener('click', () => {
+    setDocumentTemplate('tn_material_supply');
+    renderTemplatePicker('tamilnadu');
+    showToast('🧱 Applied Tamil Nadu Material Supply & Brick Company Bill Format!');
+  });
+}
+
+if ($('quickTnTemplateBtn')) {
+  $('quickTnTemplateBtn').addEventListener('click', () => {
+    setDocumentTemplate('tn_material_supply');
+    renderTemplatePicker('tamilnadu');
+    showToast('🧱 Applied Tamil Nadu Material Supply & Brick Company Bill Format!');
+  });
+}
+
 if ($('topGalleryBtn')) $('topGalleryBtn').addEventListener('click', openTemplateGallery);
 if ($('openTemplateGalleryBtn')) $('openTemplateGalleryBtn').addEventListener('click', openTemplateGallery);
 if ($('previewGalleryBtn')) $('previewGalleryBtn').addEventListener('click', openTemplateGallery);

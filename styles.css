@@ -2404,6 +2404,239 @@ textarea { resize: vertical; }
 .quotation.tpl-electrical_solar .totals .grand strong { color: #facc15; }
 
 /* ========================================================
+   TAMIL NADU MATERIAL SUPPLY & BRICK COMPANY BILL FORMATS
+======================================================== */
+
+/* 32. Tamil Nadu Material Supply Traditional Format (tpl-tn_material_supply) */
+.quotation.tpl-tn_material_supply {
+  border: 2.5px solid #b91c1c;
+  background: #fffdfa;
+  border-radius: 4px;
+  position: relative;
+}
+.quotation.tpl-tn_material_supply::before {
+  content: '॥ ஓம் முருகா ॥ ஸ்ரீ பாலமுருகன் துணை ॥';
+  display: block;
+  text-align: center;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: #b91c1c;
+  background: #fef2f2;
+  border-bottom: 1.5px solid #fca5a5;
+  padding: 4px 0;
+  margin: -10mm -12mm 12px;
+}
+.quotation.tpl-tn_material_supply .quote-header {
+  background: linear-gradient(135deg, #991b1b 0%, #b91c1c 100%);
+  color: #ffffff;
+  padding: 18px 22px;
+  border-radius: 6px;
+  border-bottom: 3.5px solid #f59e0b;
+}
+.quotation.tpl-tn_material_supply .quote-header h2 {
+  color: #fef08a;
+  font-size: 18px;
+  letter-spacing: 0.3px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+.quotation.tpl-tn_material_supply .quote-header p {
+  color: #fee2e2;
+  font-size: 10px;
+}
+.quotation.tpl-tn_material_supply .title-tag {
+  color: #fef08a;
+  background: rgba(0,0,0,0.25);
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid #f59e0b;
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+.quotation.tpl-tn_material_supply .accent-line {
+  height: 4px;
+  background: repeating-linear-gradient(90deg, #b91c1c, #b91c1c 15px, #f59e0b 15px, #f59e0b 30px);
+  margin: 14px 0;
+}
+.quotation.tpl-tn_material_supply .client-strip {
+  background: #fff5f5;
+  border: 1.5px solid #fca5a5;
+  border-radius: 4px;
+}
+.quotation.tpl-tn_material_supply .client-strip span {
+  color: #991b1b;
+  font-weight: 800;
+}
+.quotation.tpl-tn_material_supply .client-strip strong {
+  color: #7f1d1d;
+}
+.quotation.tpl-tn_material_supply .preview-table {
+  border: 1.5px solid #b91c1c;
+}
+.quotation.tpl-tn_material_supply .preview-table th {
+  background: #991b1b;
+  color: #fef08a;
+  font-weight: 800;
+  border-right: 1px solid #7f1d1d;
+  border-bottom: 2px solid #f59e0b;
+  padding: 8px 6px;
+}
+.quotation.tpl-tn_material_supply .preview-table td {
+  border-bottom: 1px solid #fecaca;
+  border-right: 1px solid #fee2e2;
+}
+.quotation.tpl-tn_material_supply .preview-table tbody tr:nth-child(even) {
+  background: #fffdf5;
+}
+.quotation.tpl-tn_material_supply .totals .grand {
+  background: #991b1b;
+  color: #fef08a;
+  border: 2px solid #f59e0b;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+.quotation.tpl-tn_material_supply .totals .grand strong {
+  color: #fef08a;
+  font-size: 18px;
+}
+
+/* 33. Tamil Nadu Chamber & Fly Ash Bricks Kiln Format (tpl-tn_bricks_kiln) */
+.quotation.tpl-tn_bricks_kiln {
+  border: 3px solid #c2410c;
+  background: #fffaf5;
+  border-radius: 0;
+}
+.quotation.tpl-tn_bricks_kiln::before {
+  content: '॥ ஸ்ரீ விநாயகர் துணை ॥ ஸ்ரீ பாலமுருகன் காளவாசல் செங்கல் சப்ளை ॥';
+  display: block;
+  text-align: center;
+  font-weight: 800;
+  font-size: 10.5px;
+  letter-spacing: 1.2px;
+  color: #9a3412;
+  background: #ffedd5;
+  border-bottom: 1.5px solid #fed7aa;
+  padding: 4px 0;
+  margin: -10mm -12mm 12px;
+}
+.quotation.tpl-tn_bricks_kiln .quote-header {
+  background: #9a3412;
+  color: #fff;
+  padding: 16px 20px;
+  border-left: 10px solid #f97316;
+}
+.quotation.tpl-tn_bricks_kiln .quote-header h2 { color: #fed7aa; }
+.quotation.tpl-tn_bricks_kiln .title-tag { color: #fed7aa; border-bottom: 2px solid #f97316; }
+.quotation.tpl-tn_bricks_kiln .accent-line { background: #ea580c; height: 3px; margin: 12px 0; }
+.quotation.tpl-tn_bricks_kiln .client-strip { background: #fff7ed; border: 1.5px solid #fed7aa; border-radius: 0; }
+.quotation.tpl-tn_bricks_kiln .client-strip span { color: #9a3412; }
+.quotation.tpl-tn_bricks_kiln .preview-table th { background: #9a3412; color: #ffedd5; border-bottom: 2px solid #ea580c; }
+.quotation.tpl-tn_bricks_kiln .preview-table td { border-bottom: 1px solid #fed7aa; }
+.quotation.tpl-tn_bricks_kiln .totals .grand { background: #fff7ed; border: 2px solid #ea580c; padding: 6px 12px; }
+.quotation.tpl-tn_bricks_kiln .totals .grand strong { color: #9a3412; }
+
+/* 34. Tamil Nadu Blue Metals, M-Sand & Quarry Format (tpl-tn_blue_metals_quarry) */
+.quotation.tpl-tn_blue_metals_quarry {
+  border-top: 8px solid #0f766e;
+  border-bottom: 3px solid #134e4a;
+  background: #f8fafc;
+}
+.quotation.tpl-tn_blue_metals_quarry::before {
+  content: '॥ ஸ்ரீ அம்மன் துணை ॥ BLUE METALS, 20mm, 40mm, M-SAND & P-SAND QUARRY WEIGHBRIDGE ॥';
+  display: block;
+  text-align: center;
+  font-weight: 800;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #0f766e;
+  background: #f0fdfa;
+  border-bottom: 1px solid #99f6e4;
+  padding: 4px 0;
+  margin: -10mm -12mm 12px;
+}
+.quotation.tpl-tn_blue_metals_quarry .quote-header {
+  background: #134e4a;
+  color: #fff;
+  padding: 18px 22px;
+  border-radius: 6px;
+}
+.quotation.tpl-tn_blue_metals_quarry .quote-header h2 { color: #5eead4; }
+.quotation.tpl-tn_blue_metals_quarry .title-tag { color: #5eead4; }
+.quotation.tpl-tn_blue_metals_quarry .accent-line { background: #0f766e; height: 3px; }
+.quotation.tpl-tn_blue_metals_quarry .client-strip { background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 4px; }
+.quotation.tpl-tn_blue_metals_quarry .client-strip span { color: #0f766e; }
+.quotation.tpl-tn_blue_metals_quarry .preview-table th { background: #0f766e; color: #fff; border-bottom: 2px solid #14b8a6; }
+.quotation.tpl-tn_blue_metals_quarry .totals .grand { background: #134e4a; color: #5eead4; padding: 6px 12px; border-radius: 4px; }
+.quotation.tpl-tn_blue_metals_quarry .totals .grand strong { color: #5eead4; }
+
+/* 35. Tamil Nadu Cement & TMT Steel Traders Format (tpl-tn_cement_steel_traders) */
+.quotation.tpl-tn_cement_steel_traders {
+  border-top: 8px solid #1e3a8a;
+  border-bottom: 3px solid #b45309;
+}
+.quotation.tpl-tn_cement_steel_traders::before {
+  content: '॥ ஸ்ரீ குருவே துணை ॥ OPC/PPC CEMENT, TMT STEEL 550D & STRUCTURAL HARDWARE STOCKIST ॥';
+  display: block;
+  text-align: center;
+  font-weight: 800;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #1e3a8a;
+  background: #eff6ff;
+  border-bottom: 1px solid #bfdbfe;
+  padding: 4px 0;
+  margin: -10mm -12mm 12px;
+}
+.quotation.tpl-tn_cement_steel_traders .quote-header {
+  background: #1e3a8a;
+  color: #fff;
+  padding: 18px 22px;
+  border-radius: 6px;
+}
+.quotation.tpl-tn_cement_steel_traders .quote-header h2 { color: #fbbf24; }
+.quotation.tpl-tn_cement_steel_traders .title-tag { color: #fbbf24; }
+.quotation.tpl-tn_cement_steel_traders .accent-line { background: linear-gradient(90deg, #1e3a8a, #fbbf24); height: 3px; }
+.quotation.tpl-tn_cement_steel_traders .client-strip { background: #eff6ff; border: 1px solid #bfdbfe; }
+.quotation.tpl-tn_cement_steel_traders .client-strip span { color: #1d4ed8; }
+.quotation.tpl-tn_cement_steel_traders .preview-table th { background: #1e3a8a; color: #fbbf24; border-bottom: 2px solid #d97706; }
+.quotation.tpl-tn_cement_steel_traders .totals .grand { background: #1e3a8a; color: #fbbf24; padding: 6px 12px; border-radius: 4px; }
+.quotation.tpl-tn_cement_steel_traders .totals .grand strong { color: #fbbf24; }
+
+/* 36. Tamil Nadu Lorry Transport & Consignment Challan (tpl-tn_lorry_transport_challan) */
+.quotation.tpl-tn_lorry_transport_challan {
+  border: 2px solid #78350f;
+  background: #fffdf7;
+}
+.quotation.tpl-tn_lorry_transport_challan::before {
+  content: '॥ GOODS TRANSPORT AGENCY (GTA) ॥ தமிழ்நாடு லாரி புக்கிங் & டெலிவரி சலான் ॥';
+  display: block;
+  text-align: center;
+  font-weight: 800;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #78350f;
+  background: #fef3c7;
+  border-bottom: 1.5px solid #fde68a;
+  padding: 4px 0;
+  margin: -10mm -12mm 12px;
+}
+.quotation.tpl-tn_lorry_transport_challan .quote-header {
+  background: #78350f;
+  color: #fff;
+  padding: 16px 20px;
+}
+.quotation.tpl-tn_lorry_transport_challan .quote-header h2 { color: #fef08a; }
+.quotation.tpl-tn_lorry_transport_challan .title-tag { color: #fef08a; }
+.quotation.tpl-tn_lorry_transport_challan .accent-line { background: #b45309; height: 2px; }
+.quotation.tpl-tn_lorry_transport_challan .client-strip { background: #fffbeb; border: 1px solid #fde68a; }
+.quotation.tpl-tn_lorry_transport_challan .client-strip span { color: #92400e; }
+.quotation.tpl-tn_lorry_transport_challan .preview-table th { background: #78350f; color: #fef08a; border-bottom: 2px solid #b45309; }
+.quotation.tpl-tn_lorry_transport_challan .totals .grand { background: #fef3c7; border: 1.5px solid #b45309; padding: 6px 12px; }
+.quotation.tpl-tn_lorry_transport_challan .totals .grand strong { color: #78350f; }
+
+
+
+/* ========================================================
    TEMPLATE GALLERY SHOWCASE MODAL STYLES
 ======================================================== */
 .tpl-gallery-grid {
