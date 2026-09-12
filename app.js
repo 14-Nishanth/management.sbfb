@@ -12,53 +12,47 @@ const fields = [
 ];
 
 const TEMPLATES = {
-  // --- Corporate & Tax ---
-  classic: { name: '🏛️ Classic Corporate', subtitle: 'Formal Indian GST & Tax Grid', color: '#0f172a', category: 'corporate', archetype: 'classic', desc: 'Enclosed structured borders & traditional double-line tax headers for official corporate bills.' },
-  corporate_navy: { name: '🏢 Enterprise Navy Pro', subtitle: 'Global MNC & Corporate Blue', color: '#1e3a8a', category: 'corporate', archetype: 'modern', desc: 'Deep sapphire navy headers with crisp clean tabular alignment for enterprise accounts.' },
+  // --- 1. Corporate & Tax (8 designs) ---
+  classic: { name: '🏛️ Classic Tax Grid', subtitle: 'Formal GST & Enclosed Table', color: '#0f172a', category: 'corporate', archetype: 'classic', desc: 'Enclosed structured borders & traditional double-line tax headers for official corporate bills.' },
+  corporate_navy: { name: '🏢 Enterprise Navy', subtitle: 'Global MNC & Corporate Blue', color: '#1e3a8a', category: 'corporate', archetype: 'modern', desc: 'Deep sapphire navy headers with crisp clean tabular alignment for enterprise accounts.' },
   monochrome: { name: '🖤 Monochrome Sleek', subtitle: 'High-Contrast B&W Executive', color: '#000000', category: 'corporate', archetype: 'classic', desc: 'Distinguished ink-black hairline borders and maximum contrast readability.' },
   minimal_clean: { name: '📐 Swiss Minimalist', subtitle: 'Ultra-Clean Whitespace & Inter', color: '#475569', category: 'corporate', archetype: 'minimal', desc: 'Generous typographic breathing room, understated dividers, and modern Swiss aesthetics.' },
   compact_pos: { name: '🧾 Compact Retail Slip', subtitle: 'Dashed Thermal Receipt & Counter Bill', color: '#475569', category: 'corporate', archetype: 'minimal', desc: 'Compact dashed receipt layout ideal for over-the-counter payments and fast retail POS slips.' },
   legal_formal: { name: '⚖️ Legal & Clauses', subtitle: 'Structured Advocates & Contracts', color: '#334155', category: 'corporate', archetype: 'classic', desc: 'Numbered clauses, formal legal column borders, and official sworn affidavit formatting.' },
-  government_tender: { name: '🇮🇳 PWD / Govt Tender', subtitle: 'Official Public Works & CPWD', color: '#15803d', category: 'corporate', archetype: 'classic', desc: 'Standard Government of India tender measurement sheets and CPWD contractor billing format.' },
+  government_tender: { name: '🏛️ Public Works & Tender', subtitle: 'CPWD / Schedule of Quantities', color: '#15803d', category: 'corporate', archetype: 'classic', desc: 'Standard public works tender measurement sheets and contractor billing format.' },
+  chartered_accountant: { name: '💼 Financial & CA Ledger', subtitle: 'Double-Entry Accounting Format', color: '#1e3a8a', category: 'corporate', archetype: 'classic', desc: 'Double-entry accounting format with fiscal year tags, audit rules, and formal sign-offs.' },
 
-  // --- Modern & Tech ---
+  // --- 2. Modern & Tech (7 designs) ---
   modern: { name: '🌟 Modern Executive', subtitle: 'Sleek Slate & Vibrant Amber Bar', color: '#f59e0b', category: 'modern', archetype: 'modern', desc: 'Contemporary corporate presentation with warm gold accent bars and slate headings.' },
   sapphire: { name: '💎 Sapphire Clean', subtitle: 'Minimalist Blue & Tech Consulting', color: '#2563eb', category: 'modern', archetype: 'modern', desc: 'Fresh tech-forward azure blues and highlighted total boxes for high-tech agencies.' },
-  emerald: { name: '🌿 Emerald Green', subtitle: 'Eco Infrastructure & Sustainability', color: '#059669', category: 'modern', archetype: 'modern', desc: 'Rich botanical green tones for environmental consultants, landscaping, and solar works.' },
-  gradient_aurora: { name: '🌈 Modern Aurora', subtitle: 'Vibrant Indigo to Cyan Tech Gradient', color: '#8b5cf6', category: 'modern', archetype: 'modern', desc: 'Multi-stop linear mesh gradients with high-tech software agency aesthetics.' },
+  emerald: { name: '🌿 Emerald Eco', subtitle: 'Eco Infrastructure & Sustainability', color: '#059669', category: 'modern', archetype: 'modern', desc: 'Rich botanical green tones for environmental consultants, landscaping, and solar works.' },
+  gradient_aurora: { name: '🌈 Modern Aurora', subtitle: 'Vibrant Indigo to Cyan Gradient', color: '#8b5cf6', category: 'modern', archetype: 'modern', desc: 'Multi-stop linear mesh gradients with high-tech software agency aesthetics.' },
   nordic_frost: { name: '❄️ Nordic Frost', subtitle: 'Scandinavian Slate & Ice Blue', color: '#0284c7', category: 'modern', archetype: 'modern', desc: 'Subtle cool blue pastels with rounded pill badges and contemporary geometric fonts.' },
   split_header: { name: '🔲 Split Horizon', subtitle: 'Two-Tone Midnight Brand Banner', color: '#312e81', category: 'modern', archetype: 'split', desc: 'Split dark/light header card with elevated brand identity and modern status badges.' },
-  neo_brutalist: { name: '⚡ Neo-Brutalist Pop', subtitle: 'Heavy Solid Borders & Offset Shadow', color: '#facc15', category: 'modern', archetype: 'brutalist', desc: 'Bold thick black outlines, high-energy pop yellow tags, and neo-brutalist drop shadows.' },
   cyber_glow: { name: '🔮 Cyber Indigo Glow', subtitle: 'Neon Tech & SaaS Software Grid', color: '#6366f1', category: 'modern', archetype: 'modern', desc: 'High-contrast glowing violet dividers and monospaced data fields for software & IT.' },
-  minimal_dark: { name: '🌑 Carbon Dark Theme', subtitle: 'Stealth Dark Mode Document', color: '#18181b', category: 'modern', archetype: 'modern', desc: 'Ultra-modern carbon-slate dark theme with luminous amber accents for digital invoicing.' },
 
-  // --- Industrial & Construction ---
-  industrial: { name: '🧱 Industrial Amber', subtitle: 'SBFB Civil, Bricks & Masonry', color: '#f59e0b', category: 'industrial', archetype: 'industrial', desc: 'Robust construction-grade amber borders with heavy industrial work badges.' },
-  blueprint_tech: { name: '📐 Engineer Blueprint', subtitle: 'Drafting Grid & CAD Monospace', color: '#0284c7', category: 'industrial', archetype: 'classic', desc: 'Drafting grid background accents and JetBrains Monospace alignment for civil engineers.' },
-  bold_crimson: { name: '🔴 Crimson Titan', subtitle: 'Heavy Steel, Girders & Manufacturing', color: '#991b1b', category: 'industrial', archetype: 'industrial', desc: 'Authoritative deep crimson header cards for heavy fabrication and structural steelworks.' },
-  roadwork_hazard: { name: '🚧 Highway & Asphalt', subtitle: 'High-Visibility Safety Stripe & Roadwork', color: '#d97706', category: 'industrial', archetype: 'industrial', desc: 'Vibrant caution stripes, road construction rates, and bitumen highway contractor specs.' },
-  quarry_stone: { name: '🪨 Quarry & Aggregate', subtitle: 'Granite, Mining & Earthwork', color: '#57534e', category: 'industrial', archetype: 'industrial', desc: 'Earthy slate-stone texture accents for quarries, gravel suppliers, and earthmoving.' },
-  equipment_rental: { name: '🚜 Fleet & Heavy Crane', subtitle: 'JCB, Crane & Equipment Rental', color: '#ea580c', category: 'industrial', archetype: 'modern', desc: 'Dynamic industrial orange layout with shift/hourly rental measurement tags.' },
+  // --- 3. Creative & Bold (5 designs) ---
+  neo_brutalist: { name: '⚡ Neo-Brutalist Pop', subtitle: 'Heavy Solid Borders & Offset Shadow', color: '#facc15', category: 'creative', archetype: 'brutalist', desc: 'Bold thick black outlines, high-energy pop yellow tags, and neo-brutalist drop shadows.' },
+  sunset_orange: { name: '🌅 Sunset Coral', subtitle: 'Warm Coral & Copper Accents', color: '#ea580c', category: 'creative', archetype: 'modern', desc: 'Warm sunset coral accents for design studios, creative agencies, and marketing consultants.' },
+  crimson_bold: { name: '🔴 Crimson Executive', subtitle: 'Authoritative Red & Strong Headers', color: '#991b1b', category: 'creative', archetype: 'industrial', desc: 'Authoritative deep crimson header cards with bold contrast for executive billing.' },
+  purple_haze: { name: '💜 Velvet Violet', subtitle: 'Royal Purple & Soft Card Styling', color: '#7c3aed', category: 'creative', archetype: 'modern', desc: 'Vibrant royal purple gradient with soft background card containers for modern creative brands.' },
+  minimal_dark: { name: '🌑 Carbon Dark Mode', subtitle: 'Stealth Dark Mode Document', color: '#18181b', category: 'creative', archetype: 'modern', desc: 'Ultra-modern carbon-slate dark theme with luminous amber accents for digital invoicing.' },
 
-  // --- Luxury & Vintage ---
+  // --- 4. Industry & Logistics (6 designs) ---
+  industrial: { name: '🧱 Civil & Construction', subtitle: 'Building, Masonry & Contracting', color: '#f59e0b', category: 'industry', archetype: 'industrial', desc: 'Robust construction-grade amber borders with heavy industrial work measurement tags.' },
+  blueprint_tech: { name: '📐 Engineer Blueprint', subtitle: 'Drafting Grid & CAD Monospace', color: '#0284c7', category: 'industry', archetype: 'classic', desc: 'Drafting grid background accents and JetBrains Monospace alignment for civil engineers.' },
+  logistics_cargo: { name: '🚚 Freight & Waybill', subtitle: 'Cargo Dispatch & Transport Challan', color: '#0284c7', category: 'industry', archetype: 'classic', desc: 'Transporter consignment number, vehicle number, Driver Batta, and dispatch route grids.' },
+  medical_pharma: { name: '🩺 Clinical Precision', subtitle: 'Healthcare, Pharma & Medical Supply', color: '#0891b2', category: 'industry', archetype: 'modern', desc: 'Crisp sterile cyan-teal layout with batch number, expiry date, and medical drug licenses.' },
+  agriculture_farm: { name: '🌾 Agri & Seeds', subtitle: 'Farm Supply, Agritech & Fertilizers', color: '#65a30d', category: 'industry', archetype: 'modern', desc: 'Fresh lime and olive green tones for agricultural produce, fertilizers, and equipment works.' },
+  electrical_solar: { name: '⚡ Solar & Energy Grid', subtitle: 'Renewable Power & Electrical Contracting', color: '#eab308', category: 'industry', archetype: 'modern', desc: 'High-voltage amber-yellow highlights for electrical engineers, panel boards, and solar arrays.' },
+
+  // --- 5. Luxury & Premium (6 designs) ---
   executive_gold: { name: '👑 Luxury Gold Crest', subtitle: 'Deep Navy & Metallic Gold Accents', color: '#d97706', category: 'luxury', archetype: 'luxury', desc: 'Cinzel Roman serif typography with 24k gold borders for luxury real estate & VIP proposals.' },
   retro_ledger: { name: '📜 Vintage Ledger', subtitle: 'Warm Parchment & Historic Rules', color: '#78350f', category: 'luxury', archetype: 'ledger', desc: 'Warm ivory parchment styling with historic double-ruled borders and serif ledger lines.' },
   teal_prestige: { name: '🌊 Teal Prestige', subtitle: 'Deep Teal & Mint Architectural Crest', color: '#0f766e', category: 'luxury', archetype: 'luxury', desc: 'Sophisticated deep oceanic teal styling for architects, interior designers, and luxury villas.' },
   royal_amethyst: { name: '🟣 Imperial Amethyst', subtitle: 'Royal Purple & Platinum Crest', color: '#7e22ce', category: 'luxury', archetype: 'luxury', desc: 'Opulent royal purple banner with platinum table highlights for prestigious consulting.' },
   artisan_craft: { name: '☕ Terracotta Artisan', subtitle: 'Warm Sienna & Handmade Craft', color: '#c2410c', category: 'luxury', archetype: 'modern', desc: 'Earthy terracotta warmth for bespoke tile makers, boutique architecture, and craft masonry.' },
-
-  // --- Trade, Logistics & Healthcare ---
-  logistics_cargo: { name: '🚚 Freight & Waybill', subtitle: 'Cargo Dispatch & Delivery Challan', color: '#0284c7', category: 'trade', archetype: 'classic', desc: 'Integrated transporter consignment number, vehicle number, and dispatch route grids.' },
-  medical_pharma: { name: '🩺 Clinical Precision', subtitle: 'Healthcare, Pharma & Medical Supply', color: '#0891b2', category: 'trade', archetype: 'modern', desc: 'Crisp sterile cyan-teal layout with batch number, expiry date, and medical drug licenses.' },
-  agriculture_farm: { name: '🌾 Agri & Fertilizer', subtitle: 'Farm Supply, Agritech & Seeds', color: '#65a30d', category: 'trade', archetype: 'modern', desc: 'Fresh lime and olive green tones for agricultural produce, fertilizers, and tractor works.' },
-  electrical_solar: { name: '⚡ Solar & Energy Grid', subtitle: 'Renewable Power & Electrical Contracting', color: '#eab308', category: 'trade', archetype: 'modern', desc: 'High-voltage amber-yellow highlights for electrical engineers, panel boards, and solar arrays.' },
-
-  // --- 🇮🇳 Tamil Nadu Material Supply & Brick Company Formats ---
-  tn_material_supply: { name: '🧱 தமிழ்நாடு மெட்டீரியல் சப்ளை', subtitle: 'Sri Balamurugan Lorry Trip & Tax Bill', color: '#b91c1c', category: 'tamilnadu', archetype: 'classic', desc: 'Traditional Tamil Nadu Material Supply bill with auspicious || ஓம் முருகா || header, vehicle lorry no, loading site trip breakdown, and Tamil signature blocks.' },
-  tn_bricks_kiln: { name: '🧱 TN Chamber & Fly Ash Bricks Kiln', subtitle: 'செங்கல் காளவாசல் டெலிவரி பில்', color: '#c2410c', category: 'tamilnadu', archetype: 'industrial', desc: 'Dedicated brick kiln layout with count per load (1,000 to 5,000 bricks), lorry freight charges, and unloading labor rates.' },
-  tn_blue_metals_quarry: { name: '🪨 TN Blue Metals & M-Sand Quarry', subtitle: '20mm / 40mm Metal, M-Sand & Quarry Challan', color: '#0f766e', category: 'tamilnadu', archetype: 'classic', desc: 'Quarry weighbridge challan format with Gross / Tare / Net weight (Tons / Brass / Units) and Tipper Lorry details.' },
-  tn_cement_steel_traders: { name: '🏗️ TN Cement & TMT Steel Traders', subtitle: 'OPC/PPC Cement Bags, Fe 550D TMT Rebars', color: '#1e3a8a', category: 'tamilnadu', archetype: 'modern', desc: 'Stockist & retail hardware invoice with HSN Codes (6815, 2523, 7214), bundle counts, and piece-to-kg conversion.' },
-  tn_lorry_transport_challan: { name: '🚚 TN Lorry Service & GTA Waybill', subtitle: 'தமிழ்நாடு லாரி புக்கிங் & டெலிவரி சலான்', color: '#78350f', category: 'tamilnadu', archetype: 'classic', desc: 'Goods Transport Agency (GTA) consignment receipt with Driver Batta, Diesel Advance, To-Pay / Paid freight status, and toll charges.' }
+  marble_elegance: { name: '🏛️ Marble Elegance', subtitle: 'Stone Gray & Champagne Gold', color: '#d97706', category: 'luxury', archetype: 'luxury', desc: 'Understated charcoal marble borders with champagne gold accents for premium lifestyle brands.' }
 };
 
 const customLayoutsStorageKey = 'sbfbCustomLayouts';
@@ -1913,21 +1907,20 @@ function renderTemplateGallery(filter = 'all', search = '') {
       count++;
       const isActive = currentTpl === key;
       const catLabels = {
-        tamilnadu: '🧱 தமிழ்நாடு சப்ளை',
         corporate: '🏛️ Corporate & Tax',
         modern: '🎨 Modern & Tech',
-        industrial: '🧱 Industrial & Infra',
-        luxury: '👑 Luxury & Vintage',
-        trade: '🚚 Trade & Health'
+        creative: '⚡ Creative & Bold',
+        industry: '🧱 Industry & Logistics',
+        luxury: '👑 Luxury & Premium'
       };
       const catLabel = catLabels[tpl.category] || tpl.category;
 
       html += `
         <div class="tpl-gallery-card ${isActive ? 'active' : ''}" id="galCard_${key}">
           ${isActive ? '<div class="tpl-gallery-card-badge">✓ Active Style</div>' : ''}
-          <div class="tpl-gallery-preview-box" style="background:${tpl.category === 'corporate' ? '#0f172a' : (tpl.category === 'luxury' ? '#1c1917' : '#0f172a')}; color:#fff;">
+          <div class="tpl-gallery-preview-box" style="background:${tpl.category === 'corporate' ? '#0f172a' : (tpl.category === 'luxury' ? '#1c1917' : (tpl.category === 'creative' ? '#18181b' : '#0f172a'))}; color:#fff;">
             <div class="tpl-gallery-preview-top">
-              <div class="tpl-gallery-preview-logo" style="background:${tpl.color}; color:#fff;">🧱</div>
+              <div class="tpl-gallery-preview-logo" style="background:${tpl.color}; color:#fff;">📄</div>
               <span style="font-size:9px;font-weight:800;letter-spacing:0.5px;color:${tpl.color};">${(tpl.archetype || 'MODERN').toUpperCase()}</span>
             </div>
             <div>
@@ -2072,27 +2065,14 @@ function renderTemplatePicker(filter = currentCustomFilter || 'all') {
   let html = '';
 
   // 1. Prominent Master Action Pills in Grid
-  if (filter === 'all' || filter === 'tamilnadu') {
-    html += `
-      <button type="button" class="template-pill-btn" id="gridSpecialTnBtn" style="background:#fef2f2;border:2px solid #b91c1c;box-shadow:0 2px 8px rgba(185,28,28,0.15);" title="1-Click Apply Tamil Nadu Material Supply Company Bill Format">
-        <span class="custom-badge-tag" style="background:#b91c1c;color:#fff;">⭐ TN Format</span>
-        <span style="font-size:15px;">🧱</span>
-        <div>
-          <strong style="color:#991b1b;">தமிழ்நாடு சப்ளை பில்</strong>
-          <span style="font-size:9.5px;color:#b91c1c;display:block;">Sri Balamurugan Format</span>
-        </div>
-      </button>
-    `;
-  }
-
   if (filter === 'all') {
     html += `
-      <button type="button" class="template-pill-btn" id="gridSpecialGalleryBtn" style="background:#eff6ff;border:2px solid #2563eb;box-shadow:0 2px 8px rgba(37,99,235,0.15);" title="View all visual designs in gallery">
-        <span class="custom-badge-tag" style="background:#2563eb;color:#fff;">👁️ Showcase</span>
-        <span style="font-size:15px;">🎨</span>
+      <button type="button" class="template-pill-btn" id="gridSpecialGalleryBtn" style="background:#eff6ff;border:2px solid #2563eb;box-shadow:0 2px 8px rgba(37,99,235,0.15);" title="View all 32+ invoice designs in visual gallery">
+        <span class="custom-badge-tag" style="background:#2563eb;color:#fff;">🎨 32+ Designs</span>
+        <span style="font-size:15px;">🖼️</span>
         <div>
-          <strong style="color:#1d4ed8;">View 36+ Templates</strong>
-          <span style="font-size:9.5px;color:#2563eb;display:block;">Visual Designs Gallery</span>
+          <strong style="color:#1d4ed8;">🎨 View All 32+ Templates</strong>
+          <span style="font-size:9.5px;color:#2563eb;display:block;">Open Visual Gallery &amp; Showcase</span>
         </div>
       </button>
     `;
@@ -2148,14 +2128,6 @@ function renderTemplatePicker(filter = currentCustomFilter || 'all') {
   `;
 
   grid.innerHTML = html;
-
-  if ($('gridSpecialTnBtn')) {
-    $('gridSpecialTnBtn').addEventListener('click', () => {
-      setDocumentTemplate('tn_material_supply');
-      renderTemplatePicker('tamilnadu');
-      showToast('🧱 Applied Tamil Nadu Material Supply & Brick Company Bill Format!');
-    });
-  }
 
   if ($('gridSpecialGalleryBtn')) {
     $('gridSpecialGalleryBtn').addEventListener('click', openTemplateGallery);
@@ -5639,52 +5611,13 @@ if ($('refreshLayoutsBtn')) {
 }
 
 // Template Gallery & Showcase Modal Controls
-if ($('topTnTemplateBtn')) {
-  $('topTnTemplateBtn').addEventListener('click', () => {
-    setDocumentTemplate('tn_material_supply');
-    renderTemplatePicker('tamilnadu');
-    showToast('🧱 Applied Tamil Nadu Material Supply & Brick Company Bill Format!');
-  });
-}
-
-if ($('quickTnTemplateBtn')) {
-  $('quickTnTemplateBtn').addEventListener('click', () => {
-    setDocumentTemplate('tn_material_supply');
-    renderTemplatePicker('tamilnadu');
-    showToast('🧱 Applied Tamil Nadu Material Supply & Brick Company Bill Format!');
-  });
-}
-
-if ($('heroTnTemplateBtn')) {
-  $('heroTnTemplateBtn').addEventListener('click', () => {
-    setDocumentTemplate('tn_material_supply');
-    renderTemplatePicker('tamilnadu');
-    showToast('🧱 Applied Tamil Nadu Material Supply & Brick Company Bill Format!');
-  });
-}
-
-if ($('previewTnQuickBtn')) {
-  $('previewTnQuickBtn').addEventListener('click', () => {
-    setDocumentTemplate('tn_material_supply');
-    renderTemplatePicker('tamilnadu');
-    showToast('🧱 Applied Tamil Nadu Material Supply & Brick Company Bill Format!');
-  });
-}
-
 if ($('topGalleryBtn')) $('topGalleryBtn').addEventListener('click', openTemplateGallery);
+if ($('headerTemplateBtn')) $('headerTemplateBtn').addEventListener('click', openTemplateGallery);
 if ($('openTemplateGalleryBtn')) $('openTemplateGalleryBtn').addEventListener('click', openTemplateGallery);
 if ($('previewGalleryBtn')) $('previewGalleryBtn').addEventListener('click', openTemplateGallery);
 if ($('heroGalleryBtn')) $('heroGalleryBtn').addEventListener('click', openTemplateGallery);
 if ($('nearTemplateGalleryBtn')) $('nearTemplateGalleryBtn').addEventListener('click', openTemplateGallery);
 if ($('floatingGalleryBtn')) $('floatingGalleryBtn').addEventListener('click', openTemplateGallery);
-
-if ($('nearTemplateTnBtn')) {
-  $('nearTemplateTnBtn').addEventListener('click', () => {
-    setDocumentTemplate('tn_material_supply');
-    renderTemplatePicker('tamilnadu');
-    showToast('🧱 Applied Tamil Nadu Material Supply & Brick Company Bill Format!');
-  });
-}
 
 if ($('heroStudioBtn')) $('heroStudioBtn').addEventListener('click', () => openLayoutDesigner(null));
 if ($('nearTemplateStudioBtn')) $('nearTemplateStudioBtn').addEventListener('click', () => openLayoutDesigner(null));
