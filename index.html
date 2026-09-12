@@ -31,12 +31,18 @@
         </div>
       </div>
       <div class="top-actions">
-        <button class="btn accent-btn" id="topTnTemplateBtn" style="background:#b91c1c;border-color:#991b1b;color:#fff;font-weight:800;" title="1-Click Apply Tamil Nadu Material Supply Company Bill Format">
-          <span>🧱</span> <span class="btn-text">TN Supply Format</span>
+        <!-- 1. Dedicated Tamil Nadu Company Template Button (Top Bar) -->
+        <button class="btn btn-tn-highlight" id="topTnTemplateBtn" title="1-Click Apply Tamil Nadu Material Supply & Brick Company Bill Design">
+          <span style="font-size:16px;">🧱</span>
+          <span class="btn-text"><strong>TN Supply Template</strong></span>
         </button>
-        <button class="btn cloud-btn" id="topGalleryBtn" title="View all Bill & Quotation Template Designs & Showcase">
-          <span>👁️</span> <span class="btn-text">Template Gallery</span>
+
+        <!-- 2. View All Bill Templates & Designs Button (Top Bar) -->
+        <button class="btn btn-gallery-highlight" id="topGalleryBtn" title="View visual designs of all 36+ Bill & Quotation Templates to choose">
+          <span style="font-size:16px;">👁️</span>
+          <span class="btn-text"><strong>View Bill Templates</strong></span>
         </button>
+
         <button class="btn cloud-btn" id="topLayoutStudioBtn" title="Design, customize & manage Bill Layouts & Themes">
           <span>🎨</span> <span class="btn-text">Layout Studio</span>
         </button>
@@ -101,6 +107,42 @@
         <input type="hidden" id="docTemplate" value="modern" />
         <input type="hidden" id="billingMode" value="qty_rate" />
 
+        <!-- 🌟 PROMINENT HERO BILL TEMPLATE SELECTOR BANNER -->
+        <div class="template-hero-card no-print">
+          <div class="template-hero-info">
+            <div class="template-hero-badge-row">
+              <span class="hero-pulse-dot"></span>
+              <span class="hero-badge-title">🎨 BILL TEMPLATES &amp; DESIGNS (36+ STYLES)</span>
+              <span class="hero-active-badge" id="heroActiveTemplateBadge">Active: 🌟 Modern Executive</span>
+            </div>
+            <h3>Choose or View Bill Template Designs</h3>
+            <p>Select traditional Tamil Nadu material supply formats, corporate tax invoices, or browse visual layouts.</p>
+          </div>
+          <div class="template-hero-action-buttons">
+            <button type="button" class="btn hero-btn-tn" id="heroTnTemplateBtn" title="1-Click Apply Tamil Nadu Material Supply & Brick Company Bill Design">
+              <span class="hero-btn-icon">🧱</span>
+              <div class="hero-btn-content">
+                <strong>Tamil Nadu Supply Template</strong>
+                <span>Sri Balamurugan / Bricks Kiln Format</span>
+              </div>
+            </button>
+            <button type="button" class="btn hero-btn-gallery" id="heroGalleryBtn" title="View visual designs of all 36+ templates to choose">
+              <span class="hero-btn-icon">👁️</span>
+              <div class="hero-btn-content">
+                <strong>View All Bill Templates (36+)</strong>
+                <span>Browse visual previews &amp; choose</span>
+              </div>
+            </button>
+            <button type="button" class="btn hero-btn-studio" id="heroStudioBtn" title="Create your own custom bill layout with bespoke colors">
+              <span class="hero-btn-icon">✨</span>
+              <div class="hero-btn-content">
+                <strong>Custom Layout Studio</strong>
+                <span>Custom colors, fonts &amp; cloud</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
         <!-- 🎨 Template Designs & Custom Layout Studio Card -->
         <div class="card">
           <div class="card-head">
@@ -110,11 +152,11 @@
             </div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
               <span id="activeTemplateBadge" style="font-size:11px;font-weight:800;color:#2563eb;background:#eff6ff;padding:4px 10px;border-radius:99px;border:1px solid #bfdbfe;">🌟 Modern Executive</span>
-              <button type="button" class="btn small" id="quickTnTemplateBtn" style="background:#b91c1c;color:#fff;border-color:#991b1b;font-weight:800;" title="1-Click Apply Tamil Nadu Material Supply & Brick Company Bill Design">
-                <span>🧱</span> TN Material Supply Template
+              <button type="button" class="btn small btn-tn-highlight" id="quickTnTemplateBtn" title="1-Click Apply Tamil Nadu Material Supply & Brick Company Bill Design">
+                <span>🧱</span> <strong>TN Material Supply Template</strong>
               </button>
-              <button type="button" class="btn small accent-btn" id="openTemplateGalleryBtn" title="View visual designs of all templates to choose">
-                <span>👁️</span> View Designs &amp; Choose
+              <button type="button" class="btn small btn-gallery-highlight" id="openTemplateGalleryBtn" title="View visual designs of all templates to choose">
+                <span>👁️</span> <strong>View Designs &amp; Choose</strong>
               </button>
               <button type="button" class="btn small primary" id="openLayoutDesignerBtn" title="Design a bespoke bill layout with custom colors, fonts & borders">
                 ✨ Create Custom Layout
@@ -602,9 +644,12 @@
             <span style="font-weight:800;letter-spacing:0.5px;color:#94a3b8;font-size:10.5px;">LIVE PREVIEW</span>
             <span id="previewTplLabel" style="font-size:11px;color:#38bdf8;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">A4 Document &bull; Modern Executive</span>
           </div>
-          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-            <button type="button" class="btn small accent-btn" id="previewGalleryBtn" title="View all template designs and choose" style="padding:4px 10px;font-size:11px;">
-              👁️ View Designs
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap;">
+            <button type="button" class="btn small btn-tn-highlight" id="previewTnQuickBtn" title="Apply Tamil Nadu Material Supply Format" style="padding:4px 9px;font-size:11px;">
+              <span>🧱</span> TN Format
+            </button>
+            <button type="button" class="btn small btn-gallery-highlight" id="previewGalleryBtn" title="View all template designs and choose" style="padding:4px 10px;font-size:11px;">
+              <span>👁️</span> View Templates (36+)
             </button>
             <button type="button" class="btn small primary" id="previewLayoutStudioBtn" title="Customize bill layout, colors, borders & fonts" style="padding:4px 10px;font-size:11px;">
               🎨 Layout Studio
@@ -1772,15 +1817,20 @@ CREATE POLICY "Allow public access to custom_layouts" ON public.custom_layouts F
         <span class="bar-icon">💾</span>
         <span class="bar-label">Save</span>
       </button>
-      <button type="button" class="mobile-bar-btn primary-action" id="mobBarPrintBtn">
-        <span class="bar-icon">🖨️</span>
-        <span class="bar-label">PDF</span>
-      </button>
       <button type="button" class="mobile-bar-btn" id="mobBarCloudBtn">
         <span class="bar-icon">☁️</span>
         <span class="bar-label">Cloud</span>
       </button>
     </nav>
+
+    <!-- Floating Quick Template Selector Button -->
+    <button type="button" class="floating-template-btn no-print" id="floatingGalleryBtn" title="Click to View & Choose Bill Templates (36+ Designs)">
+      <span class="floating-btn-icon">🎨</span>
+      <span class="floating-btn-text">
+        <strong>View Bill Templates</strong>
+        <small>36+ Designs &bull; TN Supply</small>
+      </span>
+    </button>
 
   </div>
   <script src="app.js"></script>

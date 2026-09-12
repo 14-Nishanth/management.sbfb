@@ -2160,6 +2160,8 @@ function setDocumentTemplate(tpl) {
   // Check if it's a custom layout
   const customLayout = customLayouts.find(x => x.id === tpl);
 
+  const heroBadge = $('heroActiveTemplateBadge');
+
   if (customLayout) {
     if (docTemplateInput) docTemplateInput.value = customLayout.id;
     if (badge) {
@@ -2167,6 +2169,9 @@ function setDocumentTemplate(tpl) {
       badge.style.background = '#faf5ff';
       badge.style.color = '#7e22ce';
       badge.style.borderColor = '#d8b4fe';
+    }
+    if (heroBadge) {
+      heroBadge.textContent = `Active: ✨ ${customLayout.name}`;
     }
     if (prevLbl) {
       prevLbl.innerHTML = `A4 Document &bull; ✨ ${customLayout.name}`;
@@ -2213,6 +2218,9 @@ function setDocumentTemplate(tpl) {
       badge.style.background = '#eff6ff';
       badge.style.color = '#2563eb';
       badge.style.borderColor = '#bfdbfe';
+    }
+    if (heroBadge && TEMPLATES[tpl]) {
+      heroBadge.textContent = `Active: ${TEMPLATES[tpl].name}`;
     }
     if (prevLbl && TEMPLATES[tpl]) {
       prevLbl.innerHTML = `A4 Document &bull; ${TEMPLATES[tpl].name}`;
@@ -5608,10 +5616,35 @@ if ($('quickTnTemplateBtn')) {
   });
 }
 
+if ($('heroTnTemplateBtn')) {
+  $('heroTnTemplateBtn').addEventListener('click', () => {
+    setDocumentTemplate('tn_material_supply');
+    renderTemplatePicker('tamilnadu');
+    showToast('🧱 Applied Tamil Nadu Material Supply & Brick Company Bill Format!');
+  });
+}
+
+if ($('previewTnQuickBtn')) {
+  $('previewTnQuickBtn').addEventListener('click', () => {
+    setDocumentTemplate('tn_material_supply');
+    renderTemplatePicker('tamilnadu');
+    showToast('🧱 Applied Tamil Nadu Material Supply & Brick Company Bill Format!');
+  });
+}
+
 if ($('topGalleryBtn')) $('topGalleryBtn').addEventListener('click', openTemplateGallery);
 if ($('openTemplateGalleryBtn')) $('openTemplateGalleryBtn').addEventListener('click', openTemplateGallery);
 if ($('previewGalleryBtn')) $('previewGalleryBtn').addEventListener('click', openTemplateGallery);
+if ($('heroGalleryBtn')) $('heroGalleryBtn').addEventListener('click', openTemplateGallery);
+if ($('floatingGalleryBtn')) $('floatingGalleryBtn').addEventListener('click', openTemplateGallery);
+if ($('heroStudioBtn')) $('heroStudioBtn').addEventListener('click', () => openLayoutDesigner(null));
 if ($('closeGalleryModalBtn')) $('closeGalleryModalBtn').addEventListener('click', closeTemplateGallery);
+
+if ($('templateGalleryModal')) {
+  $('templateGalleryModal').addEventListener('click', (e) => {
+    if (e.target === $('templateGalleryModal')) closeTemplateGallery();
+  });
+}
 
 if ($('searchGalleryInput')) {
   $('searchGalleryInput').addEventListener('input', () => {
