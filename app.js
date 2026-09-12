@@ -2071,6 +2071,33 @@ function renderTemplatePicker(filter = currentCustomFilter || 'all') {
 
   let html = '';
 
+  // 1. Prominent Master Action Pills in Grid
+  if (filter === 'all' || filter === 'tamilnadu') {
+    html += `
+      <button type="button" class="template-pill-btn" id="gridSpecialTnBtn" style="background:#fef2f2;border:2px solid #b91c1c;box-shadow:0 2px 8px rgba(185,28,28,0.15);" title="1-Click Apply Tamil Nadu Material Supply Company Bill Format">
+        <span class="custom-badge-tag" style="background:#b91c1c;color:#fff;">⭐ TN Format</span>
+        <span style="font-size:15px;">🧱</span>
+        <div>
+          <strong style="color:#991b1b;">தமிழ்நாடு சப்ளை பில்</strong>
+          <span style="font-size:9.5px;color:#b91c1c;display:block;">Sri Balamurugan Format</span>
+        </div>
+      </button>
+    `;
+  }
+
+  if (filter === 'all') {
+    html += `
+      <button type="button" class="template-pill-btn" id="gridSpecialGalleryBtn" style="background:#eff6ff;border:2px solid #2563eb;box-shadow:0 2px 8px rgba(37,99,235,0.15);" title="View all visual designs in gallery">
+        <span class="custom-badge-tag" style="background:#2563eb;color:#fff;">👁️ Showcase</span>
+        <span style="font-size:15px;">🎨</span>
+        <div>
+          <strong style="color:#1d4ed8;">View 36+ Templates</strong>
+          <span style="font-size:9.5px;color:#2563eb;display:block;">Visual Designs Gallery</span>
+        </div>
+      </button>
+    `;
+  }
+
   // Render Built-in templates if matching filter
   Object.entries(TEMPLATES).forEach(([key, tpl]) => {
     if (filter === 'all' || filter === tpl.category) {
@@ -2121,6 +2148,18 @@ function renderTemplatePicker(filter = currentCustomFilter || 'all') {
   `;
 
   grid.innerHTML = html;
+
+  if ($('gridSpecialTnBtn')) {
+    $('gridSpecialTnBtn').addEventListener('click', () => {
+      setDocumentTemplate('tn_material_supply');
+      renderTemplatePicker('tamilnadu');
+      showToast('🧱 Applied Tamil Nadu Material Supply & Brick Company Bill Format!');
+    });
+  }
+
+  if ($('gridSpecialGalleryBtn')) {
+    $('gridSpecialGalleryBtn').addEventListener('click', openTemplateGallery);
+  }
 
   // Bind click handlers
   grid.querySelectorAll('.template-pill-btn[data-tpl]').forEach(btn => {
@@ -5636,8 +5675,19 @@ if ($('topGalleryBtn')) $('topGalleryBtn').addEventListener('click', openTemplat
 if ($('openTemplateGalleryBtn')) $('openTemplateGalleryBtn').addEventListener('click', openTemplateGallery);
 if ($('previewGalleryBtn')) $('previewGalleryBtn').addEventListener('click', openTemplateGallery);
 if ($('heroGalleryBtn')) $('heroGalleryBtn').addEventListener('click', openTemplateGallery);
+if ($('nearTemplateGalleryBtn')) $('nearTemplateGalleryBtn').addEventListener('click', openTemplateGallery);
 if ($('floatingGalleryBtn')) $('floatingGalleryBtn').addEventListener('click', openTemplateGallery);
+
+if ($('nearTemplateTnBtn')) {
+  $('nearTemplateTnBtn').addEventListener('click', () => {
+    setDocumentTemplate('tn_material_supply');
+    renderTemplatePicker('tamilnadu');
+    showToast('🧱 Applied Tamil Nadu Material Supply & Brick Company Bill Format!');
+  });
+}
+
 if ($('heroStudioBtn')) $('heroStudioBtn').addEventListener('click', () => openLayoutDesigner(null));
+if ($('nearTemplateStudioBtn')) $('nearTemplateStudioBtn').addEventListener('click', () => openLayoutDesigner(null));
 if ($('closeGalleryModalBtn')) $('closeGalleryModalBtn').addEventListener('click', closeTemplateGallery);
 
 if ($('templateGalleryModal')) {
